@@ -1,0 +1,68 @@
+import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import { Card, Col, Row } from 'react-bootstrap';
+import { Link } from '@inertiajs/react';
+
+const StatCard = ({ title, count, subtitle, icon, bgClass }: { title: string, count: string | number, subtitle: string, icon: string, bgClass: string }) => {
+    return (
+        <Card className={`text-white overflow-hidden ${bgClass} border-0 shadow-sm mb-0`} style={{ borderRadius: '0' }}>
+            <div className="p-3 position-relative">
+                <h3 className="text-white fw-bold mb-1 fs-32">{count}</h3>
+                <h5 className="text-white mb-1 fs-16">{title}</h5>
+                <p className="text-white-50 mb-0 fs-13">{subtitle}</p>
+                <div className="position-absolute opacity-25" style={{ top: '5px', right: '10px' }}>
+                    <IconifyIcon icon={icon} width="100" height="100" />
+                </div>
+            </div>
+            <Link href="#" className="text-white-50 text-center py-1 d-block" style={{ backgroundColor: 'rgba(0,0,0,0.1)', fontSize: '12px', textDecoration: 'none' }}>
+                รายละเอียด <IconifyIcon icon="tabler:arrow-right-circle" className="align-middle" />
+            </Link>
+        </Card>
+    );
+};
+
+const TopStatsRow = ({ stats }: { stats: any }) => {
+    const format = (val: any) => new Intl.NumberFormat().format(val || 0);
+
+    return (
+        <Row className="g-3 mb-3">
+            <Col xl={3} md={6}>
+                <StatCard 
+                    title="ผู้รับบริการวันนี้" 
+                    count={format(stats.opd.pt_opd_today)} 
+                    subtitle={`(เดือนนี้ ${format(stats.opd.ptm_opd_hn)} คน / ${format(stats.opd.ptm_opd_vn)} ครั้ง)`} 
+                    icon="tabler:stethoscope" 
+                    bgClass="bg-info" 
+                />
+            </Col>
+            <Col xl={3} md={6}>
+                <StatCard 
+                    title="Admit วันนี้" 
+                    count={format(stats.ipd.pt_ipd_today)} 
+                    subtitle={`(เดือนนี้ ${format(stats.ipd.ptm_ipd_hn)} คน / ${format(stats.ipd.ptm_ipd_an)} ครั้ง)`} 
+                    icon="tabler:bed-filled" 
+                    bgClass="bg-danger" 
+                />
+            </Col>
+            <Col xl={3} md={6}>
+                <StatCard 
+                    title="แพทย์แผนไทย วันนี้" 
+                    count={format(stats.ttm.pt_ttm_today)} 
+                    subtitle={`(เดือนนี้ ${format(stats.ttm.ptm_ttm_hn)} คน / ${format(stats.ttm.ptm_ttm_vn)} ครั้ง)`} 
+                    icon="tabler:hand-stop" 
+                    bgClass="bg-success" 
+                />
+            </Col>
+            <Col xl={3} md={6}>
+                <StatCard 
+                    title="ทันตกรรม วันนี้" 
+                    count={format(stats.dent.pt_dent_today)} 
+                    subtitle={`(เดือนนี้ ${format(stats.dent.ptm_dent_hn)} คน / ${format(stats.dent.ptm_dent_vn)} ครั้ง)`} 
+                    icon="tabler:quote" 
+                    bgClass="bg-warning" 
+                />
+            </Col>
+        </Row>
+    );
+};
+
+export default TopStatsRow;

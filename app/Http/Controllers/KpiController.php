@@ -1,0 +1,388 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Inertia\Inertia;
+use Illuminate\Http\Request;
+use App\Models\Kpi;
+use App\Models\Department;
+use App\Models\User;
+
+class KpiController extends Controller
+{
+    public function kpis(Request $request)
+    {
+        $user = auth()->user();
+        $userRole = $user->role ?? 'guest';
+        $userDeptId = $user->department_id;
+
+        // ปีงบประมาณไทย: เริ่ม 1 ต.ค. - 30 ก.ย.
+        $month = (int)date('n');
+        $currentFiscalYear = (int)date('Y') + ($month >= 10 ? 544 : 543);
+
+        // ใช้ปีจาก query param > session > default
+        if ($request->has('year')) {
+            $year = $request->query('year');
+            session(['kpi_selected_year' => (int)$year]);
+        } else {
+            $year = session('kpi_selected_year', $currentFiscalYear);
+        }
+
+        // ใช้หน่วยงานจาก query param > session > default
+        if ($request->has('department')) {
+            $selectedDepartment = $request->query('department', '');
+            session(['kpi_selected_department' => $selectedDepartment]);
+        } else {
+            $selectedDepartment = session('kpi_selected_department', '');
+        }
+
+        // ค่าเริ่มต้น: ถ้าไม่มีการเลือกหน่วยงาน ให้ใช้หน่วยงานของผู้ใช้ (ถ้ามี)
+        if (!$selectedDepartment && $userDeptId) {
+            $selectedDepartment = (string)$userDeptId;
+        }
+
+        // ข้อบังคับ: ถ้าไม่ใช่ Admin ให้ล็อกหน่วยงานตามสังกัดของผู้ใช้เท่านั้น
+        if ($userRole !== 'admin' && $userDeptId) {
+            $selectedDepartment = (string)$userDeptId;
+        }
+
+        $departmentsQuery = Department::active()->orderBy('dp_name');
+        
+        // กรองรายการหน่วยงานในช่องเลือก (Dropdown)
+        if ($userRole !== 'admin' && $userDeptId) {
+            $departmentsQuery->where('id', $userDeptId);
+        }
+        
+        $departments = $departmentsQuery->get(['id', 'dp_name']);
+
+        // ดึงข้อมูล KPI ตามปีและหน่วยงานที่เลือก
+        $query = Kpi::where('kpi_year', $year);
+        
+        if ($selectedDepartment) {
+            $query->where('department', $selectedDepartment);
+        } elseif ($userRole !== 'admin' && $userDeptId) {
+            // Fallback เพื่อความปลอดภัย
+            $query->where('department', $userDeptId);
+        }
+
+        $kpis = $query->with('responsibleUser')->get();
+
+        // คำนวณสถิติจาก kpi_status จริง (นับเฉพาะที่เปิดใช้งาน)
+        $activeKpis = $kpis->where('is_active', 'active');
+
+        $calcStats = function ($collection) {
+            $total  = $collection->count();
+            $passed = $collection->where('kpi_status', 'pass')->count();
+            $failed = $total - $passed; // รวม fail และ null (ยังไม่ประเมิน)
+            return ['total' => $total, 'passed' => $passed, 'failed' => $failed];
+        };
+
+        $stats = [
+            'total' => $calcStats($activeKpis),
+            'ap'    => $calcStats($activeKpis->where('kpi_type', 'AP')),
+            'qmp'   => $calcStats($activeKpis->where('kpi_type', 'QMP')),
+            'qp'    => $calcStats($activeKpis->where('kpi_type', 'QP')),
+        ];
+
+        return Inertia::render('kpis/index', [
+            'kpis' => $kpis,
+            'stats' => $stats,
+            'currentYear' => (int)$year,
+            'departments' => $departments,
+            'selectedDepartment' => $selectedDepartment,
+            'userRole' => $userRole,
+        ]);
+    }
+
+    public function kpisDetails(Request $request)
+    {
+        $id = $request->query('id');
+        $kpi = Kpi::findOrFail($id);
+        $departments = Department::active()
+            ->orderBy('dp_name')
+            ->get(['id', 'dp_name']);
+        $users = User::orderBy('name')->get(['id', 'name']);
+
+        return Inertia::render('kpis/view-kpi/index', [
+            'kpi' => $kpi,
+            'departments' => $departments,
+            'users' => $users
+        ]);
+    }
+
+    public function kpisAdd()
+    {
+        $departments = Department::active()
+            ->orderBy('dp_name')
+            ->get(['id', 'dp_name']);
+            
+        $users = User::orderBy('name')->get(['id', 'name']);
+        
+        // Auto-increment KPI Code
+        $lastKpi = Kpi::orderBy('id', 'desc')->first();
+        $nextKpiCode = 'KPI-001';
+        if ($lastKpi && $lastKpi->kpi_code) {
+            // Assuming format KPI-XXX
+            $parts = explode('-', $lastKpi->kpi_code);
+            if (count($parts) > 1 && is_numeric($parts[1])) {
+                $num = intval($parts[1]) + 1;
+                $nextKpiCode = 'KPI-' . str_pad($num, 3, '0', STR_PAD_LEFT);
+            }
+        }
+
+        return Inertia::render('kpis/create-kpi/index', [
+            'departments' => $departments,
+            'nextKpiCode' => $nextKpiCode,
+            'users' => $users
+        ]);
+    }
+
+    public function kpisStore(Request $request)
+    {
+        $data = $request->validate([
+            'kpiCode' => 'required',
+            'department' => 'nullable',
+            'kpiNameTh' => 'required',
+            'kpiNameEn' => 'nullable',
+            'description' => 'nullable',
+            'objective' => 'nullable',
+            'formulaA' => 'nullable',
+            'formulaB' => 'nullable',
+            'formulaC' => 'nullable',
+            'source' => 'nullable',
+            'unit' => 'nullable',
+            'interpretation' => 'nullable',
+            'kpiType' => 'nullable',
+            'dataAcquisition' => 'nullable',
+            'reportingPeriod' => 'nullable',
+            'baselineYear1' => 'nullable|numeric',
+            'baselineYear2' => 'nullable|numeric',
+            'baselineYear3' => 'nullable|numeric',
+            'targetValue' => 'nullable|numeric',
+            'targetDirection' => 'nullable|string',
+            'weight' => 'nullable|numeric',
+            'responsiblePerson' => 'nullable',
+            'isActive' => 'nullable|string',
+            'publishLevel' => 'nullable|string',
+        ]);
+
+        $dbData = [
+            'kpi_code' => $data['kpiCode'],
+            'department' => $data['department'] ?? null,
+            'kpi_name_th' => $data['kpiNameTh'],
+            'kpi_name_en' => $data['kpiNameEn'] ?? null,
+            'description' => $data['description'] ?? null,
+            'objective' => $data['objective'] ?? null,
+            'formula_a' => $data['formulaA'] ?? null,
+            'formula_b' => $data['formulaB'] ?? null,
+            'formula_c' => $data['formulaC'] ?? null,
+            'source' => $data['source'] ?? null,
+            'unit' => $data['unit'] ?? null,
+            'interpretation' => $data['interpretation'] ?? null,
+            'kpi_type' => $data['kpiType'] ?? null,
+            'data_acquisition' => $data['dataAcquisition'] ?? null,
+            'reporting_period' => $data['reportingPeriod'] ?? null,
+            'baseline_year_1' => $data['baselineYear1'] ?? null,
+            'baseline_year_2' => $data['baselineYear2'] ?? null,
+            'baseline_year_3' => $data['baselineYear3'] ?? null,
+            'target_value' => $data['targetValue'] ?? null,
+            'target_direction' => $data['targetDirection'] ?? 'up',
+            'weight' => $data['weight'] ?? null,
+            'responsible_person' => $data['responsiblePerson'] ?? null,
+            'is_active' => $data['isActive'] ?? 'active',
+            'publish_level' => $data['publishLevel'] ?? 'level4',
+            'kpi_year' => date('Y') + 543,
+        ];
+
+        Kpi::create($dbData);
+
+        return redirect($this->kpiRedirectUrl());
+    }
+
+    public function kpisEdit($id)
+    {
+        $kpi = Kpi::findOrFail($id);
+        $departments = Department::active()
+            ->orderBy('dp_name')
+            ->get(['id', 'dp_name']);
+            
+        $users = User::orderBy('name')->get(['id', 'name']);
+            
+        return Inertia::render('kpis/edit-kpi/index', [
+            'kpi' => $kpi,
+            'departments' => $departments,
+            'users' => $users
+        ]);
+    }
+
+    public function generateCode(Request $request)
+    {
+        $kpiType = $request->query('kpi_type', 'AP');
+        $departmentId = $request->query('department_id', '0');
+
+        $prefix = "{$kpiType}-{$departmentId}";
+
+        $lastKpi = Kpi::where('kpi_code', 'like', "{$prefix}-%")
+            ->orderBy('kpi_code', 'desc')
+            ->first();
+
+        $nextNumber = 1;
+        if ($lastKpi && $lastKpi->kpi_code) {
+            $parts = explode('-', $lastKpi->kpi_code);
+            // AP-708-01 -> parts[0] = AP, parts[1] = 708, parts[2] = 01
+            if (count($parts) >= 3 && is_numeric(end($parts))) {
+                $nextNumber = intval(end($parts)) + 1;
+            }
+        }
+
+        $nextKpiCode = "{$prefix}-" . str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
+
+        return response()->json(['code' => $nextKpiCode]);
+    }
+
+    public function kpisUpdate(Request $request, $id)
+    {
+        $kpi = Kpi::findOrFail($id);
+
+        $data = $request->validate([
+            'kpiCode' => 'required',
+            'department' => 'nullable',
+            'kpiNameTh' => 'required',
+            'kpiNameEn' => 'nullable',
+            'description' => 'nullable',
+            'objective' => 'nullable',
+            'formulaA' => 'nullable',
+            'formulaB' => 'nullable',
+            'formulaC' => 'nullable',
+            'source' => 'nullable',
+            'unit' => 'nullable',
+            'interpretation' => 'nullable',
+            'kpiType' => 'nullable',
+            'dataAcquisition' => 'nullable',
+            'reportingPeriod' => 'nullable',
+            'baselineYear1' => 'nullable|numeric',
+            'baselineYear2' => 'nullable|numeric',
+            'baselineYear3' => 'nullable|numeric',
+            'targetValue' => 'nullable|numeric',
+            'targetDirection' => 'nullable|string',
+            'weight' => 'nullable|numeric',
+            'responsiblePerson' => 'nullable',
+            'isActive' => 'nullable|string',
+            'publishLevel' => 'nullable|string',
+        ]);
+
+        $kpi->update([
+            'kpi_code' => $data['kpiCode'],
+            'department' => $data['department'] ?? null,
+            'kpi_name_th' => $data['kpiNameTh'],
+            'kpi_name_en' => $data['kpiNameEn'] ?? null,
+            'description' => $data['description'] ?? null,
+            'objective' => $data['objective'] ?? null,
+            'formula_a' => $data['formulaA'] ?? null,
+            'formula_b' => $data['formulaB'] ?? null,
+            'formula_c' => $data['formulaC'] ?? null,
+            'source' => $data['source'] ?? null,
+            'unit' => $data['unit'] ?? null,
+            'interpretation' => $data['interpretation'] ?? null,
+            'kpi_type' => $data['kpiType'] ?? null,
+            'data_acquisition' => $data['dataAcquisition'] ?? null,
+            'reporting_period' => $data['reportingPeriod'] ?? null,
+            'baseline_year_1' => $data['baselineYear1'] ?? null,
+            'baseline_year_2' => $data['baselineYear2'] ?? null,
+            'baseline_year_3' => $data['baselineYear3'] ?? null,
+            'target_value' => $data['targetValue'] ?? null,
+            'target_direction' => $data['targetDirection'] ?? 'up',
+            'weight' => $data['weight'] ?? null,
+            'responsible_person' => $data['responsiblePerson'] ?? null,
+            'is_active' => $data['isActive'] ?? 'active',
+            'publish_level' => $data['publishLevel'] ?? 'level4',
+        ]);
+
+        return redirect($this->kpiRedirectUrl());
+    }
+
+    public function kpisDestroy($id)
+    {
+        $kpi = Kpi::findOrFail($id);
+        $kpi->delete();
+        return redirect($this->kpiRedirectUrl());
+    }
+
+    private function kpiRedirectUrl(): string
+    {
+        $year = session('kpi_selected_year', date('Y') + 543);
+        $dept = session('kpi_selected_department', '');
+        $url = '/kpis?year=' . $year;
+        if ($dept) {
+            $url .= '&department=' . $dept;
+        }
+        return $url;
+    }
+
+    public function updateMonthlyData(Request $request, $id)
+    {
+        $kpi = Kpi::findOrFail($id);
+        
+        $rules = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $rules["m$i"] = 'nullable|numeric';
+            $rules["m{$i}_status"] = 'nullable|string';
+        }
+        for ($i = 1; $i <= 4; $i++) {
+            $rules["q$i"] = 'nullable|numeric';
+            $rules["q{$i}_status"] = 'nullable|string';
+        }
+        $rules['annual_result'] = 'nullable|numeric';
+        $rules['annual_status'] = 'nullable|string';
+        
+        $data = $request->validate($rules);
+
+        // หาค่าจากเดือนสุดท้าย หรืองวดสุดท้ายที่มีการกรอกข้อมูล
+        $latestValue = null;
+
+        // ตรวจสอบรายเดือน (m12 ย้อนกลับไป m1)
+        for ($i = 12; $i >= 1; $i--) {
+            if (isset($data["m$i"]) && ($data["m$i"] !== null && $data["m$i"] !== '')) {
+                $latestValue = $data["m$i"];
+                break;
+            }
+        }
+
+        // ถ้าไม่มีรายเดือน ให้ตรวจสอบรายงวด (q4 ย้อนกลับไป q1)
+        if ($latestValue === null) {
+            for ($i = 4; $i >= 1; $i--) {
+                if (isset($data["q$i"]) && ($data["q$i"] !== null && $data["q$i"] !== '')) {
+                    $latestValue = $data["q$i"];
+                    break;
+                }
+            }
+        }
+
+        // ถ้ายังไม่มี ให้ตรวจสอบผลรวมรายปี
+        if ($latestValue === null) {
+            if (isset($data['annual_result']) && ($data['annual_result'] !== null && $data['annual_result'] !== '')) {
+                $latestValue = $data['annual_result'];
+            }
+        }
+
+        // อัปเดตฟิลด์ result และ kpi_status
+        if ($latestValue !== null) {
+            $data['result'] = $latestValue;
+            
+            $target = $kpi->target_value;
+            $direction = $kpi->target_direction ?? 'up';
+            
+            if ($target !== null) {
+                if ($direction === 'up') {
+                    $data['kpi_status'] = ($latestValue >= $target) ? 'pass' : 'fail';
+                } else {
+                    $data['kpi_status'] = ($latestValue <= $target) ? 'pass' : 'fail';
+                }
+            }
+        }
+        
+        $kpi->update($data);
+        
+        return redirect()->back()->with('success', 'บันทึกข้อมูลผลงานเรียบร้อยแล้ว');
+    }
+}

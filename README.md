@@ -1,6 +1,6 @@
 # HOS-info V2
 
-ระบบรายงานและจัดการข้อมูลตัวชี้วัด (KPI Management System) พัฒนาด้วย Laravel 11, Inertia.js และ React.
+ระบบรายงานและจัดการข้อมูลตัวชี้วัด (KPI Management System) พัฒนาด้วย Laravel 12, Inertia.js และ React.
 
 ## การใช้งานด้วย Docker
 
@@ -31,6 +31,7 @@
    ```
 4. **ติดตั้ง Dependencies และตั้งค่าระบบ** (รันครั้งแรก)
    ```bash
+   docker-compose exec app composer install
    docker-compose exec app php artisan key:generate
    docker-compose exec app php artisan storage:link
    docker-compose exec app php artisan migrate --seed

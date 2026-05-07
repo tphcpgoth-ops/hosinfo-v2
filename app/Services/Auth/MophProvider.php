@@ -16,8 +16,7 @@ class MophProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getAuthUrl($state)
     {
-        // Mock Auth URL for MOPH ProviderID
-        return $this->buildAuthUrlFromBase('https://id.moph.go.th/api/v1/oauth2/auth', $state);
+        return $this->buildAuthUrlFromBase('https://moph.id.th/oauth/redirect', $state);
     }
 
     /**

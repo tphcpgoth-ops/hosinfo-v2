@@ -63,6 +63,7 @@ class UserController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|string|in:admin,head,user,guest',
             'department_id' => 'nullable|exists:departments,id',
+            'is_active' => 'required|boolean',
         ]);
 
         User::create([
@@ -71,6 +72,7 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'department_id' => $request->department_id,
+            'is_active' => $request->is_active,
         ]);
 
         return redirect()->route('users.index')->with('success', 'เพิ่มผู้ใช้สำเร็จ');
@@ -122,6 +124,7 @@ class UserController extends Controller
             'role' => 'required|string|in:admin,head,user,guest',
             'department_id' => 'nullable|exists:departments,id',
             'password' => 'nullable|string|min:8|confirmed',
+            'is_active' => 'required|boolean',
         ]);
 
         $data = [
@@ -133,6 +136,7 @@ class UserController extends Controller
             $data['email'] = $request->email;
             $data['role'] = $request->role;
             $data['department_id'] = $request->department_id;
+            $data['is_active'] = $request->is_active;
         }
 
         if ($request->filled('password')) {

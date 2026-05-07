@@ -67,6 +67,13 @@ export const MENU_ITEMS: MenuItemType[] = [
         url: '/users',
         roles: ['admin'],
     },
+    {
+        key: 'departments',
+        label: 'จัดการหน่วยงาน/แผนก',
+        icon: 'tabler:building-hospital',
+        url: '/departments',
+        roles: ['admin'],
+    },
 ];
 
 export const HORIZONTAL_MENU_ITEM: MenuItemType[] = [

@@ -26,6 +26,7 @@ class User extends Authenticatable
         'thaid_id',
         'pid',
         'moph_id',
+        'is_active',
     ];
 
     /**

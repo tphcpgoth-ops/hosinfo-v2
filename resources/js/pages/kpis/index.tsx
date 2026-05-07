@@ -345,12 +345,10 @@ const KpisPage = ({
                                         kpi.kpi_code,
                                         kpi.id, 
                                         kpi.kpi_name_th,
-                                        kpi.reporting_period || '-',
                                         kpi.unit || '-',
                                         `${kpi.target_direction === 'up' ? '>= ' : '<= '} ${kpi.target_value || '0'} (${kpi.target_direction === 'up' ? 'สูงดี' : 'ต่ำดี'})`,
                                         kpi, 
-                                        kpi, 
-                                        kpi, 
+                                        kpi,
                                         kpi.responsible_user?.name || '-',
                                         kpi.id, 
                                     ])}
@@ -358,7 +356,7 @@ const KpisPage = ({
                                         {
                                             name: 'รหัส',
                                             formatter: (val, row) => {
-                                                const kpi = row.cells[6].data;
+                                                const kpi = row.cells[5].data;
                                                 const isInactive = kpi.is_active === 'inactive';
                                                 return html(`<span style="${isInactive ? 'color: red; text-decoration: line-through;' : ''}">${val}</span>`);
                                             }
@@ -377,7 +375,7 @@ const KpisPage = ({
                                             name: 'ตัวชี้วัด', 
                                             width: '400px',
                                             formatter: (name, row) => {
-                                                const kpi = row.cells[6].data;
+                                                const kpi = row.cells[5].data;
                                                 const isInactive = kpi.is_active === 'inactive';
                                                 const textStyle = isInactive ? 'color: red; text-decoration: line-through;' : '';
                                                 return html(
@@ -390,18 +388,9 @@ const KpisPage = ({
                                             }
                                         },
                                         {
-                                            name: 'ความถี่',
-                                            width: '120px',
-                                            formatter: (val, row) => {
-                                                const kpi = row.cells[6].data;
-                                                const isInactive = kpi.is_active === 'inactive';
-                                                return html(`<div class="text-wrap" style="${isInactive ? 'color: red; text-decoration: line-through;' : ''}">${val}</div>`);
-                                            }
-                                        },
-                                        {
                                             name: 'หน่วยวัด',
                                             formatter: (val, row) => {
-                                                const kpi = row.cells[6].data;
+                                                const kpi = row.cells[5].data;
                                                 const isInactive = kpi.is_active === 'inactive';
                                                 return html(`<span style="${isInactive ? 'color: red; text-decoration: line-through;' : ''}">${val}</span>`);
                                             }
@@ -409,7 +398,7 @@ const KpisPage = ({
                                         {
                                             name: 'เป้าหมาย',
                                             formatter: (val, row) => {
-                                                const kpi = row.cells[6].data;
+                                                const kpi = row.cells[5].data;
                                                 const isInactive = kpi.is_active === 'inactive';
                                                 return html(`<span style="${isInactive ? 'color: red; text-decoration: line-through;' : ''}">${val}</span>`);
                                             }
@@ -423,19 +412,6 @@ const KpisPage = ({
                                                         ${isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
                                                     </span>`
                                                 );
-                                            }
-                                        },
-                                        {
-                                            name: 'เผยแพร่',
-                                            formatter: (kpi: any) => {
-                                                const levels: any = {
-                                                    'level1': { text: 'หัวหน้า', class: 'bg-danger' },
-                                                    'level2': { text: 'MIS', class: 'bg-warning text-dark' },
-                                                    'level3': { text: 'เจ้าหน้าที่', class: 'bg-primary' },
-                                                    'level4': { text: 'สาธารณะ', class: 'bg-success' }
-                                                };
-                                                const level = levels[kpi.publish_level] || levels['level4'];
-                                                return html(`<span class="badge ${level.class} rounded-pill">${level.text}</span>`);
                                             }
                                         },
                                         {

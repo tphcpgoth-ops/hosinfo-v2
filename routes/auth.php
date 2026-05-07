@@ -71,7 +71,7 @@ Route::middleware('guest')->group(function () {
     // MOPH ProviderID Routes
     Route::get('auth/moph/redirect', [\App\Http\Controllers\Auth\MophAuthController::class, 'redirect'])
         ->name('moph.redirect');
-    Route::get('auth/moph/callback', [\App\Http\Controllers\Auth\MophAuthController::class, 'callback'])
+    Route::any('auth/moph/callback', [\App\Http\Controllers\Auth\MophAuthController::class, 'callback'])
         ->name('moph.callback');
 });
 

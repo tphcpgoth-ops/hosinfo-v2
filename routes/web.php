@@ -49,6 +49,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/kpis/{id}/monthly', [KpiController::class, 'updateMonthlyData']);
     Route::get('/users/profile', [\App\Http\Controllers\UserController::class, 'profile'])->name('users.profile');
     Route::resource('users', \App\Http\Controllers\UserController::class);
+    Route::resource('departments', \App\Http\Controllers\DepartmentController::class);
     
     Route::middleware(['admin'])->group(function () {
         // Other admin-only routes can go here

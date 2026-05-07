@@ -20,6 +20,14 @@ const TopNavigationBarPage = () => {
                     <LogoBox />
                     <LeftSideBarToggle />
                     <HorizontalToggle />
+                    <a 
+                        href="https://mis40.tphcp.go.th/mis40" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="btn btn-outline-primary btn-sm ms-2"
+                    >
+                        MIS 4.0
+                    </a>
                     <div
                         className="topbar-search text-muted d-none d-xl-flex gap-2 align-items-center"
                         data-bs-toggle="modal"

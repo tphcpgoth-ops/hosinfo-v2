@@ -23,4 +23,7 @@ yarn-error.log
 /.vscode
 /.zed
 
+/hosinfo_v2_production.zip
+/.gemini
+
 ./idea

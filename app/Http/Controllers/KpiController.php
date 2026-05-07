@@ -101,7 +101,11 @@ class KpiController extends Controller
         $departments = Department::active()
             ->orderBy('dp_name')
             ->get(['id', 'dp_name']);
-        $users = User::orderBy('name')->get(['id', 'name']);
+        $usersQuery = User::where('is_active', true)->orderBy('name');
+        if (auth()->user()->role !== 'admin' && auth()->user()->department_id) {
+            $usersQuery->where('department_id', auth()->user()->department_id);
+        }
+        $users = $usersQuery->get(['id', 'name']);
 
         return Inertia::render('kpis/view-kpi/index', [
             'kpi' => $kpi,
@@ -116,7 +120,11 @@ class KpiController extends Controller
             ->orderBy('dp_name')
             ->get(['id', 'dp_name']);
             
-        $users = User::orderBy('name')->get(['id', 'name']);
+        $usersQuery = User::where('is_active', true)->orderBy('name');
+        if (auth()->user()->role !== 'admin' && auth()->user()->department_id) {
+            $usersQuery->where('department_id', auth()->user()->department_id);
+        }
+        $users = $usersQuery->get(['id', 'name']);
         
         // Auto-increment KPI Code
         $lastKpi = Kpi::orderBy('id', 'desc')->first();
@@ -206,7 +214,11 @@ class KpiController extends Controller
             ->orderBy('dp_name')
             ->get(['id', 'dp_name']);
             
-        $users = User::orderBy('name')->get(['id', 'name']);
+        $usersQuery = User::where('is_active', true)->orderBy('name');
+        if (auth()->user()->role !== 'admin' && auth()->user()->department_id) {
+            $usersQuery->where('department_id', auth()->user()->department_id);
+        }
+        $users = $usersQuery->get(['id', 'name']);
             
         return Inertia::render('kpis/edit-kpi/index', [
             'kpi' => $kpi,

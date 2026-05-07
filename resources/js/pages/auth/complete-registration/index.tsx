@@ -6,6 +6,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { Button, Card, Col, Form, Row } from 'react-bootstrap';
 import { DepartmentType } from '@/types/data';
 import { FormEvent } from 'react';
+import Select from 'react-select';
 
 type CompleteRegistrationProps = {
     departments: DepartmentType[];
@@ -15,6 +16,11 @@ const CompleteRegistrationPage = ({ departments }: CompleteRegistrationProps) =>
     const { data, setData, post, processing, errors } = useForm({
         department_id: '',
     });
+
+    const deptOptions = departments.map((dept: any) => ({
+        value: dept.id,
+        label: dept.dp_name || dept.name, // Handle possible naming differences
+    }));
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
@@ -40,20 +46,15 @@ const CompleteRegistrationPage = ({ departments }: CompleteRegistrationProps) =>
                             <Form onSubmit={submit} className="text-start mb-3">
                                 <Form.Group className="mb-3">
                                     <Form.Label htmlFor="department_id">แผนก/หน่วยงาน <span className="text-danger">*</span></Form.Label>
-                                    <Form.Select
-                                        id="department_id"
-                                        value={data.department_id}
-                                        onChange={(e) => setData('department_id', e.target.value)}
-                                        isInvalid={!!errors.department_id}
-                                    >
-                                        <option value="">-- เลือกแผนก --</option>
-                                        {departments.map((dept) => (
-                                            <option key={dept.id} value={dept.id}>
-                                                {dept.name}
-                                            </option>
-                                        ))}
-                                    </Form.Select>
-                                    {errors.department_id && <Form.Control.Feedback type="invalid">{errors.department_id}</Form.Control.Feedback>}
+                                    <Select
+                                        classNamePrefix="react-select"
+                                        options={deptOptions}
+                                        value={deptOptions.find((opt: any) => opt.value === data.department_id) || null}
+                                        onChange={(opt: any) => setData('department_id', opt ? opt.value : '')}
+                                        placeholder="ค้นหาหรือเลือกแผนก..."
+                                        isClearable
+                                    />
+                                    {errors.department_id && <div className="text-danger fs-13 mt-1">{errors.department_id}</div>}
                                 </Form.Group>
 
                                 <div className="d-grid">

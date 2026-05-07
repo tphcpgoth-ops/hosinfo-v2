@@ -13,7 +13,7 @@ interface Dashboard2Props {
 const Dashboard2Page = ({ stats, wards }: Dashboard2Props) => {
     return (
         <MainLayout>
-            <Head title="HOS-info Dashboard" />
+            <Head title="Dashboard" />
 
             <Row className="mt-3 mb-3">
                 <Col xs={12}>

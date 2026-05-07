@@ -8,28 +8,23 @@ import Swal from 'sweetalert2';
 import { Grid, _ } from 'gridjs-react';
 import { html } from 'gridjs';
 
-interface User {
+interface Department {
     id: number;
-    name: string;
-    email: string;
-    role: string;
-    department?: {
-        dp_name: string;
-    };
-    is_active: boolean;
+    dp_name: string;
+    dp_status: number;
 }
 
 interface Props {
-    users: User[];
+    departments: Department[];
 }
 
-const UsersPage = ({ users }: Props) => {
+const DepartmentsPage = ({ departments }: Props) => {
     const { props } = usePage();
 
     const handleDelete = (id: number, name: string) => {
         Swal.fire({
             title: 'คุณแน่ใจหรือไม่?',
-            text: `ต้องการลบผู้ใช้ ${name} ใช่หรือไม่?`,
+            text: `ต้องการลบหน่วยงาน/แผนก ${name} ใช่หรือไม่?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -38,9 +33,13 @@ const UsersPage = ({ users }: Props) => {
             cancelButtonText: 'ยกเลิก',
         }).then((result) => {
             if (result.isConfirmed) {
-                router.delete(route('users.destroy', id), {
-                    onSuccess: () => {
-                        Swal.fire('ลบสำเร็จ!', 'ผู้ใช้ถูกลบเรียบร้อยแล้ว.', 'success');
+                router.delete(route('departments.destroy', id), {
+                    onSuccess: (page) => {
+                        if (page.props.flash && (page.props.flash as any).error) {
+                            // Error is handled by flash messages automatically
+                        } else {
+                            Swal.fire('ลบสำเร็จ!', 'หน่วยงานถูกลบเรียบร้อยแล้ว.', 'success');
+                        }
                     },
                 });
             }
@@ -50,38 +49,35 @@ const UsersPage = ({ users }: Props) => {
     // Expose handlers to window for GridJs html buttons
     useEffect(() => {
         (window as any).__inertiaRouter = router;
-        (window as any).deleteUser = (id: number, name: string) => handleDelete(id, name);
+        (window as any).deleteDepartment = (id: number, name: string) => handleDelete(id, name);
         
         return () => {
             delete (window as any).__inertiaRouter;
-            delete (window as any).deleteUser;
+            delete (window as any).deleteDepartment;
         };
-    }, [users]);
+    }, [departments]);
 
     return (
         <MainLayout>
-            <PageTitle title="จัดการผู้ใช้งาน" subTitle="ระบบจัดการ" />
+            <PageTitle title="จัดการหน่วยงาน/แผนก" subTitle="ระบบจัดการ" />
             <Row>
                 <Col xs={12}>
                     <Card>
                         <div className="card-header d-flex align-items-center justify-content-between border-bottom border-light">
-                            <h4 className="header-title">รายชื่อผู้ใช้งาน</h4>
+                            <h4 className="header-title">รายชื่อหน่วยงาน/แผนก</h4>
                             <div>
-                                <Link href={route('users.create')} className="btn btn-success bg-gradient">
-                                    <IconifyIcon icon="tabler:plus" className="me-1" /> เพิ่มผู้ใช้งาน
+                                <Link href={route('departments.create')} className="btn btn-success bg-gradient">
+                                    <IconifyIcon icon="tabler:plus" className="me-1" /> เพิ่มหน่วยงาน
                                 </Link>
                             </div>
                         </div>
                         
                         <Grid
-                            data={users.map((user, idx) => [
-                                idx + 1,
-                                user.name,
-                                user.email,
-                                user.department?.dp_name || '-',
-                                user.role,
-                                user.is_active,
-                                user
+                            data={departments.map((dept) => [
+                                dept.id,
+                                dept.dp_name,
+                                dept.dp_status,
+                                dept
                             ])}
                             columns={[
                                 {
@@ -89,37 +85,14 @@ const UsersPage = ({ users }: Props) => {
                                     width: '80px',
                                 },
                                 {
-                                    name: 'ชื่อ-นามสกุล',
-                                },
-                                {
-                                    name: 'อีเมล',
-                                },
-                                {
-                                    name: 'หน่วยงาน/แผนก',
-                                },
-                                {
-                                    name: 'บทบาท (Role)',
-                                    formatter: (role: string) => {
-                                        const roleColors: Record<string, string> = {
-                                            admin: 'danger',
-                                            head: 'primary',
-                                            user: 'success',
-                                        };
-                                        const color = roleColors[role] || 'secondary';
-                                        
-                                        return html(
-                                            `<span class="badge bg-${color}">
-                                                ${role}
-                                            </span>`
-                                        );
-                                    }
+                                    name: 'ชื่อหน่วยงาน/แผนก',
                                 },
                                 {
                                     name: 'สถานะ',
-                                    formatter: (isActive: boolean) => {
+                                    formatter: (status: any) => {
                                         return html(
-                                            `<span class="badge bg-${isActive ? 'success' : 'danger'}">
-                                                ${isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+                                            `<span class="badge bg-${status === 1 ? 'success' : 'danger'}">
+                                                ${status === 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
                                             </span>`
                                         );
                                     }
@@ -127,19 +100,19 @@ const UsersPage = ({ users }: Props) => {
                                 {
                                     name: 'จัดการ',
                                     width: '150px',
-                                    formatter: (user: any) => {
+                                    formatter: (dept: any) => {
                                         return html(
                                             `<div class="hstack gap-1 justify-content-center">
                                                 <button 
                                                     class="btn btn-sm btn-soft-success btn-icon rounded-circle" 
-                                                    onclick="event.preventDefault(); window.__inertiaRouter.visit('/users/${user.id}/edit')"
+                                                    onclick="event.preventDefault(); window.__inertiaRouter.visit('/departments/${dept.id}/edit')"
                                                     title="แก้ไข"
                                                 >
                                                     <iconify-icon icon="tabler:edit" class="fs-16"></iconify-icon>
                                                 </button>
                                                 <button 
                                                     class="btn btn-sm btn-soft-danger btn-icon rounded-circle" 
-                                                    onclick="deleteUser(${user.id}, '${user.name}')"
+                                                    onclick="deleteDepartment(${dept.id}, '${dept.dp_name}')"
                                                     title="ลบ"
                                                 >
                                                     <iconify-icon icon="tabler:trash" class="fs-16"></iconify-icon>
@@ -164,7 +137,7 @@ const UsersPage = ({ users }: Props) => {
                                     'showing': 'แสดง',
                                     'results': () => 'รายการ'
                                 },
-                                'noRecordsFound': 'ไม่พบรายชื่อผู้ใช้งาน'
+                                'noRecordsFound': 'ไม่พบข้อมูลหน่วยงาน/แผนก'
                             }}
                             className={{
                                 table: 'table table-hover align-middle mb-0',
@@ -179,4 +152,4 @@ const UsersPage = ({ users }: Props) => {
     );
 };
 
-export default UsersPage;
+export default DepartmentsPage;

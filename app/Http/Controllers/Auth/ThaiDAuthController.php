@@ -33,10 +33,8 @@ class ThaiDAuthController extends Controller
             return redirect('/auth/login')->withErrors(['error' => 'การเข้าสู่ระบบด้วย ThaiD ล้มเหลว กรุณาลองใหม่อีกครั้ง']);
         }
 
-        // Find existing user by PID or ThaiD ID
-        $user = User::where('pid', $thaidUser->getId())
-                    ->orWhere('thaid_id', $thaidUser->getId())
-                    ->first();
+        // Find existing user by ThaiD ID
+        $user = User::where('thaid_id', $thaidUser->getId())->first();
 
         $isNewUser = false;
 
@@ -44,17 +42,17 @@ class ThaiDAuthController extends Controller
             // Create a new user
             $user = User::create([
                 'name' => $thaidUser->getName(),
-                'pid' => $thaidUser->getId(),
+                'email' => $thaidUser->getId() . '@thaid.local', // Dummy email since ThaiD doesn't provide one
+                'password' => bcrypt(\Illuminate\Support\Str::random(16)),
                 'thaid_id' => $thaidUser->getId(),
                 'role' => 'user', // default role
-                // password is not required since they use ThaiD
             ]);
             $isNewUser = true;
-        } else {
-            // Update thaid_id if they previously registered without it but PID matches
-            if (!$user->thaid_id) {
-                $user->update(['thaid_id' => $thaidUser->getId()]);
-            }
+        }
+        
+        // Check if user account is disabled
+        if (!$user->is_active) {
+            return redirect('/auth/login')->withErrors(['error' => 'บัญชีผู้ใช้งานของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ']);
         }
 
         Auth::login($user);

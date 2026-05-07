@@ -1,7 +1,7 @@
 import PageTitle from '@/components/PageTitle';
 import MainLayout from '@/layouts/MainLayout';
 import { Link, useForm, usePage } from '@inertiajs/react';
-import { Button, Card, CardBody, CardHeader, CardTitle, Col, Row } from 'react-bootstrap';
+import { Button, Card, CardBody, CardHeader, CardTitle, Col, Row, Form } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import Select from 'react-select';
 
@@ -13,6 +13,7 @@ const CreateUserPage = () => {
         password_confirmation: '',
         role: 'user',
         department_id: '',
+        is_active: true,
     });
 
     const { departments } = usePage().props as any;
@@ -87,6 +88,31 @@ const CreateUserPage = () => {
                                             <option value="guest">Guest</option>
                                         </select>
                                         {errors.role && <div className="invalid-feedback">{errors.role}</div>}
+                                    </Col>
+
+                                    <Col md={6}>
+                                        <label className="form-label">สถานะการใช้งาน</label>
+                                        <div>
+                                            <Form.Check
+                                                inline
+                                                type="radio"
+                                                id="status-active"
+                                                label="เปิดใช้งาน"
+                                                name="is_active"
+                                                checked={data.is_active === true}
+                                                onChange={() => setData('is_active', true)}
+                                            />
+                                            <Form.Check
+                                                inline
+                                                type="radio"
+                                                id="status-inactive"
+                                                label="ปิดใช้งาน"
+                                                name="is_active"
+                                                checked={data.is_active === false}
+                                                onChange={() => setData('is_active', false)}
+                                            />
+                                        </div>
+                                        {errors.is_active && <div className="text-danger fs-13 mt-1">{errors.is_active}</div>}
                                     </Col>
 
                                     <Col md={6}>

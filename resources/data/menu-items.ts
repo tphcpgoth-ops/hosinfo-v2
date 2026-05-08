@@ -28,7 +28,7 @@ export const MENU_ITEMS: MenuItemType[] = [
             },
             {
                 key: 'kpis',
-                label: 'รายการตัวชี้วัด',
+                label: 'จัดการตัวชี้วัด',
                 url: '/kpis',
                 parentKey: 'kpi',
                 roles: ['admin', 'head', 'user'],

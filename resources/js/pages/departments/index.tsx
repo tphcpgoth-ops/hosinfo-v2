@@ -12,6 +12,7 @@ interface Department {
     id: number;
     dp_name: string;
     dp_status: number;
+    dp_type: number;
 }
 
 interface Props {
@@ -76,6 +77,7 @@ const DepartmentsPage = ({ departments }: Props) => {
                             data={departments.map((dept) => [
                                 dept.id,
                                 dept.dp_name,
+                                dept.dp_type,
                                 dept.dp_status,
                                 dept
                             ])}
@@ -86,6 +88,16 @@ const DepartmentsPage = ({ departments }: Props) => {
                                 },
                                 {
                                     name: 'ชื่อหน่วยงาน/แผนก',
+                                },
+                                {
+                                    name: 'ประเภท',
+                                    formatter: (type: any) => {
+                                        return html(
+                                            `<span class="badge bg-info-subtle text-info border border-info-subtle">
+                                                ${type === 2 ? 'คล่อมสายงาน' : 'หน่วยงาน'}
+                                            </span>`
+                                        );
+                                    }
                                 },
                                 {
                                     name: 'สถานะ',

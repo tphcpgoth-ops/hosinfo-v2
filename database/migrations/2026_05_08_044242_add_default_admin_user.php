@@ -15,7 +15,7 @@ return new class extends Migration
         DB::table('users')->updateOrInsert(
             ['email' => 'admin@local.com'],
             [
-                'id' => 5,
+                'id' => 1,
                 'name' => 'Admin',
                 'role' => 'admin',
                 'is_active' => 1,

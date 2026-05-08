@@ -8,6 +8,7 @@ interface Department {
     id: number;
     dp_name: string;
     dp_status: number;
+    dp_type: number;
 }
 
 interface Props {
@@ -18,6 +19,7 @@ const EditDepartmentPage = ({ department }: Props) => {
     const { data, setData, put, processing, errors } = useForm({
         dp_name: department.dp_name,
         dp_status: department.dp_status,
+        dp_type: department.dp_type || 1,
     });
 
     const submit = (e: React.FormEvent) => {
@@ -48,6 +50,31 @@ const EditDepartmentPage = ({ department }: Props) => {
                                             required
                                         />
                                         {errors.dp_name && <div className="invalid-feedback">{errors.dp_name}</div>}
+                                    </Col>
+
+                                    <Col md={12}>
+                                        <label className="form-label">ประเภทหน่วยงาน</label>
+                                        <div className="d-flex gap-4 border p-2 rounded bg-light-subtle">
+                                            <Form.Check
+                                                type="radio"
+                                                id="type-dept"
+                                                label="หน่วยงาน"
+                                                name="dp_type"
+                                                checked={data.dp_type === 1}
+                                                onChange={() => setData('dp_type', 1)}
+                                                className="mb-0"
+                                            />
+                                            <Form.Check
+                                                type="radio"
+                                                id="type-cross"
+                                                label="คล่อมสายงาน"
+                                                name="dp_type"
+                                                checked={data.dp_type === 2}
+                                                onChange={() => setData('dp_type', 2)}
+                                                className="mb-0"
+                                            />
+                                        </div>
+                                        {errors.dp_type && <div className="text-danger fs-13 mt-1">{errors.dp_type}</div>}
                                     </Col>
 
                                     <Col md={12}>

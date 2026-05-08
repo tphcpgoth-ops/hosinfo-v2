@@ -17,19 +17,21 @@ export const MENU_ITEMS: MenuItemType[] = [
         key: 'kpi',
         label: 'ตัวชี้วัด',
         icon: 'tabler:file-invoice',
-        roles: ['admin', 'head', 'user'],
+        roles: ['admin', 'head', 'user', 'guest'],
         children: [
             {
                 key: 'kpis_summary',
                 label: 'สรุปตัวชี้วัด',
                 url: '/kpis/summary',
                 parentKey: 'kpi',
+                roles: ['admin', 'head', 'user', 'guest'],
             },
             {
                 key: 'kpis',
                 label: 'รายการตัวชี้วัด',
                 url: '/kpis',
                 parentKey: 'kpi',
+                roles: ['admin', 'head', 'user'],
             },
         ],
     },

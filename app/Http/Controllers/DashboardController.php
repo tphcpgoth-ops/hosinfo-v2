@@ -17,20 +17,19 @@ class DashboardController extends Controller
         $month = (int)date('n');
         $currentFiscalYear = (int)date('Y') + ($month >= 10 ? 544 : 543);
         $year = $request->query('year', session('kpi_selected_year', $currentFiscalYear));
-
-        // 1. ดึงหน่วยงานที่ต้องการแสดง
-        $deptQuery = \App\Models\Department::active();
-        if ($userRole !== 'admin' && $userDeptId) {
-            $deptQuery->where('id', $userDeptId);
+        if ($request->has('year')) {
+            session(['kpi_selected_year' => $year]);
         }
-        $departments = $deptQuery->get();
 
-        // 2. ดึง KPI ทั้งหมดในปีที่เลือก
-        $kpiQuery = \App\Models\Kpi::where('kpi_year', $year)->where('is_active', 'active');
-        if ($userRole !== 'admin' && $userDeptId) {
-            $kpiQuery->where('department', $userDeptId);
-        }
-        $allKpis = $kpiQuery->get();
+        // 1. ดึงหน่วยงานที่ต้องการแสดง (แสดงทั้งหมดทุกหน่วยงาน)
+        $departments = \App\Models\Department::active()->get();
+
+        // 2. ดึง KPI ทั้งหมดในปีที่เลือก พร้อมข้อมูลประเภทหน่วยงาน
+        $allKpis = \App\Models\Kpi::select('kpis.*', 'departments.dp_type')
+            ->join('departments', 'kpis.department', '=', 'departments.id')
+            ->where('kpis.kpi_year', $year)
+            ->where('kpis.is_active', 'active')
+            ->get();
 
         // 3. คำนวณ Cockpit Stats (ภาพรวม)
         $calcStats = function ($collection) {
@@ -58,6 +57,7 @@ class DashboardController extends Controller
             return [
                 'id' => $dept->id,
                 'name' => $dept->dp_name,
+                'type' => $dept->dp_type,
                 'total' => $total,
                 'passed' => $passed,
                 'failed' => $failed,
@@ -68,6 +68,7 @@ class DashboardController extends Controller
         return Inertia::render('dashboard/clinic/index', [
             'summary' => $summaryData,
             'stats' => $stats,
+            'kpis' => $allKpis, // ส่ง KPI ทั้งหมดไปให้ Frontend คำนวณ Cockpit ใหม่เมื่อกรอง
             'currentYear' => (int)$year
         ]);
     }

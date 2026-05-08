@@ -148,10 +148,27 @@ const AppMenu = ({ menuItems }: AppMenuProps) => {
     const userRole = user?.role || 'guest';
 
     const filteredMenuItems = useMemo(() => {
-        return menuItems.filter((item) => {
-            if (!item.roles) return true;
-            return item.roles.includes(userRole);
-        });
+        const filterItems = (items: MenuItemType[]): MenuItemType[] => {
+            return items
+                .filter((item) => {
+                    if (!item.roles) return true;
+                    return item.roles.includes(userRole);
+                })
+                .map((item) => {
+                    if (item.children) {
+                        return { ...item, children: filterItems(item.children) };
+                    }
+                    return item;
+                })
+                .filter((item) => {
+                    // ถ้ามีลูกที่ถูกกรองจนหมด และไม่ใช่เมนูที่มี URL ตัวเอง ให้กรองออกด้วย (ยกเว้นเมนูหลักที่เป็นหัวข้อ)
+                    if (item.children && item.children.length === 0 && !item.url && !item.isTitle) {
+                        return false;
+                    }
+                    return true;
+                });
+        };
+        return filterItems(menuItems);
     }, [menuItems, userRole]);
 
     const [activeMenuItems, setActiveMenuItems] = useState<Array<string>>([]);

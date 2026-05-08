@@ -18,10 +18,18 @@ interface CategoryStats {
 interface SummaryItem {
     id: number;
     name: string;
+    type: number; // 1: Unit, 2: Cross-functional
     total: number;
     passed: number;
     failed: number;
     performance: number;
+}
+
+interface Kpi {
+    id: number;
+    kpi_type: string;
+    kpi_status: string;
+    dp_type: number;
 }
 
 interface ClinicPageProps {
@@ -32,20 +40,48 @@ interface ClinicPageProps {
         qmp: CategoryStats;
         qp: CategoryStats;
     };
+    kpis: Kpi[];
     currentYear: number;
 }
 
-const ClinicPage = ({ summary = [], stats, currentYear }: ClinicPageProps) => {
-    
+const ClinicPage = ({ summary = [], stats, kpis = [], currentYear }: ClinicPageProps) => {
+    const [filterType, setFilterType] = React.useState<string>('all'); // 'all', '1', '2'
+
+    const filteredSummary = React.useMemo(() => {
+        if (filterType === 'all') return summary;
+        return summary.filter(item => String(item.type) === filterType);
+    }, [summary, filterType]);
+
+    const dynamicStats = React.useMemo(() => {
+        const filteredKpis = filterType === 'all' 
+            ? kpis 
+            : kpis.filter(k => String(k.dp_type) === filterType);
+
+        const calc = (collection: Kpi[]) => {
+            return {
+                total: collection.length,
+                passed: collection.filter(k => k.kpi_status === 'pass').length,
+                failed: collection.filter(k => k.kpi_status === 'fail').length,
+            };
+        };
+
+        return {
+            total: calc(filteredKpis),
+            ap: calc(filteredKpis.filter(k => k.kpi_type === 'AP')),
+            qmp: calc(filteredKpis.filter(k => k.kpi_type === 'QMP')),
+            qp: calc(filteredKpis.filter(k => k.kpi_type === 'QP')),
+        };
+    }, [kpis, filterType]);
+
     const getPassedPercentage = (s: CategoryStats) => {
         return s.total > 0 ? Math.round((s.passed / s.total) * 100) : 0;
     };
 
     const cockpitCategories = [
-        { label: 'ภาพรวม', stats: stats.total, color: '#28a745' },
-        { label: 'AP', stats: stats.ap, color: '#0dcaf0' },
-        { label: 'QMP', stats: stats.qmp, color: '#ffc107' },
-        { label: 'QP', stats: stats.qp, color: '#6610f2' }
+        { label: 'ภาพรวม', stats: dynamicStats.total, color: '#28a745' },
+        { label: 'AP', stats: dynamicStats.ap, color: '#0dcaf0' },
+        { label: 'QMP', stats: dynamicStats.qmp, color: '#ffc107' },
+        { label: 'QP', stats: dynamicStats.qp, color: '#6610f2' }
     ];
 
     const getChartOptions = (color: string): ApexOptions => ({
@@ -82,23 +118,50 @@ const ClinicPage = ({ summary = [], stats, currentYear }: ClinicPageProps) => {
         router.get('/kpis/summary', { year });
     };
 
-    const yearSelector = (
-        <div className="d-flex align-items-center gap-2">
-            <Button variant="outline-primary" size="sm" onClick={() => changeYear(currentYear - 1)}>
-                <IconifyIcon icon="tabler:chevron-left" className="fs-16" /> ปี {currentYear - 1}
-            </Button>
-            <h5 className="mb-0 text-primary fw-bold mx-2">สรุปปีงบประมาณ {currentYear}</h5>
-            <Button variant="outline-primary" size="sm" onClick={() => changeYear(currentYear + 1)}>
-                ปี {currentYear + 1} <IconifyIcon icon="tabler:chevron-right" className="fs-16" />
-            </Button>
+    const topFilterAndYear = (
+        <div className="d-flex align-items-center flex-wrap gap-2">
+            {/* Dept Type Filter */}
+            <div className="btn-group btn-group-sm" role="group">
+                <input 
+                    type="radio" className="btn-check" name="filter-dept" id="filter-all" 
+                    autoComplete="off" checked={filterType === 'all'} 
+                    onChange={() => setFilterType('all')} 
+                />
+                <label className="btn btn-outline-primary px-3" htmlFor="filter-all">ทั้งหมด</label>
+
+                <input 
+                    type="radio" className="btn-check" name="filter-dept" id="filter-unit" 
+                    autoComplete="off" checked={filterType === '1'} 
+                    onChange={() => setFilterType('1')} 
+                />
+                <label className="btn btn-outline-primary px-3" htmlFor="filter-unit">หน่วยงาน</label>
+
+                <input 
+                    type="radio" className="btn-check" name="filter-dept" id="filter-cross" 
+                    autoComplete="off" checked={filterType === '2'} 
+                    onChange={() => setFilterType('2')} 
+                />
+                <label className="btn btn-outline-primary px-3" htmlFor="filter-cross">คล่อมสายงาน</label>
+            </div>
+
+            {/* Year Selector */}
+            <div className="d-flex align-items-center gap-2 bg-white px-2 py-1 rounded-pill border shadow-sm" style={{ scale: '0.9' }}>
+                <Button variant="link" size="sm" className="p-0 text-primary" onClick={() => changeYear(currentYear - 1)}>
+                    <IconifyIcon icon="tabler:chevron-left" className="fs-20" />
+                </Button>
+                <span className="mb-0 text-primary fw-bold px-1" style={{ minWidth: '60px', textAlign: 'center' }}>ปีงบ {currentYear}</span>
+                <Button variant="link" size="sm" className="p-0 text-primary" onClick={() => changeYear(currentYear + 1)}>
+                    <IconifyIcon icon="tabler:chevron-right" className="fs-20" />
+                </Button>
+            </div>
         </div>
     );
 
     return (
         <MainLayout>
-            <PageTitle title="สรุปตัวชี้วัด (KPI Summary)" subTitle="ภาพรวมผลงานรายหน่วยงาน" rightContent={yearSelector} />
+            <PageTitle title="สรุปตัวชี้วัด (KPI Summary)" subTitle="ภาพรวมผลงานรายหน่วยงาน" rightContent={topFilterAndYear} />
 
-            <Row className="row-cols-lg-4 row-cols-sm-2 row-cols-1 mb-4 g-3">
+            <Row className="row-cols-lg-4 row-cols-sm-2 row-cols-1 mb-0 g-3">
                 {cockpitCategories.map((cat, idx) => (
                     <Col key={idx}>
                         <Card className="shadow-sm border-0 overflow-hidden">
@@ -114,12 +177,12 @@ const ClinicPage = ({ summary = [], stats, currentYear }: ClinicPageProps) => {
                                 </div>
                                 <div className="mt-1 d-flex justify-content-between px-2">
                                     <div className="text-start">
-                                        <span className="d-block text-muted small">ผ่านเกณฑ์</span>
-                                        <span className="fw-bold text-success fs-14">{cat.stats.passed}</span>
+                                        <span className="d-block text-muted small">ทั้งหมด</span>
+                                        <span className="fw-bold text-primary fs-14">{cat.stats.total}</span>
                                     </div>
                                     <div className="text-end">
-                                        <span className="d-block text-muted small">ไม่ผ่าน</span>
-                                        <span className="fw-bold text-danger fs-14">{cat.stats.failed}</span>
+                                        <span className="d-block text-muted small">ผ่าน</span>
+                                        <span className="fw-bold text-success fs-14">{cat.stats.passed}</span>
                                     </div>
                                 </div>
                                 <div className="progress mt-2" style={{ height: '4px' }}>
@@ -140,7 +203,7 @@ const ClinicPage = ({ summary = [], stats, currentYear }: ClinicPageProps) => {
             <Row>
                 <Col xs={12}>
                     <Card className="shadow-sm border-0">
-                        <Card.Header className="bg-light-subtle py-3">
+                        <Card.Header className="bg-light-subtle py-3 d-flex justify-content-between align-items-center">
                             <h4 className="card-title mb-0 text-primary">
                                 <IconifyIcon icon="solar:chart-2-bold-duotone" className="me-1 fs-20" />
                                 รายการตัวชี้วัดแยกตามหน่วยงาน (KPI Indicators by Department)
@@ -148,7 +211,7 @@ const ClinicPage = ({ summary = [], stats, currentYear }: ClinicPageProps) => {
                         </Card.Header>
                         <CardBody className="p-0">
                             <Grid
-                                data={summary.map((item) => [
+                                data={filteredSummary.map((item) => [
                                     item.id,
                                     item.name,
                                     item.total,

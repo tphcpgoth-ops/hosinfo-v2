@@ -37,6 +37,7 @@ interface Kpi {
     status: string;
     is_published: boolean;
     kpi_status?: 'pass' | 'fail' | null;
+    note?: string;
 }
 
 interface CategoryStats {
@@ -95,7 +96,8 @@ const KpisPage = ({
         q1: null as number | null, q2: null as number | null, q3: null as number | null, q4: null as number | null,
         q1_status: '', q2_status: '', q3_status: '', q4_status: '',
         annual_result: null as number | null,
-        annual_status: ''
+        annual_status: '',
+        note: ''
     });
 
     const [deptFilter, setDeptFilter] = useState(selectedDepartment);
@@ -161,7 +163,8 @@ const KpisPage = ({
                     q1: kpi.q1, q2: kpi.q2, q3: kpi.q3, q4: kpi.q4,
                     q1_status: kpi.q1_status || '', q2_status: kpi.q2_status || '', q3_status: kpi.q3_status || '', q4_status: kpi.q4_status || '',
                     annual_result: kpi.annual_result,
-                    annual_status: kpi.annual_status || ''
+                    annual_status: kpi.annual_status || '',
+                    note: kpi.note || ''
                 });
                 setShowInputModal(true);
             }
@@ -240,20 +243,20 @@ const KpisPage = ({
     const isYearly = selectedKpi?.reporting_period?.includes('ปี') || (!isMonthly && !isQuarterly);
 
     const yearSelector = (
-        <div className="d-flex align-items-center gap-2">
-            <Button variant="outline-primary" size="sm" onClick={() => changeYear(currentYear - 1)}>
-                <IconifyIcon icon="tabler:chevron-left" className="fs-16" /> ปี {currentYear - 1}
+        <div className="d-flex align-items-center gap-2 bg-white px-2 py-1 rounded-pill border shadow-sm" style={{ scale: '0.9' }}>
+            <Button variant="link" size="sm" className="p-0 text-primary" onClick={() => changeYear(currentYear - 1)}>
+                <IconifyIcon icon="tabler:chevron-left" className="fs-20" />
             </Button>
-            <h5 className="mb-0 text-primary fw-bold mx-2">ข้อมูลปี {currentYear}</h5>
-            <Button variant="outline-primary" size="sm" onClick={() => changeYear(currentYear + 1)}>
-                ปี {currentYear + 1} <IconifyIcon icon="tabler:chevron-right" className="fs-16" />
+            <span className="mb-0 text-primary fw-bold px-1" style={{ minWidth: '60px', textAlign: 'center' }}>ปีงบ {currentYear}</span>
+            <Button variant="link" size="sm" className="p-0 text-primary" onClick={() => changeYear(currentYear + 1)}>
+                <IconifyIcon icon="tabler:chevron-right" className="fs-20" />
             </Button>
         </div>
     );
 
     return (
         <MainLayout>
-            <PageTitle title="KPI Dashboard" subTitle="Performance Cockpit" rightContent={yearSelector} />
+            <PageTitle title="จัดการตัวชี้วัด (KPI Management)" subTitle="Performance Cockpit" rightContent={yearSelector} />
             
             <div className="mt-0">
                 {/* Department Filter */}
@@ -305,12 +308,12 @@ const KpisPage = ({
                                     </div>
                                     <div className="mt-1 d-flex justify-content-between px-2">
                                         <div className="text-start">
-                                            <span className="d-block text-muted small">ผ่านเกณฑ์</span>
-                                            <span className="fw-bold text-success fs-14">{cat.stats.passed}</span>
+                                            <span className="d-block text-muted small">ทั้งหมด</span>
+                                            <span className="fw-bold text-primary fs-14">{cat.stats.total}</span>
                                         </div>
                                         <div className="text-end">
-                                            <span className="d-block text-muted small">ไม่ผ่าน</span>
-                                            <span className="fw-bold text-danger fs-14">{cat.stats.failed}</span>
+                                            <span className="d-block text-muted small">ผ่าน</span>
+                                            <span className="fw-bold text-success fs-14">{cat.stats.passed}</span>
                                         </div>
                                     </div>
                                     <div className="progress mt-2" style={{ height: '4px' }}>
@@ -622,7 +625,13 @@ const KpisPage = ({
 
                     <div className="mt-4">
                         <Form.Label className="fw-bold">Note / หมายเหตุ...</Form.Label>
-                        <Form.Control as="textarea" rows={3} placeholder="ระบุรายละเอียดเพิ่มเติม..." />
+                        <Form.Control 
+                            as="textarea" 
+                            rows={3} 
+                            placeholder="ระบุรายละเอียดเพิ่มเติม..." 
+                            value={data.note || ''}
+                            onChange={(e) => setData('note', e.target.value)}
+                        />
                     </div>
                 </Modal.Body>
                 <Modal.Footer className="bg-light">

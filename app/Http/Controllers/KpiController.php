@@ -41,16 +41,26 @@ class KpiController extends Controller
             $selectedDepartment = (string)$userDeptId;
         }
 
-        // ข้อบังคับ: ถ้าไม่ใช่ Admin ให้ล็อกหน่วยงานตามสังกัดของผู้ใช้เท่านั้น
-        if ($userRole !== 'admin' && $userDeptId) {
-            $selectedDepartment = (string)$userDeptId;
+        // ข้อบังคับ: ถ้าไม่ใช่ Admin ให้เลือกได้เฉพาะหน่วยงานตัวเอง หรือหน่วยงานประเภทคล่อมสายงาน (dp_type=2) เท่านั้น
+        if ($userRole !== 'admin' && $userDeptId && $selectedDepartment) {
+            $isAllowed = Department::where('id', $selectedDepartment)
+                ->where(function($q) use ($userDeptId) {
+                    $q->where('id', $userDeptId)->orWhere('dp_type', 2);
+                })->exists();
+            
+            if (!$isAllowed) {
+                $selectedDepartment = (string)$userDeptId;
+            }
         }
 
         $departmentsQuery = Department::active()->orderBy('dp_name');
         
         // กรองรายการหน่วยงานในช่องเลือก (Dropdown)
+        // ถ้าไม่ใช่ Admin: ให้เห็นหน่วยงานตัวเอง + หน่วยงานที่เป็น "คล่อมสายงาน" (dp_type = 2)
         if ($userRole !== 'admin' && $userDeptId) {
-            $departmentsQuery->where('id', $userDeptId);
+            $departmentsQuery->where(function($q) use ($userDeptId) {
+                $q->where('id', $userDeptId)->orWhere('dp_type', 2);
+            });
         }
         
         $departments = $departmentsQuery->get(['id', 'dp_name']);
@@ -61,7 +71,7 @@ class KpiController extends Controller
         if ($selectedDepartment) {
             $query->where('department', $selectedDepartment);
         } elseif ($userRole !== 'admin' && $userDeptId) {
-            // Fallback เพื่อความปลอดภัย
+            // ค่าเริ่มต้น: แสดงเฉพาะหน่วยงานตัวเอง
             $query->where('department', $userDeptId);
         }
 
@@ -346,6 +356,7 @@ class KpiController extends Controller
         }
         $rules['annual_result'] = 'nullable|numeric';
         $rules['annual_status'] = 'nullable|string';
+        $rules['note'] = 'nullable|string';
         
         $data = $request->validate($rules);
 

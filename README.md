@@ -27,14 +27,16 @@
    ```
 3. **Build และรัน Container**
    ```bash
-   docker-compose up -d --build
+   docker compose up -d --build
    ```
 4. **ติดตั้ง Dependencies และตั้งค่าระบบ** (รันครั้งแรก)
    ```bash
-   docker-compose exec app composer install
-   docker-compose exec app php artisan key:generate
-   docker-compose exec app php artisan storage:link
-   docker-compose exec app php artisan migrate --seed
+   docker compose exec app composer install
+   npm install
+   npm run build
+   docker compose exec app php artisan key:generate
+   docker compose exec app php artisan storage:link
+   docker compose exec app php artisan migrate --seed
    ```
 5. **เข้าใช้งาน**
    เปิดเบราว์เซอร์ไปที่: `http://localhost:8080`
@@ -47,3 +49,4 @@
 
 ## ผู้พัฒนา
 โรงพยาบาลสมเด็จพระยุพราชตะพานหิน (https://www.tphcp.go.th)
+Developer : Dr.GHOST Email : phichitonline@gmail.com

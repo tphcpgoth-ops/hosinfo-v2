@@ -9,6 +9,7 @@ import IpdStatsSection from './components/IpdStatsSection';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
 const Dashboard2Page = ({ api_token }: { api_token: string }) => {
+    console.log('DEBUG: API Token from props:', api_token);
     const [data, setData] = useState<{ stats: any, wards: any[] } | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -22,9 +23,10 @@ const Dashboard2Page = ({ api_token }: { api_token: string }) => {
                 });
                 setData(response.data);
                 setError(null);
-            } catch (err) {
+            } catch (err: any) {
                 console.error('Dashboard API Error:', err);
-                setError('ไม่สามารถเชื่อมต่อกับ API หลังบ้านได้ (http://127.0.0.1:8800)');
+                const msg = err.response?.data?.detail || err.message || 'ไม่สามารถเชื่อมต่อกับ API ได้';
+                setError(`API Error: ${msg} (http://127.0.0.1:8800)`);
             } finally {
                 setLoading(false);
             }

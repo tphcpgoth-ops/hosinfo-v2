@@ -24,6 +24,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'jwt' => [
+        'secret' => env('JWT_SECRET'),
+        'algorithm' => env('JWT_ALGORITHM', 'HS256'),
+    ],
+
     'resend' => [
         'key' => env('RESEND_KEY'),
     ],

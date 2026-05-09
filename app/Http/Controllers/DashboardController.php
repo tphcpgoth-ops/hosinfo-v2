@@ -78,8 +78,11 @@ class DashboardController extends Controller
 
     public function dashboard2()
     {
+        $token = JwtService::generateToken();
+        // \Log::info('Dashboard Token Generated: ' . ($token ? 'Yes' : 'No') . ' for user: ' . (auth()->user() ? auth()->user()->id : 'None'));
+        
         return Inertia::render('dashboard/dashboard2/index', [
-            'api_token' => JwtService::generateToken()
+            'api_token' => $token
         ]);
     }
 

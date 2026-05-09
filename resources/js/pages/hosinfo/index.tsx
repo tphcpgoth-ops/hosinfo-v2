@@ -6,6 +6,7 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import axios from 'axios';
 
 const HosinfoPage = ({ api_token }: { api_token: string }) => {
+    console.log('DEBUG: API Token from props:', api_token);
     const [stats, setStats] = useState({
         today_opd: 0,
         today_ipd: 0,
@@ -32,9 +33,10 @@ const HosinfoPage = ({ api_token }: { api_token: string }) => {
                 }));
                 setVisits(data.data || []);
                 setError(null);
-            } catch (err) {
+            } catch (err: any) {
                 console.error('API Error:', err);
-                setError('ไม่สามารถเชื่อมต่อกับ API ภายนอกได้ (http://127.0.0.1:8800)');
+                const msg = err.response?.data?.detail || err.message || 'ไม่สามารถเชื่อมต่อกับ API ได้';
+                setError(`API Error: ${msg} (http://127.0.0.1:8800)`);
             } finally {
                 setLoading(false);
             }

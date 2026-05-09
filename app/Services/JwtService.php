@@ -17,12 +17,12 @@ class JwtService
             return null;
         }
 
-        $secret = env('JWT_SECRET');
-        $algo = env('JWT_ALGORITHM', 'HS256');
+        $secret = config('services.jwt.secret');
+        $algo = config('services.jwt.algorithm', 'HS256');
 
         $payload = [
             'iss' => config('app.url'),
-            'sub' => $user->id,
+            'sub' => (string)$user->id,
             'name' => $user->name,
             'role' => $user->role ?? 'user',
             'iat' => time(),

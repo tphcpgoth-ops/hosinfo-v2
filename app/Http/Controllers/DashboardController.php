@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Services\JwtService;
 
 class DashboardController extends Controller
 {
@@ -77,7 +78,9 @@ class DashboardController extends Controller
 
     public function dashboard2()
     {
-        return Inertia::render('dashboard/dashboard2/index');
+        return Inertia::render('dashboard/dashboard2/index', [
+            'api_token' => JwtService::generateToken()
+        ]);
     }
 
     public function wallet()

@@ -5,7 +5,7 @@ import { Card, CardBody, Col, Row, Spinner, Table } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import axios from 'axios';
 
-const HosinfoPage = () => {
+const HosinfoPage = ({ api_token }: { api_token: string }) => {
     const [stats, setStats] = useState({
         today_opd: 0,
         today_ipd: 0,
@@ -20,9 +20,8 @@ const HosinfoPage = () => {
             try {
                 setLoading(true);
                 // ใช้ข้อมูลวันที่จากปัจจุบัน
-                const token = import.meta.env.VITE_EXTERNAL_API_TOKEN;
                 const response = await axios.get(`http://127.0.0.1:8800/api/v1/opd/visits?visit_date=${today}&page=1&page_size=10`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: { Authorization: `Bearer ${api_token}` }
                 });
                 
                 // สมมติโครงสร้างข้อมูลจาก API: { data: [...], total: 123 }

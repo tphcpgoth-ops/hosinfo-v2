@@ -8,7 +8,7 @@ import MiddleStatsGrid from './components/MiddleStatsGrid';
 import IpdStatsSection from './components/IpdStatsSection';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
-const Dashboard2Page = () => {
+const Dashboard2Page = ({ api_token }: { api_token: string }) => {
     const [data, setData] = useState<{ stats: any, wards: any[] } | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -17,9 +17,8 @@ const Dashboard2Page = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const token = import.meta.env.VITE_EXTERNAL_API_TOKEN;
                 const response = await axios.get('http://127.0.0.1:8800/api/v1/dashboard/summary', {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: { Authorization: `Bearer ${api_token}` }
                 });
                 setData(response.data);
                 setError(null);

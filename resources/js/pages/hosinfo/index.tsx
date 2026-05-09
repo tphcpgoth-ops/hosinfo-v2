@@ -20,8 +20,10 @@ const HosinfoPage = () => {
             try {
                 setLoading(true);
                 // ใช้ข้อมูลวันที่จากปัจจุบัน
-                const today = new Date().toISOString().split('T')[0];
-                const response = await axios.get(`http://127.0.0.1:8800/api/v1/opd/visits?visit_date=${today}&page=1&page_size=10`);
+                const token = import.meta.env.VITE_EXTERNAL_API_TOKEN;
+                const response = await axios.get(`http://127.0.0.1:8800/api/v1/opd/visits?visit_date=${today}&page=1&page_size=10`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 
                 // สมมติโครงสร้างข้อมูลจาก API: { data: [...], total: 123 }
                 const data = response.data;

@@ -21,6 +21,7 @@ const HosinfoPage = ({ api_token }: { api_token: string }) => {
             try {
                 setLoading(true);
                 // ใช้ข้อมูลวันที่จากปัจจุบัน
+                const today = new Date().toISOString().split('T')[0];
                 const response = await axios.get(`http://127.0.0.1:8800/api/v1/opd/visits?visit_date=${today}&page=1&page_size=10`, {
                     headers: { Authorization: `Bearer ${api_token}` }
                 });

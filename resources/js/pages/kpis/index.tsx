@@ -38,6 +38,9 @@ interface Kpi {
     is_published: boolean;
     kpi_status?: 'pass' | 'fail' | null;
     note?: string;
+    formula_a?: string;
+    formula_b?: string;
+    formula_c?: string;
 }
 
 interface CategoryStats {
@@ -382,7 +385,7 @@ const KpisPage = ({
                                                 const isInactive = kpi.is_active === 'inactive';
                                                 const textStyle = isInactive ? 'color: red; text-decoration: line-through;' : '';
                                                 return html(
-                                                    `<div class="text-wrap" style="min-width: 300px; ${textStyle}">
+                                                    `<div class="text-start text-wrap" style="min-width: 300px; ${textStyle}">
                                                         <a href="#" onclick="event.preventDefault(); window.__inertiaRouter.visit('/kpis/details?id=${row.cells[1].data}')" class="${isInactive ? 'text-danger' : 'text-dark'} fw-medium" style="cursor:pointer; ${textStyle}">
                                                             ${name}
                                                         </a>
@@ -489,8 +492,8 @@ const KpisPage = ({
                                         }
                                     }}
                                     className={{
-                                        table: 'table table-hover align-middle mb-0',
-                                        thead: 'bg-light-subtle text-muted fw-semibold',
+                                        table: 'table table-hover align-middle mb-0 text-nowrap text-center',
+                                        thead: 'bg-light text-muted fw-bold',
                                         pagination: 'mt-0 mb-1 p-1'
                                     }}
                                 />
@@ -512,7 +515,7 @@ const KpisPage = ({
                     <div className="mb-4">
                         <h5 className="fw-bold text-dark mb-1">{selectedKpi?.kpi_name_th}</h5>
                         <p className="text-danger small mb-0">
-                            <span className="fw-bold">สูตรการคำนวณ:</span> {selectedKpi?.kpi_name_th} (A) / เป้าหมาย (B) x 100
+                            <span className="fw-bold">สูตรการคำนวณ:</span> ({selectedKpi?.formula_a || 'A'} x {selectedKpi?.formula_c || 'C'}) / {selectedKpi?.formula_b || 'B'}
                         </p>
                         <p className="text-muted small mb-0">
                             <span className="fw-bold">เกณฑ์การประเมิน:</span> เป้าหมาย {selectedKpi?.target_direction === 'up' ? '>= ' : '<= '} {selectedKpi?.target_value} {selectedKpi?.unit} ({selectedKpi?.target_direction === 'up' ? 'สูงดี' : 'ต่ำดี'})

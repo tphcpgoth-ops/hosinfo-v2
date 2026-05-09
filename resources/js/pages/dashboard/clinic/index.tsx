@@ -221,8 +221,12 @@ const ClinicPage = ({ summary = [], stats, kpis = [], currentYear }: ClinicPageP
                                 ])}
                                 columns={[
                                     { name: 'รหัส', width: '80px' },
-                                    { name: 'ชื่อหน่วยงาน', width: '300px' },
-                                    { name: 'จำนวนตัววัด', width: '120px', className: 'text-center' },
+                                    { 
+                                        name: 'ชื่อหน่วยงาน', 
+                                        width: '300px',
+                                        formatter: (val) => html(`<div class="text-start">${val}</div>`)
+                                    },
+                                    { name: 'จำนวนตัวชี้วัด', width: '120px' },
                                     { 
                                         name: 'ผ่าน', 
                                         width: '100px',
@@ -238,8 +242,8 @@ const ClinicPage = ({ summary = [], stats, kpis = [], currentYear }: ClinicPageP
                                         formatter: (val) => {
                                             const color = Number(val) >= 80 ? 'success' : Number(val) >= 50 ? 'warning' : 'danger';
                                             return html(`
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                                    <div class="progress flex-grow-1" style="height: 6px; max-width: 150px;">
                                                         <div class="progress-bar bg-${color}" style="width: ${val}%"></div>
                                                     </div>
                                                     <span class="fw-bold text-${color}">${val}%</span>
@@ -252,7 +256,7 @@ const ClinicPage = ({ summary = [], stats, kpis = [], currentYear }: ClinicPageP
                                 pagination={{ limit: 20 }}
                                 sort={true}
                                 className={{
-                                    table: 'table table-hover align-middle mb-0',
+                                    table: 'table table-hover align-middle mb-0 text-center',
                                     thead: 'bg-light-subtle text-muted fw-semibold',
                                     pagination: 'mt-3 mb-3 px-3'
                                 }}

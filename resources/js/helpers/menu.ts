@@ -22,19 +22,23 @@ export const findAllParent = (menuItems: MenuItemType[], menuItem: MenuItemType)
 
 export const getMenuItemFromURL = (items: MenuItemType | MenuItemType[], url: string): MenuItemType | undefined => {
     const cleanUrl = url.split(/[?#]/)[0];
-    if (items instanceof Array) {
-        for (const item of items) {
-            const foundItem = getMenuItemFromURL(item, cleanUrl);
-            if (foundItem) {
-                return foundItem;
-            }
+    const itemsArray = items instanceof Array ? items : [items];
+
+    // 1. First pass: look for exact matches
+    for (const item of itemsArray) {
+        if (item.url === cleanUrl) return item;
+        if (item.children) {
+            const found = getMenuItemFromURL(item.children, cleanUrl);
+            if (found && found.url === cleanUrl) return found;
         }
-    } else {
-        if (items.url == cleanUrl || (items.url && items.url !== '/' && cleanUrl.startsWith(items.url + '/'))) return items;
-        if (items.children != null) {
-            for (const item of items.children) {
-                if (item.url == cleanUrl || (item.url && item.url !== '/' && cleanUrl.startsWith(item.url + '/'))) return item;
-            }
+    }
+
+    // 2. Second pass: look for prefix matches (e.g. /kpis/123 matching /kpis)
+    for (const item of itemsArray) {
+        if (item.url && item.url !== '/' && cleanUrl.startsWith(item.url + '/')) return item;
+        if (item.children) {
+            const found = getMenuItemFromURL(item.children, cleanUrl);
+            if (found) return found;
         }
     }
 };

@@ -5,7 +5,7 @@ import MainLayout from '@/layouts/MainLayout';
 import { Button, Card, CardBody, Col, Container, Row, Form } from 'react-bootstrap';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import SelectFormInput from '@/components/form/SelectFormInput';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import Swal from 'sweetalert2';
 
@@ -54,6 +54,9 @@ interface EditKpiPageProps {
 }
 
 const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) => {
+    const { auth } = usePage().props as any;
+    const canEditMaster = auth.user?.role === 'admin' || auth.user?.role === 'head';
+    
     const currentYearBE = new Date().getFullYear() + 543;
     const pastYears = [currentYearBE - 3, currentYearBE - 2, currentYearBE - 1];
 
@@ -176,10 +179,9 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
                                             <Form.Group>
                                                 <Form.Label className="fw-medium d-block">ประเภทตัวชี้วัด <span className="text-danger">*</span></Form.Label>
                                                 <div className="d-flex gap-3 mt-2">
-                                                    <Form.Check type="radio" label="AP" value="AP" id="type-ap" {...register('kpiType')} disabled />
-                                                    <Form.Check type="radio" label="QMP" value="QMP" id="type-qmp" {...register('kpiType')} disabled />
-                                                    <Form.Check type="radio" label="QP" value="QP" id="type-qp" {...register('kpiType')} disabled />
-                                                    <Form.Check type="radio" label="BSC" value="BSC" id="type-bsc" {...register('kpiType')} disabled />
+                                                    <Form.Check type="radio" label="AP" value="AP" id="type-ap" {...register('kpiType')} disabled={!canEditMaster} />
+                                                    <Form.Check type="radio" label="QMP" value="QMP" id="type-qmp" {...register('kpiType')} disabled={!canEditMaster} />
+                                                    <Form.Check type="radio" label="QP" value="QP" id="type-qp" {...register('kpiType')} disabled={!canEditMaster} />
                                                 </div>
                                             </Form.Group>
                                         </Col>
@@ -193,7 +195,7 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
                                                     control={control} 
                                                     options={departmentOptions} 
                                                     placeholder="-- เลือกหน่วยงาน --"
-                                                    isDisabled={true}
+                                                    isDisabled={!canEditMaster}
                                                 />
                                             </Form.Group>
                                         </Col>
@@ -279,9 +281,10 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
                                                 <Form.Label className="fw-medium">สูตรคำนวณ C ตัวคูณ</Form.Label>
                                                 <Form.Select {...register('formulaC')}>
                                                     <option value="">-- เลือกตัวคูณ --</option>
-                                                    <option value="ร้อยละ">ร้อยละ</option>
-                                                    <option value="ต่อพัน">ต่อพัน</option>
-                                                    <option value="ต่อแสน">ต่อแสน</option>
+                                                    <option value="1">หนึ่ง (1)</option>
+                                                    <option value="100">ร้อยละ (100)</option>
+                                                    <option value="1000">ต่อพัน (1,000)</option>
+                                                    <option value="100000">ต่อแสน (100,000)</option>
                                                 </Form.Select>
                                             </Form.Group>
                                         </Col>

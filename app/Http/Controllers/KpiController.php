@@ -408,4 +408,60 @@ class KpiController extends Controller
         
         return redirect()->back()->with('success', 'บันทึกข้อมูลผลงานเรียบร้อยแล้ว');
     }
+
+    public function monitoring(Request $request)
+    {
+        $user = auth()->user();
+        $userRole = $user->role ?? 'guest';
+        $userDeptId = $user->department_id;
+
+        // ปีงบประมาณไทย
+        $month = (int)date('n');
+        $currentFiscalYear = (int)date('Y') + ($month >= 10 ? 544 : 543);
+        
+        // ใช้ปีจาก query param > session > default
+        if ($request->has('year')) {
+            $year = $request->query('year');
+            session(['kpi_selected_year' => (int)$year]);
+        } else {
+            $year = session('kpi_selected_year', $currentFiscalYear);
+        }
+
+        // ใช้หน่วยงานจาก query param > session > default
+        if ($request->has('department')) {
+            $selectedDepartment = $request->query('department', '');
+            session(['kpi_monitoring_selected_dept' => $selectedDepartment]);
+        } else {
+            $selectedDepartment = session('kpi_monitoring_selected_dept', '');
+        }
+
+        // ค่าเริ่มต้น: ถ้าไม่ใช่ Admin และไม่มีการเลือกหน่วยงาน ให้ใช้หน่วยงานตัวเอง
+        if (!$selectedDepartment && $userRole !== 'admin' && $userDeptId) {
+            $selectedDepartment = (string)$userDeptId;
+        }
+
+        $departmentsQuery = Department::active()->orderBy('dp_name');
+        if ($userRole !== 'admin' && $userDeptId) {
+            $departmentsQuery->where(function($q) use ($userDeptId) {
+                $q->where('id', $userDeptId)->orWhere('dp_type', 2);
+            });
+        }
+        $departments = $departmentsQuery->get(['id', 'dp_name']);
+
+        $query = Kpi::where('kpi_year', $year);
+        if ($selectedDepartment) {
+            $query->where('department', $selectedDepartment);
+        } elseif ($userRole !== 'admin' && $userDeptId) {
+            $query->where('department', $userDeptId);
+        }
+
+        $kpis = $query->with('responsibleUser')->get();
+
+        return Inertia::render('kpis/monitoring/index', [
+            'kpis' => $kpis,
+            'currentYear' => (int)$year,
+            'departments' => $departments,
+            'selectedDepartment' => $selectedDepartment,
+        ]);
+    }
 }

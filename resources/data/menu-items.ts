@@ -33,6 +33,13 @@ export const MENU_ITEMS: MenuItemType[] = [
                 parentKey: 'kpi',
                 roles: ['admin', 'head', 'user'],
             },
+            {
+                key: 'kpis_monitoring',
+                label: 'รายงานการติดตาม',
+                url: '/kpis/monitoring',
+                parentKey: 'kpi',
+                roles: ['admin', 'head', 'user', 'guest'],
+            },
         ],
     },
     // {

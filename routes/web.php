@@ -39,6 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/invoices/details', [InvoiceController::class, 'invoiceDetails']);
 
     Route::get('/kpis', [KpiController::class, 'kpis']);
+    Route::get('/kpis/monitoring', [KpiController::class, 'monitoring']);
     Route::get('/kpis/add', [KpiController::class, 'kpisAdd']);
     Route::post('/kpis/store', [KpiController::class, 'kpisStore']);
     Route::get('/kpis/generate-code', [KpiController::class, 'generateCode']);

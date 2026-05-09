@@ -54,7 +54,7 @@ const EditDepartmentPage = ({ department }: Props) => {
 
                                     <Col md={12}>
                                         <label className="form-label">ประเภทหน่วยงาน</label>
-                                        <div className="d-flex gap-4 border p-2 rounded bg-light-subtle">
+                                        <div className="d-flex gap-4">
                                             <Form.Check
                                                 type="radio"
                                                 id="type-dept"

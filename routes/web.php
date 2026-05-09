@@ -18,12 +18,13 @@ use App\Http\Controllers\FormsController;
 use App\Http\Controllers\TablesController;
 use App\Http\Controllers\MapsController;
 use App\Http\Controllers\LayoutsController;
+use App\Http\Controllers\HosinfoController;
 use Inertia\Inertia;
 
 require __DIR__.'/auth.php';
 
 Route::get('/', [DashboardController::class, 'dashboard2'])->name('dashboard');
-Route::get('/hosinfo', [DashboardController::class, 'hosinfo'])->name('hosinfo');
+Route::get('/hosinfo', [HosinfoController::class, 'index'])->name('hosinfo');
 Route::get('/kpis/summary', [DashboardController::class, 'clinic'])->name('kpi-summary');
 
 Route::middleware(['auth', 'verified'])->group(function () {

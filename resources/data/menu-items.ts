@@ -14,6 +14,13 @@ export const MENU_ITEMS: MenuItemType[] = [
         roles: ['admin', 'head', 'user', 'guest'],
     },
     {
+        key: 'hosinfo',
+        label: 'Dashboard',
+        icon: 'tabler:dashboard',
+        url: '/hosinfo',
+        roles: ['admin', 'head', 'user', 'guest'],
+    },
+    {
         key: 'kpi',
         label: 'ตัวชี้วัด',
         icon: 'tabler:file-invoice',

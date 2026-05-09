@@ -19,9 +19,7 @@ const Dashboard2Page = ({ api_token }: { api_token: string }) => {
             try {
                 setLoading(true);
                 const apiUrl = import.meta.env.VITE_EXTERNAL_API_URL || 'http://127.0.0.1:8800';
-                const response = await axios.get(`${apiUrl}/api/v1/dashboard/summary`, {
-                    headers: { Authorization: `Bearer ${api_token}` }
-                });
+                const response = await axios.get(`${apiUrl}/api/v1/dashboard/summary`);
                 setData(response.data);
                 setError(null);
             } catch (err: any) {

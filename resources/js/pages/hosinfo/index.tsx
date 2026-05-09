@@ -22,7 +22,8 @@ const HosinfoPage = ({ api_token }: { api_token: string }) => {
                 setLoading(true);
                 // ใช้ข้อมูลวันที่จากปัจจุบัน
                 const today = new Date().toISOString().split('T')[0];
-                const response = await axios.get(`http://127.0.0.1:8800/api/v1/opd/visits?visit_date=${today}&page=1&page_size=10`, {
+                const apiUrl = import.meta.env.VITE_EXTERNAL_API_URL || 'http://127.0.0.1:8800';
+                const response = await axios.get(`${apiUrl}/api/v1/opd/visits?visit_date=${today}&page=1&page_size=10`, {
                     headers: { Authorization: `Bearer ${api_token}` }
                 });
                 
@@ -37,7 +38,8 @@ const HosinfoPage = ({ api_token }: { api_token: string }) => {
             } catch (err: any) {
                 console.error('API Error:', err);
                 const msg = err.response?.data?.detail || err.message || 'ไม่สามารถเชื่อมต่อกับ API ได้';
-                setError(`API Error: ${msg} (http://127.0.0.1:8800)`);
+                const apiUrl = import.meta.env.VITE_EXTERNAL_API_URL || 'http://127.0.0.1:8800';
+                setError(`API Error: ${msg} (${apiUrl})`);
             } finally {
                 setLoading(false);
             }

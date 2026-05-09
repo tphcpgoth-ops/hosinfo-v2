@@ -18,7 +18,8 @@ const Dashboard2Page = ({ api_token }: { api_token: string }) => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get('http://127.0.0.1:8800/api/v1/dashboard/summary', {
+                const apiUrl = import.meta.env.VITE_EXTERNAL_API_URL || 'http://127.0.0.1:8800';
+                const response = await axios.get(`${apiUrl}/api/v1/dashboard/summary`, {
                     headers: { Authorization: `Bearer ${api_token}` }
                 });
                 setData(response.data);
@@ -26,7 +27,8 @@ const Dashboard2Page = ({ api_token }: { api_token: string }) => {
             } catch (err: any) {
                 console.error('Dashboard API Error:', err);
                 const msg = err.response?.data?.detail || err.message || 'ไม่สามารถเชื่อมต่อกับ API ได้';
-                setError(`API Error: ${msg} (http://127.0.0.1:8800)`);
+                const apiUrl = import.meta.env.VITE_EXTERNAL_API_URL || 'http://127.0.0.1:8800';
+                setError(`API Error: ${msg} (${apiUrl})`);
             } finally {
                 setLoading(false);
             }

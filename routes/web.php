@@ -25,20 +25,23 @@ require __DIR__.'/auth.php';
 
 Route::get('/', [DashboardController::class, 'dashboard2'])->name('dashboard');
 Route::get('/hosinfo', [HosinfoController::class, 'index'])->name('hosinfo');
-Route::get('/kpis/summary', [DashboardController::class, 'clinic'])->name('kpi-summary');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-
+    
+    Route::get('/hosinfo/opd', [HosinfoController::class, 'opd'])->name('hosinfo.opd');
+    Route::get('/hosinfo/ipd', [HosinfoController::class, 'ipd'])->name('hosinfo.ipd');
+    
     Route::get('/apps/calendar', [AppsController::class, 'calendar']);
     Route::get('/apps/chat', [AppsController::class, 'chat']);
     Route::get('/apps/email', [AppsController::class, 'email']);
     Route::get('/apps/file-manager', [AppsController::class, 'fileManager']);
-
-
+    
+    
     Route::get('/invoices', [InvoiceController::class, 'invoice']);
     Route::get('/invoices/add', [InvoiceController::class, 'invoiceAdd']);
     Route::get('/invoices/details', [InvoiceController::class, 'invoiceDetails']);
-
+    
+    Route::get('/kpis/summary', [DashboardController::class, 'clinic'])->name('kpi-summary');
     Route::get('/kpis', [KpiController::class, 'kpis']);
     Route::get('/kpis/monitoring', [KpiController::class, 'monitoring']);
     Route::get('/kpis/add', [KpiController::class, 'kpisAdd']);
@@ -49,11 +52,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/kpis/{id}', [KpiController::class, 'kpisUpdate']);
     Route::delete('/kpis/{id}', [KpiController::class, 'kpisDestroy']);
     Route::put('/kpis/{id}/monthly', [KpiController::class, 'updateMonthlyData']);
-    Route::get('/users/profile', [\App\Http\Controllers\UserController::class, 'profile'])->name('users.profile');
-    Route::resource('users', \App\Http\Controllers\UserController::class);
-    Route::resource('departments', \App\Http\Controllers\DepartmentController::class);
     
     Route::middleware(['admin'])->group(function () {
+        Route::get('/users/profile', [\App\Http\Controllers\UserController::class, 'profile'])->name('users.profile');
+        Route::resource('users', \App\Http\Controllers\UserController::class);
+        Route::resource('departments', \App\Http\Controllers\DepartmentController::class);
         // Other admin-only routes can go here
     });
 

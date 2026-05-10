@@ -60,30 +60,17 @@ const Dashboard2Page = ({ api_token }: { api_token: string }) => {
                 </div>
             )}
 
-            {loading ? (
-                <div className="d-flex flex-column align-items-center justify-content-center py-5">
-                    <Spinner animation="border" variant="primary" style={{ width: '3rem', height: '3rem' }} />
-                    <p className="mt-3 text-muted fw-medium">กำลังโหลดข้อมูลสถิติเรียลไทม์...</p>
-                </div>
-            ) : data ? (
-                <>
-                    <TopStatsRow stats={data.stats} />
-                    <MiddleStatsGrid stats={data.stats} />
-                    
-                    <Row className="mt-4 mb-2">
-                        <Col>
-                            <h4 className="text-dark fw-bold border-start border-4 border-danger ps-2">สถิติผู้ป่วยในและตึกผู้ป่วย</h4>
-                        </Col>
-                    </Row>
-                    
-                    <IpdStatsSection stats={data.stats} wards={data.wards} />
-                </>
-            ) : (
-                <div className="text-center py-5 text-muted">
-                    <IconifyIcon icon="solar:database-bold-duotone" className="fs-64 mb-3 opacity-25" />
-                    <h5>ไม่พบข้อมูลสรุป</h5>
-                </div>
-            )}
+            <TopStatsRow stats={data?.stats || {}} loading={loading} />
+            <MiddleStatsGrid stats={data?.stats || {}} loading={loading} />
+            
+            <Row className="mt-4 mb-2">
+                <Col>
+                    <h4 className="text-dark fw-bold border-start border-4 border-danger ps-2">สถิติผู้ป่วยในและตึกผู้ป่วย</h4>
+                </Col>
+            </Row>
+            
+            <IpdStatsSection stats={data?.stats || {}} wards={data?.wards || []} loading={loading} />
+
 
             <Row className="mt-2 mb-2">
                 <Col md={6}>

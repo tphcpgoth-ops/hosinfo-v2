@@ -18,20 +18,20 @@ export const MENU_ITEMS: MenuItemType[] = [
         label: 'Dashboard',
         icon: 'tabler:dashboard',
         url: '/hosinfo',
-        roles: ['admin', 'head', 'user', 'guest'],
+        roles: ['admin', 'head', 'user'],
     },
     {
         key: 'kpi',
         label: 'ตัวชี้วัด',
         icon: 'tabler:file-invoice',
-        roles: ['admin', 'head', 'user', 'guest'],
+        roles: ['admin', 'head', 'user'],
         children: [
             {
                 key: 'kpis_summary',
                 label: 'สรุปตัวชี้วัด',
                 url: '/kpis/summary',
                 parentKey: 'kpi',
-                roles: ['admin', 'head', 'user', 'guest'],
+                roles: ['admin', 'head', 'user'],
             },
             {
                 key: 'kpis',
@@ -45,7 +45,7 @@ export const MENU_ITEMS: MenuItemType[] = [
                 label: 'รายงานการติดตาม',
                 url: '/kpis/monitoring',
                 parentKey: 'kpi',
-                roles: ['admin', 'head', 'user', 'guest'],
+                roles: ['admin', 'head', 'user'],
             },
         ],
     },
@@ -56,20 +56,28 @@ export const MENU_ITEMS: MenuItemType[] = [
     //     url: '/end-user-reports',
     //     roles: ['admin', 'head', 'user'],
     // },
-    // {
-    //     key: 'stats',
-    //     label: 'ข้อมูลและสถิติ',
-    //     icon: 'tabler:chart-bar',
-    //     roles: ['admin', 'head', 'user'],
-    //     children: [
-    //         {
-    //             key: 'stats_opd',
-    //             label: 'ผู้รับบริการ',
-    //             url: '/stats/opd',
-    //             parentKey: 'stats',
-    //         },
-    //     ],
-    // },
+    {
+        key: 'stats',
+        label: 'ข้อมูลและสถิติ',
+        icon: 'tabler:chart-bar',
+        roles: ['admin', 'head', 'user'],
+        children: [
+            {
+                key: 'stats_opd',
+                label: 'ผู้รับบริการ (OPD)',
+                url: '/hosinfo/opd',
+                parentKey: 'stats',
+                roles: ['admin', 'head', 'user'],
+            },
+            {
+                key: 'stats_ipd',
+                label: 'ผู้รับบริการ (IPD)',
+                url: '/hosinfo/ipd',
+                parentKey: 'stats',
+                roles: ['admin', 'head', 'user'],
+            },
+        ],
+    },
     {
         key: 'management',
         label: 'การจัดการ',

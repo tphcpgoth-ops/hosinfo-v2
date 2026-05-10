@@ -12,7 +12,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $userRole = $user->role ?? 'guest';
-        $userDeptId = $user->department_id;
+        // $userDeptId = $user->department_id;
 
         // ปีงบประมาณไทย
         $month = (int)date('n');

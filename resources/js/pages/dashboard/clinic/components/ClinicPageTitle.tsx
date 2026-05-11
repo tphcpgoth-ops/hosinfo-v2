@@ -6,12 +6,12 @@ import { Button, Col, Row } from 'react-bootstrap';
 const ClinicPageTitle = () => {
     return (
         <>
-            <Head title="หน้าหลัก" />
+            <Head title="Clinic" />
             <Row>
                 <Col xs={12}>
                     <div className="page-title-head d-flex align-items-sm-center flex-sm-row flex-column">
                         <div className="flex-grow-1">
-                            <h4 className="fs-18 fw-semibold m-0">ยินดีต้อนรับ 👋</h4>
+                            <h4 className="fs-18 fw-semibold m-0">Welcome back, Dr. Gulati 👋</h4>
                         </div>
                         <div className="mt-3 mt-sm-0">
                             <form action="">

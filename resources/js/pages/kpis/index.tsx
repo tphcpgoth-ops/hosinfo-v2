@@ -265,7 +265,7 @@ const KpisPage = ({
                 {/* Department Filter */}
                 <div className="d-flex align-items-center gap-2 mb-2 p-0">
                     <IconifyIcon icon="solar:buildings-2-bold-duotone" className="fs-20 text-primary flex-shrink-0" />
-                    <span className="fw-semibold text-muted text-nowrap">กรองตามหน่วยงาน:</span>
+                    <span className="fw-semibold text-muted text-nowrap">หน่วยงาน:</span>
                     <div style={{ minWidth: '320px', flex: 1, maxWidth: '480px' }}>
                         <ReactSelect
                             isClearable

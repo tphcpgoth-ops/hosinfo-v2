@@ -162,11 +162,11 @@ const MonitoringPage = ({ kpis = [], currentYear, departments = [], selectedDepa
                     <div className="d-flex align-items-center gap-2">
                         <IconifyIcon icon="solar:buildings-2-bold-duotone" className="fs-20 text-primary flex-shrink-0" />
                         <span className="fw-semibold text-muted text-nowrap">หน่วยงาน:</span>
-                        <div style={{ minWidth: '280px', maxWidth: '400px' }}>
+                        <div style={{ minWidth: '380px', maxWidth: '480px' }}>
                             <ReactSelect
                                 isClearable
                                 isSearchable
-                                placeholder="— เลือกหน่วยงาน —"
+                                placeholder="— ค้นหาหรือเลือกหน่วยงาน —"
                                 value={
                                     deptFilter
                                         ? departments

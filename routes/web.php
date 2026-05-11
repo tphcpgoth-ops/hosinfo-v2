@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AppsController;
 use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\KpiController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\HospitalController;
 use App\Http\Controllers\ECommerceController;
@@ -18,30 +17,23 @@ use App\Http\Controllers\FormsController;
 use App\Http\Controllers\TablesController;
 use App\Http\Controllers\MapsController;
 use App\Http\Controllers\LayoutsController;
+
+// custom controller
+use App\Http\Controllers\KpiController;
 use App\Http\Controllers\HosinfoController;
 use Inertia\Inertia;
 
 require __DIR__.'/auth.php';
 
-Route::get('/', [DashboardController::class, 'dashboard2'])->name('dashboard');
+Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/hosinfo', [HosinfoController::class, 'index'])->name('hosinfo');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/hosinfo/opd', [HosinfoController::class, 'opd'])->name('hosinfo.opd');
     Route::get('/hosinfo/ipd', [HosinfoController::class, 'ipd'])->name('hosinfo.ipd');
-    
-    Route::get('/apps/calendar', [AppsController::class, 'calendar']);
-    Route::get('/apps/chat', [AppsController::class, 'chat']);
-    Route::get('/apps/email', [AppsController::class, 'email']);
-    Route::get('/apps/file-manager', [AppsController::class, 'fileManager']);
-    
-    
-    Route::get('/invoices', [InvoiceController::class, 'invoice']);
-    Route::get('/invoices/add', [InvoiceController::class, 'invoiceAdd']);
-    Route::get('/invoices/details', [InvoiceController::class, 'invoiceDetails']);
-    
-    Route::get('/kpis/summary', [DashboardController::class, 'clinic'])->name('kpi-summary');
+
+    Route::get('/kpis/summary', [KpiController::class, 'summary'])->name('kpi-summary');
     Route::get('/kpis', [KpiController::class, 'kpis']);
     Route::get('/kpis/monitoring', [KpiController::class, 'monitoring']);
     Route::get('/kpis/add', [KpiController::class, 'kpisAdd']);
@@ -54,15 +46,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/kpis/{id}/monthly', [KpiController::class, 'updateMonthlyData']);
     
     Route::middleware(['admin'])->group(function () {
+        // admin-only routes
         Route::get('/users/profile', [\App\Http\Controllers\UserController::class, 'profile'])->name('users.profile');
         Route::resource('users', \App\Http\Controllers\UserController::class);
         Route::resource('departments', \App\Http\Controllers\DepartmentController::class);
-        // Other admin-only routes can go here
     });
 
     Route::get('/stats/opd', [\App\Http\Controllers\StatController::class, 'opd']);
-
     Route::get('/end-user-reports', [ReportController::class, 'index'])->name('end-user-reports.index');
+
+});
+
+// osen theme pages
+
+    Route::get('/dashboard/sales', [DashboardController::class, 'sales']);
+    Route::get('/dashboard/clinic', [DashboardController::class, 'clinic']);
+    Route::get('/dashboard/wallet', [DashboardController::class, 'wallet']);
+
+
+    Route::get('/apps/calendar', [AppsController::class, 'calendar']);
+    Route::get('/apps/chat', [AppsController::class, 'chat']);
+    Route::get('/apps/email', [AppsController::class, 'email']);
+    Route::get('/apps/file-manager', [AppsController::class, 'fileManager']);
+
+
+    Route::get('/invoices', [InvoiceController::class, 'invoice']);
+    Route::get('/invoices/add', [InvoiceController::class, 'invoiceAdd']);
+    Route::get('/invoices/details', [InvoiceController::class, 'invoiceDetails']);
 
 
     Route::get('/hospital/appointments', [HospitalController::class, 'appointments']);
@@ -200,7 +210,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/layouts/hover', [LayoutsController::class, 'hoverMenu']);
     Route::get('/layouts/icon-view', [LayoutsController::class, 'iconView']);
     Route::get('/layouts/dark', [LayoutsController::class, 'dark']);
-});
 
 
 // These routes are only for demo purpose, remove them in production. For authentication, use routes define in auth.php

@@ -37,7 +37,8 @@ const IpdStatsPage = ({ api_token }: { api_token: string }) => {
             setError(null);
         } catch (err: any) {
             console.error('API Error:', err);
-            setError(err.response?.data?.detail || err.message || 'เกิดข้อผิดพลาดในการดึงข้อมูล');
+            const msg = err.response?.data?.detail || err.message || 'ไม่สามารถเชื่อมต่อกับ API ได้';
+            setError(`API Error: ${msg}`);
         } finally {
             setLoading(false);
         }

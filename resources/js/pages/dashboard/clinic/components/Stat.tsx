@@ -42,7 +42,7 @@ const StatCard = ({ count, details, icon, title, isLabel, isDot }: StatType) => 
 
 const Stat = () => {
     return (
-        <Row className="row-cols-lg-4 row-cols-sm-2 row-cols-1 align-items-center">
+        <Row className="row-cols-xxl-5 row-cols-md-3 row-cols-1 align-items-center">
             {statData.map((item, idx) => {
                 return (
                     <Col key={idx}>

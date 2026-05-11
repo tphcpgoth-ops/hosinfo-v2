@@ -1,73 +1,119 @@
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import { Link } from '@inertiajs/react';
-import { Card, CardBody, CardHeader, Table } from 'react-bootstrap';
+import { getAllAppointment } from '@/helpers/data';
 
-const AppointmentCard = ({ kpis = [] }: { kpis: any[] }) => {
+import { useFetchData } from '@/hooks/useFetchData';
+import { Link } from '@inertiajs/react';
+import { Button, Card, CardBody, CardFooter, CardHeader, Col } from 'react-bootstrap';
+
+const AppointmentCard = () => {
+    const appointmentData = useFetchData(getAllAppointment);
     return (
-        <Card className="shadow-sm border-0">
-            <CardHeader className="bg-light-subtle d-flex justify-content-between align-items-center py-3">
-                <h4 className="card-title mb-0 text-primary">
-                    <IconifyIcon icon="solar:clipboard-list-bold-duotone" className="me-2 align-middle" />
-                    รายการตัวชี้วัด (KPI Indicators)
-                </h4>
+        <Card>
+            <CardHeader className="d-flex justify-content-between align-items-center">
+                <h4 className="header-title">All Appointments</h4>
+                <Button variant="secondary" size="sm">
+                    Add New <IconifyIcon icon="tabler:plus" className="ms-1" />
+                </Button>
             </CardHeader>
             <CardBody className="p-0">
                 <div className="table-responsive">
-                    <Table hover align="middle" className="mb-0">
-                        <thead className="bg-light-subtle text-muted fw-semibold border-bottom">
-                            <tr>
-                                <th className="ps-3" style={{ width: '100px' }}>รหัส</th>
-                                <th>ตัวชี้วัด</th>
-                                <th style={{ width: '100px' }}>หน่วยวัด</th>
-                                <th style={{ width: '150px' }}>เป้าหมาย</th>
-                                <th className="text-center" style={{ width: '120px' }}>ผลงาน</th>
-                                <th style={{ width: '150px' }}>ผู้รับผิดชอบ</th>
+                    <table className="table table-hover table-nowrap table-custom table-centered m-0">
+                        <thead className="bg-light bg-opacity-50 thead-sm">
+                            <tr className="text-uppercase fs-12">
+                                <th className="text-muted">Queue #</th>
+                                <th className="text-muted">Name</th>
+                                <th className="text-muted">Gender</th>
+                                <th className="text-muted">Age</th>
+                                <th className="text-muted">Appointment</th>
+                                <th className="text-muted">Date / Time</th>
+                                <th className="text-muted">Assign Dr.</th>
+                                <th className="text-muted">Status</th>
+                                <th className="text-muted">•••</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {kpis.length > 0 ? (
-                                kpis.map((kpi, idx) => (
-                                    <tr key={idx}>
-                                        <td className="ps-3 fw-medium text-muted">{kpi.kpi_code}</td>
-                                        <td>
-                                            <div className="text-wrap" style={{ minWidth: '250px' }}>
-                                                <Link href={`/kpis/details?id=${kpi.id}`} className="text-dark fw-medium">
-                                                    {kpi.kpi_name_th}
-                                                </Link>
-                                            </div>
-                                        </td>
-                                        <td>{kpi.unit || '-'}</td>
-                                        <td>
-                                            <span className="text-muted">
-                                                {kpi.target_direction === 'up' ? '>= ' : '<= '} 
-                                                {kpi.target_value || '0'} 
-                                                <small className="ms-1">({kpi.target_direction === 'up' ? 'สูงดี' : 'ต่ำดี'})</small>
-                                            </span>
-                                        </td>
-                                        <td className="text-center">
-                                            <span className={`badge ${kpi.is_passed_mock ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle'} fs-12 px-2 py-1 rounded-pill`}>
-                                                <IconifyIcon 
-                                                    icon={kpi.is_passed_mock ? 'solar:check-circle-bold' : 'solar:close-circle-bold'} 
-                                                    className="me-1 align-middle" 
-                                                />
-                                                {kpi.actual_mock || '0.00'}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div className="text-truncate" style={{ maxWidth: '150px' }} title={kpi.responsible_person}>
-                                                {kpi.responsible_person || '-'}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={6} className="text-center py-4 text-muted">ไม่พบข้อมูลตัวชี้วัด</td>
+                            {appointmentData?.map((item, idx) => (
+                                <tr key={idx}>
+                                    <td>#{idx}</td>
+                                    <td>
+                                        <Link href="" className="link-reset fw-medium">
+                                            {item.name}
+                                        </Link>
+                                    </td>
+                                    <td>{item.gender}</td>
+                                    <td>{item.age}</td>
+                                    <td>{item.appointment}</td>
+                                    <td>
+                                        {item.date.toLocaleString('en-us', { day: '2-digit', month: 'short', year: 'numeric' })}{' '}
+                                        <small className="text-muted">
+                                            {item.date.toLocaleString('en-us', { hour: '2-digit', minute: '2-digit' })}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        {' '}
+                                        {item.doctors?.image && (
+                                            <img src={item.doctors.image} alt="doctors" className="avatar-xs rounded-circle me-1" />
+                                        )}
+                                        <Link href="" className="link-reset fw-medium">
+                                            {item.doctors?.name}
+                                        </Link>
+                                    </td>
+                                    <td>
+                                        <span
+                                            className={`badge bg-${item.appointmentStatus == 'Canceled' ? 'danger' : item.appointmentStatus == 'Scheduled' ? 'warning' : 'success'}-subtle text-${item.appointmentStatus == 'Canceled' ? 'danger' : item.appointmentStatus == 'Scheduled' ? 'warning' : 'success'} p-1`}
+                                        >
+                                            {item.appointmentStatus}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <Link href="" className="text-muted fs-20">
+                                            {' '}
+                                            <IconifyIcon icon="tabler:edit" />
+                                        </Link>
+                                    </td>
                                 </tr>
-                            )}
+                            ))}
                         </tbody>
-                    </Table>
+                    </table>
                 </div>
+                <CardFooter>
+                    <div className="align-items-center justify-content-between row text-center text-sm-start">
+                        <div className="col-sm">
+                            <div className="text-muted">
+                                Showing <span className="fw-semibold">7</span> of <span className="fw-semibold">1,243</span> Results
+                            </div>
+                        </div>
+                        <Col sm={'auto'} className="mt-3 mt-sm-0">
+                            <ul className="pagination pagination-boxed pagination-sm mb-0 justify-content-center">
+                                <li className="page-item disabled">
+                                    <Link href="" className="page-link">
+                                        <IconifyIcon icon="tabler:chevron-left" />
+                                    </Link>
+                                </li>
+                                <li className="page-item active">
+                                    <Link href="" className="page-link">
+                                        1
+                                    </Link>
+                                </li>
+                                <li className="page-item">
+                                    <Link href="" className="page-link">
+                                        2
+                                    </Link>
+                                </li>
+                                <li className="page-item">
+                                    <Link href="" className="page-link">
+                                        3
+                                    </Link>
+                                </li>
+                                <li className="page-item">
+                                    <Link href="" className="page-link">
+                                        <IconifyIcon icon="tabler:chevron-right" />
+                                    </Link>
+                                </li>
+                            </ul>
+                        </Col>
+                    </div>
+                </CardFooter>
             </CardBody>
         </Card>
     );

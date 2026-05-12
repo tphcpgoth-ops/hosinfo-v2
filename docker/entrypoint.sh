@@ -7,6 +7,11 @@ mkdir -p /var/www/storage/framework/sessions
 mkdir -p /var/www/storage/framework/views
 mkdir -p /var/www/storage/framework/cache
 mkdir -p /var/www/bootstrap/cache
+mkdir -p /var/www/public
+
+# Sync public files from image to volume (ensures Nginx gets latest index.php and assets)
+echo "Syncing public assets to volume..."
+cp -rf /var/www/public_temp/* /var/www/public/
 
 # สร้างไฟล์ log ถ้ายังไม่มี และตั้งสิทธิ์
 touch /var/www/storage/logs/laravel.log

@@ -7,7 +7,7 @@ import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 
-const OpdStatsPage = ({ api_token }: { api_token: string }) => {
+const OpdStatsPage = ({ api_token, external_api_url }: { api_token: string, external_api_url: string }) => {
     const currentBE = new Date().getFullYear() + (new Date().getMonth() > 8 ? 1 : 0) + 543;
     const [fiscalYear, setFiscalYear] = useState(currentBE);
     const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ const OpdStatsPage = ({ api_token }: { api_token: string }) => {
     const fetchData = async (year: number) => {
         try {
             setLoading(true);
-            const apiUrl = import.meta.env.VITE_EXTERNAL_API_URL || 'http://127.0.0.1:8800';
+            const apiUrl = external_api_url || 'http://127.0.0.1:8800';
             const headers = { Authorization: `Bearer ${api_token}` };
 
             const [summaryRes, specialtyRes, insclRes, icd10Res] = await Promise.all([

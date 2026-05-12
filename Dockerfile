@@ -33,8 +33,8 @@ WORKDIR /var/www
 # Copy application files
 COPY . .
 
-# Copy built assets from node_builder
-COPY --from=node_builder /app/public/build ./public/build
+# Copy all public files to a temp directory for syncing to the shared volume
+COPY --from=node_builder /app/public ./public_temp
 
 # Copy composer dependencies from previous stages or install them
 # (Assuming composer.json and composer.lock are already copied)

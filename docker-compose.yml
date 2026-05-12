@@ -15,10 +15,10 @@ services:
     env_file:
       - .env
     volumes:
-      - app-data:/var/www
       - ./.env:/var/www/.env
       - ./storage:/var/www/storage
       - ./public/storage:/var/www/public/storage
+      - public-build:/var/www/public
     networks:
       - hosinfo-network
 
@@ -30,7 +30,7 @@ services:
     ports:
       - "8888:80"
     volumes:
-      - ./public:/var/www/public:ro
+      - public-build:/var/www/public:ro
       - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
     depends_on:
       - app
@@ -61,4 +61,4 @@ networks:
 volumes:
   dbdata:
     driver: local
-  app-data:
+  public-build:

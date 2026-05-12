@@ -8,7 +8,7 @@ import MiddleStatsGrid from './components/MiddleStatsGrid';
 import IpdStatsSection from './components/IpdStatsSection';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
-const HosinfoPage = ({ api_token }: { api_token: string }) => {
+const HosinfoPage = ({ api_token, external_api_url }: { api_token: string, external_api_url: string }) => {
     console.log('DEBUG: API Token from props:', api_token);
     const [data, setData] = useState<{ stats: any, wards: any[] } | null>(null);
     const [loading, setLoading] = useState(true);
@@ -17,7 +17,7 @@ const HosinfoPage = ({ api_token }: { api_token: string }) => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const apiUrl = import.meta.env.VITE_EXTERNAL_API_URL || 'http://127.0.0.1:8800';
+            const apiUrl = external_api_url || 'http://127.0.0.1:8800';
             const response = await axios.get(`${apiUrl}/api/v1/dashboard/summary`);
             setData(response.data);
             setError(null);

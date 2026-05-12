@@ -55,16 +55,16 @@ export const MENU_ITEMS: MenuItemType[] = [
         roles: ['admin', 'head', 'user'],
         children: [
             {
-                key: 'kpis_summary',
-                label: 'สรุปตัวชี้วัด',
-                url: '/kpis/summary',
+                key: 'kpis',
+                label: 'จัดการตัวชี้วัด',
+                url: '/kpis',
                 parentKey: 'kpi',
                 roles: ['admin', 'head', 'user'],
             },
             {
-                key: 'kpis',
-                label: 'จัดการตัวชี้วัด',
-                url: '/kpis',
+                key: 'kpis_summary',
+                label: 'สรุปตัวชี้วัด',
+                url: '/kpis/summary',
                 parentKey: 'kpi',
                 roles: ['admin', 'head', 'user'],
             },

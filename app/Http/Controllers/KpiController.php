@@ -404,6 +404,20 @@ class KpiController extends Controller
             }
         }
         
+        $currentUser = auth()->user();
+        
+        // กฎการเข้าถึง:
+        // 1. Admin หรือ Head แก้ไขได้ทุกคน
+        // 2. ถ้า KPI ยังไม่ระบุผู้รับผิดชอบ ทุกคนแก้ไขได้
+        // 3. ถ้าระบุผู้รับผิดชอบแล้ว เฉพาะผู้รับผิดชอบเท่านั้นที่แก้ไขได้
+        $isResponsible = $kpi->responsible_person == $currentUser->id;
+        $isAdminOrHead = in_array($currentUser->role, ['admin', 'head']);
+        $noOneAssigned = empty($kpi->responsible_person);
+
+        if (!$isAdminOrHead && !$noOneAssigned && !$isResponsible) {
+            return redirect()->back()->with('error', 'คุณไม่มีสิทธิ์บันทึกข้อมูลผลงานของตัวชี้วัดนี้');
+        }
+
         $kpi->update($data);
         
         return redirect()->back()->with('success', 'บันทึกข้อมูลผลงานเรียบร้อยแล้ว');

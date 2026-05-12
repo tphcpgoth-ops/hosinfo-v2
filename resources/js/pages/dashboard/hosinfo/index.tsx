@@ -102,20 +102,20 @@ const HosinfoDashboardPage = () => {
                 </Col>
             </Row>
 
-            <Row>
+            {/* <Row>
                 <Col lg={12}>
                     <InfoCard />
                 </Col>
-            </Row>
+            </Row> */}
             
-            <Row className="d-flex align-items-stretch g-3">
+            {/* <Row className="d-flex align-items-stretch g-3">
                 <Col lg={6}>
                     <PromoteCard />
                 </Col>
                 <Col lg={6}>
                     <NewsCard />
                 </Col>
-            </Row>
+            </Row> */}
 
 
         </MainLayout>

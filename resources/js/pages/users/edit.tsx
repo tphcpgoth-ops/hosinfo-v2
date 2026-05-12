@@ -73,11 +73,10 @@ const EditUserPage = ({ user, departments }: Props) => {
                                         <label className="form-label">อีเมล</label>
                                         <input
                                             type="email"
-                                            className={`form-control ${errors.email ? 'is-invalid' : ''} ${isSelf && auth.user?.role !== 'admin' ? 'bg-light' : ''}`}
+                                            className={`form-control ${errors.email ? 'is-invalid' : ''}`}
                                             value={data.email}
                                             onChange={(e) => setData('email', e.target.value)}
                                             placeholder="example@mail.com"
-                                            readOnly={isSelf && auth.user?.role !== 'admin'}
                                         />
                                         {errors.email && <div className="invalid-feedback">{errors.email}</div>}
                                     </Col>

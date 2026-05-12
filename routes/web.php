@@ -45,10 +45,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/kpis/{id}', [KpiController::class, 'kpisDestroy']);
     Route::put('/kpis/{id}/monthly', [KpiController::class, 'updateMonthlyData']);
     
+    Route::get('/users/profile', [\App\Http\Controllers\UserController::class, 'profile'])->name('users.profile');
+    Route::resource('users', \App\Http\Controllers\UserController::class);
+    
     Route::middleware(['admin'])->group(function () {
         // admin-only routes
-        Route::get('/users/profile', [\App\Http\Controllers\UserController::class, 'profile'])->name('users.profile');
-        Route::resource('users', \App\Http\Controllers\UserController::class);
         Route::resource('departments', \App\Http\Controllers\DepartmentController::class);
     });
 

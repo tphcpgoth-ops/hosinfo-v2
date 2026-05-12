@@ -425,6 +425,7 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
                                                     control={control} 
                                                     options={userOptions} 
                                                     placeholder="-- เลือกผู้รับผิดชอบ --"
+                                                    isDisabled={!canEditMaster}
                                                 />
                                             </Form.Group>
                                         </Col>

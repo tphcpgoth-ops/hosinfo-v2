@@ -131,12 +131,15 @@ class UserController extends Controller
             'name' => $request->name,
         ];
 
-        // ถ้าไม่ใช่ Admin จะเปลี่ยน Email, Role, Department ไม่ได้
+        // ถ้าไม่ใช่ Admin จะเปลี่ยน Role, Department, is_active ไม่ได้ แต่เปลี่ยน Email ได้
         if ($currentUser->role === 'admin') {
             $data['email'] = $request->email;
             $data['role'] = $request->role;
             $data['department_id'] = $request->department_id;
             $data['is_active'] = $request->is_active;
+        } else {
+            // อนุญาตให้แก้ไข Email ของตัวเองได้
+            $data['email'] = $request->email;
         }
 
         if ($request->filled('password')) {

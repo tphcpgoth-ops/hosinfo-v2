@@ -89,7 +89,9 @@ const KpisPage = ({
     const [showInputModal, setShowInputModal] = useState(false);
     const [selectedKpi, setSelectedKpi] = useState<Kpi | null>(null);
     const { auth } = usePage().props as any;
-    const canCertify = auth.user?.role === 'admin' || auth.user?.role === 'head';
+    const currentUser = auth.user;
+    const isAdminOrHead = currentUser?.role === 'admin' || currentUser?.role === 'head';
+    const canCertify = isAdminOrHead;
 
     const { data, setData, put, processing, reset } = useForm({
         m1: null as number | null, m2: null as number | null, m3: null as number | null, m4: null as number | null, m5: null as number | null, m6: null as number | null,
@@ -177,7 +179,14 @@ const KpisPage = ({
             delete (window as any).deleteKpi;
             delete (window as any).openKpiInput;
         };
-    }, [kpis]);
+    }, [kpis, currentUser]);
+
+    const canEditSelectedKpi = () => {
+        if (!selectedKpi || !currentUser) return false;
+        if (isAdminOrHead) return true;
+        if (!selectedKpi.responsible_person) return true; // ทุกคนกรอกได้ถ้ายังไม่มีเจ้าของ
+        return String(selectedKpi.responsible_person) === String(currentUser.id);
+    };
 
     const handleSaveMonthlyData = () => {
         if (!selectedKpi) return;
@@ -548,9 +557,9 @@ const KpisPage = ({
                                                 type="number" 
                                                 className={`form-control form-control-sm text-center ${data[`m${index + 1}_status` as keyof typeof data] === 'certified' ? 'bg-light text-muted fw-bold' : ''}`}
                                                 placeholder="ผลงาน" 
-                                                value={data[fieldName] || ''}
-                                                onChange={(e) => setData(fieldName, parseFloat(e.target.value) || 0)}
-                                                disabled={data[`m${index + 1}_status` as keyof typeof data] === 'certified'}
+                                                value={data[fieldName] ?? ''}
+                                                onChange={(e) => setData(fieldName, e.target.value === '' ? null : parseFloat(e.target.value))}
+                                                disabled={data[`m${index + 1}_status` as keyof typeof data] === 'certified' || !canEditSelectedKpi()}
                                             />
                                         </div>
                                     </Col>
@@ -583,9 +592,9 @@ const KpisPage = ({
                                             <Form.Control 
                                                 type="number" 
                                                 placeholder="ระบุผลงานประจำงวด" 
-                                                value={data[fieldName] || ''}
-                                                onChange={(e) => setData(fieldName, parseFloat(e.target.value) || 0)}
-                                                disabled={data[`q${index + 1}_status` as keyof typeof data] === 'certified'}
+                                                value={data[fieldName] ?? ''}
+                                                onChange={(e) => setData(fieldName, e.target.value === '' ? null : parseFloat(e.target.value))}
+                                                disabled={data[`q${index + 1}_status` as keyof typeof data] === 'certified' || !canEditSelectedKpi()}
                                                 className={data[`q${index + 1}_status` as keyof typeof data] === 'certified' ? 'bg-light text-muted fw-bold' : ''}
                                             />
                                         </div>
@@ -616,9 +625,9 @@ const KpisPage = ({
                                 size="lg" 
                                 className={`text-center fw-bold fs-24 ${data.annual_status === 'certified' ? 'bg-light text-muted' : ''}`}
                                 placeholder="ระบุผลงานสุทธิ" 
-                                value={data.annual_result || ''}
-                                onChange={(e) => setData('annual_result', parseFloat(e.target.value) || 0)}
-                                disabled={data.annual_status === 'certified'}
+                                value={data.annual_result ?? ''}
+                                onChange={(e) => setData('annual_result', e.target.value === '' ? null : parseFloat(e.target.value))}
+                                disabled={data.annual_status === 'certified' || !canEditSelectedKpi()}
                             />
                             <p className="text-muted small mt-2 mb-0 text-center italic">
                                 * สำหรับตัวชี้วัดที่มีความถี่รายงานเป็นรายปีเท่านั้น
@@ -634,12 +643,13 @@ const KpisPage = ({
                             placeholder="ระบุรายละเอียดเพิ่มเติม..." 
                             value={data.note || ''}
                             onChange={(e) => setData('note', e.target.value)}
+                            disabled={!canEditSelectedKpi()}
                         />
                     </div>
                 </Modal.Body>
                 <Modal.Footer className="bg-light">
                     <Button variant="secondary" onClick={() => setShowInputModal(false)}>ยกเลิก</Button>
-                    <Button variant="primary" onClick={handleSaveMonthlyData} className="px-4" disabled={processing}>
+                    <Button variant="primary" onClick={handleSaveMonthlyData} className="px-4" disabled={processing || !canEditSelectedKpi()}>
                         <IconifyIcon icon={processing ? "svg-spinners:180-ring-with-halves" : "solar:diskette-bold"} className="me-1" /> 
                         {processing ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
                     </Button>

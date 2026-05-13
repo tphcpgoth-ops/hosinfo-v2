@@ -27,11 +27,11 @@ require __DIR__.'/auth.php';
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/hosinfo', [HosinfoController::class, 'index'])->name('hosinfo');
+Route::get('/hosinfo/opd', [HosinfoController::class, 'opd'])->name('hosinfo.opd');
+Route::get('/hosinfo/ipd', [HosinfoController::class, 'ipd'])->name('hosinfo.ipd');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    Route::get('/hosinfo/opd', [HosinfoController::class, 'opd'])->name('hosinfo.opd');
-    Route::get('/hosinfo/ipd', [HosinfoController::class, 'ipd'])->name('hosinfo.ipd');
 
     Route::get('/kpis/summary', [KpiController::class, 'summary'])->name('kpi-summary');
     Route::get('/kpis', [KpiController::class, 'kpis']);

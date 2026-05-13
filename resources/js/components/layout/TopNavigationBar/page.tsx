@@ -28,7 +28,7 @@ const TopNavigationBarPage = () => {
                     >
                         MIS 4.0
                     </a>
-                    <div
+                    {/* <div
                         className="topbar-search text-muted d-none d-xl-flex gap-2 align-items-center"
                         data-bs-toggle="modal"
                         data-bs-target="#searchModal"
@@ -36,7 +36,7 @@ const TopNavigationBarPage = () => {
                         <IconifyIcon icon="tabler:search" className="fs-18" />
                         <span className="me-2">ค้นหา</span>
                         <span className="ms-auto fw-medium">⌘K</span>
-                    </div>
+                    </div> */}
                     {/* <PagesDropdown /> */}
                 </div>
                 <div className="d-flex align-items-center gap-2">

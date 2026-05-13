@@ -9,18 +9,18 @@ const LogoBox = () => {
         <Link href="/" className="logo">
             <span className="logo-light">
                 <span className="logo-lg">
-                    <img src={logo} height={60} style={{ width: 'auto' }} alt="logo" />
+                    <img src={logo} style={{ width: '80%', height: 'auto', maxHeight: '60px', objectFit: 'contain' }} alt="logo" />
                 </span>
                 <span className="logo-sm">
-                    <img src={logoSm} width={21} height={20} alt="small logo" />
+                    <img src={logoSm} style={{ width: '80%', height: 'auto', maxHeight: '60px', objectFit: 'contain' }} alt="small logo" />
                 </span>
             </span>
             <span className="logo-dark">
                 <span className="logo-lg">
-                    <img src={logoDark} height={60} style={{ width: 'auto' }} alt="dark logo" />
+                    <img src={logoDark} style={{ width: '80%', height: 'auto', maxHeight: '60px', objectFit: 'contain' }} alt="dark logo" />
                 </span>
                 <span className="logo-sm">
-                    <img src={logoSm} width={21} height={20} alt="small logo" />
+                    <img src={logoSm} style={{ width: '80%', height: 'auto', maxHeight: '60px', objectFit: 'contain' }} alt="small logo" />
                 </span>
             </span>
         </Link>

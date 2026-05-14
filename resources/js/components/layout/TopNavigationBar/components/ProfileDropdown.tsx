@@ -1,6 +1,6 @@
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { currency } from '@/context/constants';
-import avatar1 from '@/images/users/avatar-1.jpg';
+import avatar1 from '@/images/users/avatar-2.jpg';
 import { SharedData } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { Dropdown, DropdownHeader, DropdownItem, DropdownMenu, DropdownToggle } from 'react-bootstrap';
@@ -15,6 +15,7 @@ const ProfileDropdown = () => {
 
     const userName = auth.user?.name ?? 'Guest';
     const userRole = auth.user?.role ?? 'ผู้เยี่ยมชม';
+    const userAvatar = (auth.user as any)?.avatar ? `/storage/${(auth.user as any).avatar}` : avatar1;
 
     return (
         <div className="topbar-item nav-user">
@@ -28,7 +29,7 @@ const ProfileDropdown = () => {
                     aria-haspopup="false"
                     aria-expanded="false"
                 >
-                    <img src={avatar1} width={32} className="rounded-circle me-lg-2 d-flex" alt="user-image" />
+                    <img src={userAvatar} width={32} height={32} className="rounded-circle me-lg-2 d-flex" style={{ objectFit: 'cover' }} alt="user-image" />
                     <span className="d-lg-flex flex-column gap-1 d-none">
                         <h5 className="my-0">{userName}</h5>
                         <h6 className="my-0 fw-normal">{auth.user ? `บทบาท: ${userRole}` : userRole}</h6>

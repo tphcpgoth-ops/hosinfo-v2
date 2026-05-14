@@ -42,8 +42,8 @@ const LoginPage = ({ canResetPassword }: LoginProps) => {
                     <Col xl={4} lg={5} md={6}>
                         <Card className="overflow-hidden text-center h-100 p-xxl-4 p-3 mb-0">
                             <Link href="/" className="auth-brand mb-3">
-                                <img src={logoDark} alt="dark logo" height={24} className="logo-dark" />
-                                <img src={logo} alt="logo light" height={24} className="logo-light" />
+                                <img src={logoDark} style={{ width: '80%', height: 'auto', maxHeight: '60px', objectFit: 'contain' }} alt="dark logo" className="logo-dark" />
+                                <img src={logo} style={{ width: '80%', height: 'auto', maxHeight: '60px', objectFit: 'contain' }} alt="logo light" className="logo-light" />
                             </Link>
                             <h3 className="fw-semibold mb-2">เข้าสู่ระบบ</h3>
                             <p className="text-muted mb-4">กรุณากรอกอีเมลและรหัสผ่านเพื่อเข้าสู่ระบบ</p>

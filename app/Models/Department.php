@@ -26,4 +26,12 @@ class Department extends Model
     {
         return $this->hasMany(Kpi::class, 'department', 'id');
     }
+
+    /**
+     * ความสัมพันธ์กับ User (สมาชิกในหน่วยงาน)
+     */
+    public function users()
+    {
+        return $this->hasMany(User::class, 'department_id', 'id');
+    }
 }

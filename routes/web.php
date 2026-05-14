@@ -46,6 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/kpis/{id}/monthly', [KpiController::class, 'updateMonthlyData']);
     
     Route::get('/users/profile', [\App\Http\Controllers\UserController::class, 'profile'])->name('users.profile');
+    Route::post('/users/profile/avatar', [\App\Http\Controllers\UserController::class, 'updateAvatar'])->name('users.avatar');
     Route::resource('users', \App\Http\Controllers\UserController::class);
     
     Route::middleware(['admin'])->group(function () {
@@ -112,6 +113,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/pages/starter', [PagesController::class, 'starter']);
     Route::get('/pages/terms-conditions', [PagesController::class, 'termsConditions']);
     Route::get('/pages/timeline', [PagesController::class, 'timeline']);
+    Route::get('/pages/about', [PagesController::class, 'about']);
+    Route::get('/pages/support', [PagesController::class, 'support']);
+    Route::get('/pages/contact-us', [PagesController::class, 'contactUs']);
 
 
     Route::get('/error/400', [ErrorController::class, 'error400']);

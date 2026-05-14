@@ -4,6 +4,8 @@ import MainLayout from '@/layouts/MainLayout';
 import { Head, usePage } from '@inertiajs/react';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Col, Row, Card, CardBody, CardTitle } from 'react-bootstrap';
+import ReactApexChart from 'react-apexcharts';
+import { ApexOptions } from 'apexcharts';
 
 const HorizontalCard = () => {
     return (
@@ -53,7 +55,55 @@ const HorizontalCard = () => {
 };
 
 const HosinfoDashboardPage = () => {
-    const { hospital } = usePage().props as any;
+    const { hospital, stats } = usePage().props as any;
+
+    const getPassedPercentage = (s: any) => {
+        return s && s.total > 0 ? Math.round((s.passed / s.total) * 100) : 0;
+    };
+
+    const getDynamicColor = (val: number) => {
+        return val >= 80 ? '#28a745' : val >= 50 ? '#ffc107' : '#dc3545';
+    };
+
+    const cockpitCategories = stats ? [
+        { label: 'ภาพรวม KPI', stats: stats.total },
+        { label: 'AP', stats: stats.ap },
+        { label: 'QMP', stats: stats.qmp },
+        { label: 'QP', stats: stats.qp }
+    ].map(cat => ({
+        ...cat,
+        color: getDynamicColor(getPassedPercentage(cat.stats))
+    })) : [];
+
+    const getChartOptions = (color: string): ApexOptions => ({
+        chart: {
+            type: 'radialBar',
+            offsetY: -20,
+            sparkline: { enabled: true }
+        },
+        plotOptions: {
+            radialBar: {
+                startAngle: -110,
+                endAngle: 110,
+                track: {
+                    background: "#e7e7e7",
+                    strokeWidth: '97%',
+                    margin: 2
+                },
+                dataLabels: {
+                    name: { show: false },
+                    value: {
+                        offsetY: -2,
+                        fontSize: '24px',
+                        fontWeight: 'bold'
+                    }
+                }
+            }
+        },
+        grid: { padding: { top: -10 } },
+        fill: { colors: [color] },
+        labels: ['ผ่าน'],
+    });
 
     return (
         <MainLayout>
@@ -71,9 +121,41 @@ const HosinfoDashboardPage = () => {
                 </Col>
             </Row>
 
-            <Row>
+            <Row className="mt-0 mb-0">
                 <HorizontalCard />
             </Row>
+
+            {stats && (
+                <Row className="row-cols-lg-4 row-cols-sm-2 row-cols-1 mb-3 g-3 mt-0">
+                    {cockpitCategories.map((cat, idx) => (
+                        <Col key={idx}>
+                            <Card className="shadow-sm border-0 overflow-hidden h-100">
+                                <CardBody className="p-3 text-center">
+                                    <h5 className="text-muted fw-bold mb-1 text-uppercase">{cat.label}</h5>
+                                    <div className="position-relative" style={{ height: '110px' }}>
+                                        <ReactApexChart 
+                                            options={getChartOptions(cat.color)} 
+                                            series={[getPassedPercentage(cat.stats)]} 
+                                            type="radialBar" 
+                                            height={200} 
+                                        />
+                                    </div>
+                                    <div className="mt-1 d-flex justify-content-between px-2">
+                                        <div className="text-start">
+                                            <span className="d-block text-muted small">ทั้งหมด</span>
+                                            <span className="fw-bold text-primary fs-14">{cat.stats.total}</span>
+                                        </div>
+                                        <div className="text-end">
+                                            <span className="d-block text-muted small">ผ่าน</span>
+                                            <span className="fw-bold text-success fs-14">{cat.stats.passed}</span>
+                                        </div>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
+            )}
 
         </MainLayout>
     );

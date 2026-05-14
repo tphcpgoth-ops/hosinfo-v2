@@ -77,12 +77,19 @@ const ClinicPage = ({ summary = [], stats, kpis = [], currentYear }: ClinicPageP
         return s.total > 0 ? Math.round((s.passed / s.total) * 100) : 0;
     };
 
+    const getDynamicColor = (val: number) => {
+        return val >= 80 ? '#28a745' : val >= 50 ? '#ffc107' : '#dc3545';
+    };
+
     const cockpitCategories = [
-        { label: 'ภาพรวม', stats: dynamicStats.total, color: '#28a745' },
-        { label: 'AP', stats: dynamicStats.ap, color: '#0dcaf0' },
-        { label: 'QMP', stats: dynamicStats.qmp, color: '#ffc107' },
-        { label: 'QP', stats: dynamicStats.qp, color: '#6610f2' }
-    ];
+        { label: 'ภาพรวม', stats: dynamicStats.total },
+        { label: 'AP', stats: dynamicStats.ap },
+        { label: 'QMP', stats: dynamicStats.qmp },
+        { label: 'QP', stats: dynamicStats.qp }
+    ].map(cat => ({
+        ...cat,
+        color: getDynamicColor(getPassedPercentage(cat.stats))
+    }));
 
     const getChartOptions = (color: string): ApexOptions => ({
         chart: {
@@ -258,7 +265,8 @@ const ClinicPage = ({ summary = [], stats, kpis = [], currentYear }: ClinicPageP
                                 className={{
                                     table: 'table table-hover align-middle mb-0 text-center',
                                     thead: 'bg-light-subtle text-muted fw-semibold',
-                                    pagination: 'mt-3 mb-3 px-3'
+                                    pagination: 'mt-0 mb-0 p-1',
+                                    container: 'mt-1 mb-1 p-1'
                                 }}
                                 language={{
                                     'search': { 'placeholder': 'ค้นหาหน่วยงาน...' },

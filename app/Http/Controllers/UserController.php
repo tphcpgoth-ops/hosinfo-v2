@@ -22,6 +22,30 @@ class UserController extends Controller
     }
 
     /**
+     * Update the authenticated user's avatar.
+     */
+    public function updateAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        $user = auth()->user();
+
+        // ลบรูปเก่าถ้ามี
+        if ($user->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->avatar)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
+        }
+
+        // อัปโหลดรูปใหม่
+        $path = $request->file('avatar')->store('avatars', 'public');
+        $user->avatar = $path;
+        $user->save();
+
+        return redirect()->back()->with('success', 'อัปเดตรูปโปรไฟล์เรียบร้อยแล้ว');
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index()

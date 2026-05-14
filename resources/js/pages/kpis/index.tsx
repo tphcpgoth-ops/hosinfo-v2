@@ -41,6 +41,7 @@ interface Kpi {
     formula_a?: string;
     formula_b?: string;
     formula_c?: string;
+    template_file?: string;
 }
 
 interface CategoryStats {
@@ -213,12 +214,19 @@ const KpisPage = ({
         return s.total > 0 ? Math.round((s.passed / s.total) * 100) : 0;
     };
 
+    const getDynamicColor = (val: number) => {
+        return val >= 80 ? '#28a745' : val >= 50 ? '#ffc107' : '#dc3545';
+    };
+
     const cockpitCategories = [
-        { label: 'ภาพรวม', stats: stats.total, color: '#28a745' },
-        { label: 'AP', stats: stats.ap, color: '#0dcaf0' },
-        { label: 'QMP', stats: stats.qmp, color: '#ffc107' },
-        { label: 'QP', stats: stats.qp, color: '#6610f2' }
-    ];
+        { label: 'ภาพรวม', stats: stats.total },
+        { label: 'AP', stats: stats.ap },
+        { label: 'QMP', stats: stats.qmp },
+        { label: 'QP', stats: stats.qp }
+    ].map(cat => ({
+        ...cat,
+        color: getDynamicColor(getPassedPercentage(cat.stats))
+    }));
 
     const getChartOptions = (color: string): ApexOptions => ({
         chart: {
@@ -393,11 +401,20 @@ const KpisPage = ({
                                                 const kpi = row.cells[5].data;
                                                 const isInactive = kpi.is_active === 'inactive';
                                                 const textStyle = isInactive ? 'color: red; text-decoration: line-through;' : '';
+                                                
+                                                let pdfLink = '';
+                                                if (kpi.template_file) {
+                                                    pdfLink = `<a href="/storage/${kpi.template_file}" target="_blank" class="ms-2 d-inline-flex align-items-center text-danger" title="ดาวน์โหลด Template">
+                                                                <iconify-icon icon="tabler:file-type-pdf" class="fs-20"></iconify-icon>
+                                                               </a>`;
+                                                }
+
                                                 return html(
-                                                    `<div class="text-start text-wrap" style="min-width: 300px; ${textStyle}">
+                                                    `<div class="text-start text-wrap d-flex align-items-center" style="min-width: 300px; ${textStyle}">
                                                         <a href="#" onclick="event.preventDefault(); window.__inertiaRouter.visit('/kpis/details?id=${row.cells[1].data}')" class="${isInactive ? 'text-danger' : 'text-dark'} fw-medium" style="cursor:pointer; ${textStyle}">
                                                             ${name}
                                                         </a>
+                                                        ${pdfLink}
                                                     </div>`
                                                 );
                                             }
@@ -503,7 +520,8 @@ const KpisPage = ({
                                     className={{
                                         table: 'table table-hover align-middle mb-0 text-nowrap text-center',
                                         thead: 'bg-light text-muted fw-bold',
-                                        pagination: 'mt-0 mb-1 p-1'
+                                        pagination: 'mt-0 mb-0 p-1',
+                                        container: 'mt-1 mb-1 p-1'
                                     }}
                                 />
                             {/* </CardBody> */}

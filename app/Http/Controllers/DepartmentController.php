@@ -19,7 +19,7 @@ class DepartmentController extends Controller
             return redirect()->route('dashboard')->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         }
 
-        $departments = Department::orderBy('dp_name')->get();
+        $departments = Department::with('users')->orderBy('dp_name')->get();
         
         return Inertia::render('departments/index', [
             'departments' => $departments

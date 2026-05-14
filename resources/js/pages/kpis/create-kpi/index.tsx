@@ -88,10 +88,16 @@ const CreateKpiPage = ({ departments = [], nextKpiCode = '', users = [] }: Creat
     }, [selectedKpiType, selectedDepartment, setValue]);
 
     const onSubmit: SubmitHandler<IKpiFormInput> = (data) => {
-        // We omit kpiTemplate since we haven't handled file uploads in DB yet
-        const { kpiTemplate, ...submitData } = data;
+        const submitData: any = { ...data };
+        // แนบไฟล์ PDF Template ถ้ามี
+        if (data.kpiTemplate && data.kpiTemplate.length > 0) {
+            submitData.kpiTemplate = data.kpiTemplate[0];
+        } else {
+            delete submitData.kpiTemplate;
+        }
         
-        router.post('/kpis/store', submitData as any, {
+        router.post('/kpis/store', submitData, {
+            forceFormData: true,
             onSuccess: () => {
                 Swal.fire({
                     title: 'สำเร็จ!',

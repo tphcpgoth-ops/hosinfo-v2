@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import MainLayout from '@/layouts/MainLayout';
 import { Card, CardBody, CardTitle, Col, Row, Button, Badge } from 'react-bootstrap';
-import { Link } from '@inertiajs/react';
-import avatar1 from '@/images/users/avatar-1.jpg';
+import { Link, router } from '@inertiajs/react';
+import avatar1 from '@/images/users/avatar-2.jpg';
 
 interface User {
     id: number;
     name: string;
     email: string;
     role: string;
+    avatar?: string;
     department?: {
         dp_name: string;
     };
@@ -22,6 +23,26 @@ interface Props {
 }
 
 const ProfilePage = ({ user }: Props) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = React.useState(false);
+
+    const avatarUrl = user.avatar ? `/storage/${user.avatar}` : avatar1;
+
+    const handleAvatarClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        router.post(route('users.avatar'), { avatar: file }, {
+            forceFormData: true,
+            onFinish: () => setUploading(false),
+        });
+    };
+
     return (
         <MainLayout>
             <PageTitle title="ข้อมูลส่วนตัว" subTitle="ผู้ใช้งาน" />
@@ -32,17 +53,39 @@ const ProfilePage = ({ user }: Props) => {
                     <Card>
                         <CardBody>
                             <div className="dr-profile-bg rounded-top position-relative mx-n3 mt-n3" style={{ height: '100px', backgroundColor: '#4a6cf7' }}>
-                                <img
-                                    src={avatar1}
-                                    alt="avatar"
-                                    className="border border-light border-3 rounded-circle position-absolute top-100 start-50 translate-middle"
-                                    height={100}
-                                    width={100}
+                                <div 
+                                    className="position-absolute top-100 start-50 translate-middle" 
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={handleAvatarClick}
+                                    title="คลิกเพื่อเปลี่ยนรูปโปรไฟล์"
+                                >
+                                    <img
+                                        src={avatarUrl}
+                                        alt="avatar"
+                                        className="border border-light border-3 rounded-circle"
+                                        height={100}
+                                        width={100}
+                                        style={{ objectFit: 'cover' }}
+                                    />
+                                    <div 
+                                        className="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow"
+                                        style={{ width: '30px', height: '30px' }}
+                                    >
+                                        <IconifyIcon icon="tabler:camera" className="fs-14" />
+                                    </div>
+                                </div>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="d-none"
+                                    accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                                    onChange={handleFileChange}
                                 />
                             </div>
                             <div className="mt-4 mb-2 pt-3 text-center">
                                 <p className="mb-1 fs-18 fw-semibold text-dark">{user.name}</p>
                                 <p className="mb-0 fw-medium text-muted">บทบาท: {user.role.toUpperCase()}</p>
+                                {uploading && <p className="text-primary small mt-1"><IconifyIcon icon="svg-spinners:180-ring-with-halves" className="me-1" />กำลังอัปโหลด...</p>}
                             </div>
                             
                             <hr className="my-3 border-dashed" />

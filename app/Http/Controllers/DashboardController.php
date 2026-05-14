@@ -10,7 +10,35 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        return Inertia::render('dashboard/hosinfo/index');
+        $month = (int)date('n');
+        $currentFiscalYear = (int)date('Y') + ($month >= 10 ? 544 : 543);
+        $year = session('kpi_selected_year', $currentFiscalYear);
+
+        $allKpis = \App\Models\Kpi::select('kpis.*', 'departments.dp_type')
+            ->join('departments', 'kpis.department', '=', 'departments.id')
+            ->where('kpis.kpi_year', $year)
+            ->where('kpis.is_active', 'active')
+            ->get();
+
+        $calcStats = function ($collection) {
+            $total  = $collection->count();
+            $passed = $collection->where('kpi_status', 'pass')->count();
+            $failed = $collection->where('kpi_status', 'fail')->count();
+            return ['total' => $total, 'passed' => $passed, 'failed' => $failed];
+        };
+
+        $stats = [
+            'total' => $calcStats($allKpis),
+            'ap'    => $calcStats($allKpis->where('kpi_type', 'AP')),
+            'qmp'   => $calcStats($allKpis->where('kpi_type', 'QMP')),
+            'qp'    => $calcStats($allKpis->where('kpi_type', 'QP')),
+        ];
+
+        return Inertia::render('dashboard/hosinfo/index', [
+            'stats' => $stats,
+            'kpis' => $allKpis,
+            'currentYear' => (int)$year
+        ]);
     }
 
     public function clinic()

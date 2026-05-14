@@ -61,4 +61,19 @@ class PagesController extends Controller
     {
         return Inertia::render('pages/timeline/index');
     }
+
+    public function about()
+    {
+        return Inertia::render('pages/about/index');
+    }
+
+    public function support()
+    {
+        return Inertia::render('pages/support/index');
+    }
+
+    public function contactUs()
+    {
+        return Inertia::render('pages/contact-us/index');
+    }
 }

@@ -372,11 +372,16 @@ const ViewKpiPage = ({ kpi, departments = [], users = [] }: ViewKpiPageProps) =>
                                         </Col>
                                         <Col md={6}>
                                             <Form.Group>
-                                                <Form.Label className="fw-medium">แนบไฟล์ KPI Template (.pdf)</Form.Label>
-                                                <Form.Control disabled type="file" accept=".pdf" {...register('kpiTemplate')} />
-                                                <Form.Text className="text-muted">
-                                                    รองรับเฉพาะไฟล์ .pdf เท่านั้น
-                                                </Form.Text>
+                                                <Form.Label className="fw-medium d-block">ไฟล์ KPI Template (.pdf)</Form.Label>
+                                                {kpi.template_file ? (
+                                                    <a href={`/storage/${kpi.template_file}`} target="_blank" rel="noopener noreferrer" className="btn btn-outline-danger d-inline-flex align-items-center gap-2 mt-1">
+                                                        <IconifyIcon icon="tabler:file-type-pdf" className="fs-20" /> คลิกเพื่อเปิดดูไฟล์ Template
+                                                    </a>
+                                                ) : (
+                                                    <div className="text-muted mt-2 d-flex align-items-center gap-1">
+                                                        <IconifyIcon icon="tabler:file-x" className="fs-18" /> ไม่มีข้อมูลไฟล์แนบ
+                                                    </div>
+                                                )}
                                             </Form.Group>
                                         </Col>
                                     </Row>

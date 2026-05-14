@@ -95,10 +95,16 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
 
 
     const onSubmit: SubmitHandler<IKpiFormInput> = (data) => {
-        // We omit kpiTemplate since we haven't handled file uploads in DB yet
-        const { kpiTemplate, ...submitData } = data;
+        const submitData: any = { ...data, _method: 'PUT' };
+        // แนบไฟล์ PDF Template ถ้ามี
+        if (data.kpiTemplate && data.kpiTemplate.length > 0) {
+            submitData.kpiTemplate = data.kpiTemplate[0];
+        } else {
+            delete submitData.kpiTemplate;
+        }
         
-        router.put(`/kpis/${kpi.id}`, submitData as any, {
+        router.post(`/kpis/${kpi.id}`, submitData, {
+            forceFormData: true,
             onSuccess: () => {
                 Swal.fire({
                     title: 'สำเร็จ!',
@@ -432,9 +438,22 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
                                         <Col md={6}>
                                             <Form.Group>
                                                 <Form.Label className="fw-medium">แนบไฟล์ KPI Template (.pdf)</Form.Label>
+                                                
+                                                {kpi.template_file && (
+                                                    <div className="mb-2 p-2 border rounded bg-light-subtle d-flex align-items-center justify-content-between">
+                                                        <div className="d-flex align-items-center gap-2">
+                                                            <IconifyIcon icon="tabler:file-type-pdf" className="text-danger fs-20" />
+                                                            <a href={`/storage/${kpi.template_file}`} target="_blank" rel="noopener noreferrer" className="text-primary fw-medium text-decoration-underline">
+                                                                ดูไฟล์ Template ปัจจุบัน
+                                                            </a>
+                                                        </div>
+                                                        <span className="badge bg-success-subtle text-success">มีไฟล์แล้ว</span>
+                                                    </div>
+                                                )}
+
                                                 <Form.Control type="file" accept=".pdf" {...register('kpiTemplate')} />
                                                 <Form.Text className="text-muted">
-                                                    รองรับเฉพาะไฟล์ .pdf เท่านั้น
+                                                    {kpi.template_file ? 'เลือกไฟล์ใหม่หากต้องการเปลี่ยน (รองรับ .pdf เท่านั้น)' : 'รองรับเฉพาะไฟล์ .pdf เท่านั้น'}
                                                 </Form.Text>
                                             </Form.Group>
                                         </Col>

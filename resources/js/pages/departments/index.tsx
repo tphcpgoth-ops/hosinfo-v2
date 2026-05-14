@@ -7,12 +7,14 @@ import { Button, Card, Col, Row } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import { Grid, _ } from 'gridjs-react';
 import { html } from 'gridjs';
+import avatar1 from '@/images/users/avatar-2.jpg';
 
 interface Department {
     id: number;
     dp_name: string;
     dp_status: number;
     dp_type: number;
+    users?: any[];
 }
 
 interface Props {
@@ -21,6 +23,7 @@ interface Props {
 
 const DepartmentsPage = ({ departments }: Props) => {
     const { props } = usePage();
+    const defaultAvatar = avatar1;
 
     const handleDelete = (id: number, name: string) => {
         Swal.fire({
@@ -77,6 +80,7 @@ const DepartmentsPage = ({ departments }: Props) => {
                             data={departments.map((dept) => [
                                 dept.id,
                                 dept.dp_name,
+                                dept.users || [],
                                 dept.dp_type,
                                 dept.dp_status,
                                 dept
@@ -88,6 +92,40 @@ const DepartmentsPage = ({ departments }: Props) => {
                                 },
                                 {
                                     name: 'ชื่อหน่วยงาน/แผนก',
+                                },
+                                {
+                                    name: 'สมาชิก',
+                                    formatter: (users: any[]) => {
+                                        if (!users || users.length === 0) {
+                                            return html(`<span class="text-muted small">-</span>`);
+                                        }
+                                        
+                                        const displayUsers = users.slice(0, 4);
+                                        const remaining = users.length - 4;
+                                        
+                                        let avatarsHtml = '<div class="avatar-group">';
+                                        
+                                        displayUsers.forEach(user => {
+                                            const src = user.avatar ? `/storage/${user.avatar}` : defaultAvatar;
+                                            avatarsHtml += `
+                                                <div class="avatar avatar-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="${user.name}">
+                                                    <img src="${src}" alt="avatar" class="rounded-circle avatar-sm border border-2 border-white shadow-sm" style="object-fit:cover; width:32px; height:32px;" onerror="this.src='${defaultAvatar}'" />
+                                                </div>
+                                            `;
+                                        });
+                                        
+                                        if (remaining > 0) {
+                                            avatarsHtml += `
+                                                <div class="avatar avatar-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="อีก ${remaining} คน">
+                                                    <span class="avatar-title bg-primary rounded-circle fw-bold text-white border border-2 border-white shadow-sm" style="width:32px; height:32px; font-size:12px;">+${remaining}</span>
+                                                </div>
+                                            `;
+                                        }
+                                        
+                                        avatarsHtml += '</div>';
+                                        
+                                        return html(avatarsHtml);
+                                    }
                                 },
                                 {
                                     name: 'ประเภท',
@@ -154,7 +192,8 @@ const DepartmentsPage = ({ departments }: Props) => {
                             className={{
                                 table: 'table table-hover align-middle mb-0',
                                 th: 'bg-light-subtle text-muted fw-semibold',
-                                pagination: 'mt-0 mb-1 p-1'
+                                pagination: 'mt-0 mb-0 p-1',
+                                container: 'mt-1 mb-1 p-1'
                             }}
                         />
                     </Card>

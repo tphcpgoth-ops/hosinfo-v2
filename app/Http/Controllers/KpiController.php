@@ -182,6 +182,7 @@ class KpiController extends Controller
             'responsiblePerson' => 'nullable',
             'isActive' => 'nullable|string',
             'publishLevel' => 'nullable|string',
+            'kpiTemplate' => 'nullable|file|mimes:pdf|max:10240',
         ]);
 
         $dbData = [
@@ -211,6 +212,11 @@ class KpiController extends Controller
             'publish_level' => $data['publishLevel'] ?? 'level4',
             'kpi_year' => date('Y') + 543,
         ];
+
+        // อัปโหลดไฟล์ PDF Template
+        if ($request->hasFile('kpiTemplate')) {
+            $dbData['template_file'] = $request->file('kpiTemplate')->store('kpi-templates', 'public');
+        }
 
         Kpi::create($dbData);
 
@@ -291,6 +297,7 @@ class KpiController extends Controller
             'responsiblePerson' => 'nullable',
             'isActive' => 'nullable|string',
             'publishLevel' => 'nullable|string',
+            'kpiTemplate' => 'nullable|file|mimes:pdf|max:10240',
         ]);
 
         $kpi->update([
@@ -319,6 +326,16 @@ class KpiController extends Controller
             'is_active' => $data['isActive'] ?? 'active',
             'publish_level' => $data['publishLevel'] ?? 'level4',
         ]);
+
+        // อัปโหลดไฟล์ PDF Template
+        if ($request->hasFile('kpiTemplate')) {
+            // ลบไฟล์เก่า
+            if ($kpi->template_file && \Illuminate\Support\Facades\Storage::disk('public')->exists($kpi->template_file)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($kpi->template_file);
+            }
+            $kpi->template_file = $request->file('kpiTemplate')->store('kpi-templates', 'public');
+            $kpi->save();
+        }
 
         return redirect($this->kpiRedirectUrl());
     }

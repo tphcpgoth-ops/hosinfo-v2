@@ -7,12 +7,14 @@ import { Button, Card, Col, Row } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import { Grid, _ } from 'gridjs-react';
 import { html } from 'gridjs';
+import avatar1 from '@/images/users/avatar-2.jpg';
 
 interface User {
     id: number;
     name: string;
     email: string;
     role: string;
+    avatar?: string;
     department?: {
         dp_name: string;
     };
@@ -25,6 +27,9 @@ interface Props {
 
 const UsersPage = ({ users }: Props) => {
     const { props } = usePage();
+
+    // กำหนด default avatar path สำหรับใช้ใน GridJS html
+    const defaultAvatar = avatar1;
 
     const handleDelete = (id: number, name: string) => {
         Swal.fire({
@@ -76,7 +81,7 @@ const UsersPage = ({ users }: Props) => {
                         <Grid
                             data={users.map((user, idx) => [
                                 idx + 1,
-                                user.name,
+                                user,
                                 user.email,
                                 user.department?.dp_name || '-',
                                 user.role,
@@ -86,10 +91,19 @@ const UsersPage = ({ users }: Props) => {
                             columns={[
                                 {
                                     name: '#',
-                                    width: '80px',
+                                    width: '60px',
                                 },
                                 {
                                     name: 'ชื่อ-นามสกุล',
+                                    formatter: (user: any) => {
+                                        const src = user.avatar ? `/storage/${user.avatar}` : defaultAvatar;
+                                        return html(
+                                            `<div class="d-flex align-items-center">
+                                                <img src="${src}" class="avatar-sm rounded-circle me-2" style="object-fit:cover;width:36px;height:36px" alt="avatar" onerror="this.style.display='none'" />
+                                                <span class="text-dark fw-medium">${user.name}</span>
+                                            </div>`
+                                        );
+                                    }
                                 },
                                 {
                                     name: 'อีเมล',
@@ -169,7 +183,8 @@ const UsersPage = ({ users }: Props) => {
                             className={{
                                 table: 'table table-hover align-middle mb-0',
                                 th: 'bg-light-subtle text-muted fw-semibold',
-                                pagination: 'mt-0 mb-1 p-1'
+                                pagination: 'mt-0 mb-0 p-1',
+                                container: 'mt-1 mb-1 p-1'
                             }}
                         />
                     </Card>

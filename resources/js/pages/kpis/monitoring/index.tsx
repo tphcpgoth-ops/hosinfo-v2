@@ -219,7 +219,8 @@ const MonitoringPage = ({ kpis = [], currentYear, departments = [], selectedDepa
                             className={{
                                 table: 'table table-hover table-bordered align-middle mb-0 text-center fs-12',
                                 thead: 'bg-light text-muted fw-bold',
-                                pagination: 'mt-2 p-2'
+                                pagination: 'mt-0 mb-0 p-1',
+                                container: 'mt-1 mb-1 p-1'
                             }}
                         />
                     </CardBody>

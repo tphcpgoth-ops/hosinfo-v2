@@ -78,6 +78,28 @@ export const MENU_ITEMS: MenuItemType[] = [
         ],
     },
     {
+        key: 'hepatitis',
+        label: 'คัดกรองไวรัสตับอักเสบ',
+        icon: 'tabler:virus-search',
+        roles: ['admin', 'head', 'user'],
+        children: [
+            {
+                key: 'hepatitis_summary',
+                label: 'สรุปผลการรักษา',
+                url: '/hepatitis/summary',
+                parentKey: 'hepatitis',
+                roles: ['admin', 'head', 'user'],
+            },
+            {
+                key: 'hepatitis_list',
+                label: 'ข้อมูลการตรวจ',
+                url: '/hepatitis',
+                parentKey: 'hepatitis',
+                roles: ['admin', 'head', 'user'],
+            },
+        ],
+    },
+    {
         key: 'management',
         label: 'การจัดการ',
         isTitle: true,

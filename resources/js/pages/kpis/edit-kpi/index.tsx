@@ -2,7 +2,7 @@ import React from 'react';
 import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import MainLayout from '@/layouts/MainLayout';
-import { Button, Card, CardBody, Col, Container, Row, Form } from 'react-bootstrap';
+import { Button, Card, CardBody, Col, Container, Row, Form, ButtonGroup, ToggleButton } from 'react-bootstrap';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import SelectFormInput from '@/components/form/SelectFormInput';
 import { router, usePage } from '@inertiajs/react';
@@ -144,21 +144,31 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
                                                     <IconifyIcon icon="tabler:check" className="me-1 align-middle" />
                                                     สถานะการใช้งาน
                                                 </Form.Label>
-                                                <div className="d-flex gap-3 align-items-center">
-                                                    <Form.Check 
-                                                        type="radio" 
-                                                        label={<span className="text-success fw-medium d-flex align-items-center"><IconifyIcon icon="tabler:check" className="me-1" />เปิดใช้งาน</span>} 
-                                                        value="active" 
-                                                        id="status-active" 
-                                                        {...register('isActive')} 
-                                                    />
-                                                    <Form.Check 
-                                                        type="radio" 
-                                                        label={<span className="text-danger fw-medium d-flex align-items-center"><IconifyIcon icon="tabler:ban" className="me-1" />ปิดใช้งาน</span>} 
-                                                        value="inactive" 
-                                                        id="status-inactive" 
-                                                        {...register('isActive')} 
-                                                    />
+                                                <div className="mt-2">
+                                                    <ButtonGroup>
+                                                        <ToggleButton
+                                                            id="status-active"
+                                                            type="radio"
+                                                            variant={watch('isActive') === 'active' ? 'success' : 'outline-success'}
+                                                            name="isActive"
+                                                            value="active"
+                                                            checked={watch('isActive') === 'active'}
+                                                            onChange={(e) => setValue('isActive', e.currentTarget.value, { shouldValidate: true })}
+                                                        >
+                                                            <span className="fw-medium d-flex align-items-center"><IconifyIcon icon="tabler:check" className="me-1" />เปิดใช้งาน</span>
+                                                        </ToggleButton>
+                                                        <ToggleButton
+                                                            id="status-inactive"
+                                                            type="radio"
+                                                            variant={watch('isActive') === 'inactive' ? 'danger' : 'outline-danger'}
+                                                            name="isActive"
+                                                            value="inactive"
+                                                            checked={watch('isActive') === 'inactive'}
+                                                            onChange={(e) => setValue('isActive', e.currentTarget.value, { shouldValidate: true })}
+                                                        >
+                                                            <span className="fw-medium d-flex align-items-center"><IconifyIcon icon="tabler:ban" className="me-1" />ปิดใช้งาน</span>
+                                                        </ToggleButton>
+                                                    </ButtonGroup>
                                                 </div>
                                             </Form.Group>
                                         </Col>
@@ -168,11 +178,13 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
                                                     <IconifyIcon icon="tabler:check" className="me-1 align-middle" />
                                                     การเผยแพร่
                                                 </Form.Label>
-                                                <div className="d-flex gap-4 align-items-center">
-                                                    <Form.Check type="radio" label={<span className="text-danger fw-medium">เฉพาะระดับหัวหน้าขึ้นไป</span>} value="level1" id="publish-1" {...register('publishLevel')} />
-                                                    <Form.Check type="radio" label={<span className="text-warning fw-medium">สำหรับสมาชิก MIS</span>} value="level2" id="publish-2" {...register('publishLevel')} />
-                                                    <Form.Check type="radio" label={<span className="text-primary fw-medium">เจ้าหน้าที่ รพ.</span>} value="level3" id="publish-3" {...register('publishLevel')} />
-                                                    <Form.Check type="radio" label={<span className="text-success fw-medium">สาธารณะ</span>} value="level4" id="publish-4" {...register('publishLevel')} />
+                                                <div>
+                                                    <ButtonGroup>
+                                                        <ToggleButton id="publish-1" type="radio" variant={watch('publishLevel') === 'level1' ? 'danger' : 'outline-danger'} name="publishLevel" value="level1" checked={watch('publishLevel') === 'level1'} onChange={(e) => setValue('publishLevel', e.currentTarget.value, { shouldValidate: true })}>เฉพาะระดับหัวหน้าขึ้นไป</ToggleButton>
+                                                        <ToggleButton id="publish-2" type="radio" variant={watch('publishLevel') === 'level2' ? 'warning' : 'outline-warning'} name="publishLevel" value="level2" checked={watch('publishLevel') === 'level2'} onChange={(e) => setValue('publishLevel', e.currentTarget.value, { shouldValidate: true })}>สำหรับสมาชิก MIS</ToggleButton>
+                                                        <ToggleButton id="publish-3" type="radio" variant={watch('publishLevel') === 'level3' ? 'primary' : 'outline-primary'} name="publishLevel" value="level3" checked={watch('publishLevel') === 'level3'} onChange={(e) => setValue('publishLevel', e.currentTarget.value, { shouldValidate: true })}>เจ้าหน้าที่ รพ.</ToggleButton>
+                                                        <ToggleButton id="publish-4" type="radio" variant={watch('publishLevel') === 'level4' ? 'success' : 'outline-success'} name="publishLevel" value="level4" checked={watch('publishLevel') === 'level4'} onChange={(e) => setValue('publishLevel', e.currentTarget.value, { shouldValidate: true })}>สาธารณะ</ToggleButton>
+                                                    </ButtonGroup>
                                                 </div>
                                             </Form.Group>
                                         </Col>
@@ -184,10 +196,12 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
                                         <Col md={12}>
                                             <Form.Group>
                                                 <Form.Label className="fw-medium d-block">ประเภทตัวชี้วัด <span className="text-danger">*</span></Form.Label>
-                                                <div className="d-flex gap-3 mt-2">
-                                                    <Form.Check type="radio" label="AP" value="AP" id="type-ap" {...register('kpiType')} disabled={!canEditMaster} />
-                                                    <Form.Check type="radio" label="QMP" value="QMP" id="type-qmp" {...register('kpiType')} disabled={!canEditMaster} />
-                                                    <Form.Check type="radio" label="QP" value="QP" id="type-qp" {...register('kpiType')} disabled={!canEditMaster} />
+                                                <div className="mt-2">
+                                                    <ButtonGroup>
+                                                        <ToggleButton disabled={!canEditMaster} id="type-ap" type="radio" variant={watch('kpiType') === 'AP' ? 'primary' : 'outline-primary'} name="kpiType" value="AP" checked={watch('kpiType') === 'AP'} onChange={(e) => setValue('kpiType', e.currentTarget.value, { shouldValidate: true })}>AP</ToggleButton>
+                                                        <ToggleButton disabled={!canEditMaster} id="type-qmp" type="radio" variant={watch('kpiType') === 'QMP' ? 'primary' : 'outline-primary'} name="kpiType" value="QMP" checked={watch('kpiType') === 'QMP'} onChange={(e) => setValue('kpiType', e.currentTarget.value, { shouldValidate: true })}>QMP</ToggleButton>
+                                                        <ToggleButton disabled={!canEditMaster} id="type-qp" type="radio" variant={watch('kpiType') === 'QP' ? 'primary' : 'outline-primary'} name="kpiType" value="QP" checked={watch('kpiType') === 'QP'} onChange={(e) => setValue('kpiType', e.currentTarget.value, { shouldValidate: true })}>QP</ToggleButton>
+                                                    </ButtonGroup>
                                                 </div>
                                             </Form.Group>
                                         </Col>
@@ -339,19 +353,23 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
                                         <Col md={6}>
                                             <Form.Group className="mb-3">
                                                 <Form.Label className="fw-medium d-block">การได้มาของข้อมูล</Form.Label>
-                                                <div className="d-flex gap-3 mt-2">
-                                                    <Form.Check type="radio" label="ประมวลผล" value="ประมวลผล" id="acq-process" {...register('dataAcquisition')} />
-                                                    <Form.Check type="radio" label="Key In" value="Key In" id="acq-keyin" {...register('dataAcquisition')} />
+                                                <div className="mt-2">
+                                                    <ButtonGroup>
+                                                        <ToggleButton id="acq-process" type="radio" variant={watch('dataAcquisition') === 'ประมวลผล' ? 'primary' : 'outline-primary'} name="dataAcquisition" value="ประมวลผล" checked={watch('dataAcquisition') === 'ประมวลผล'} onChange={(e) => setValue('dataAcquisition', e.currentTarget.value, { shouldValidate: true })}>ประมวลผล</ToggleButton>
+                                                        <ToggleButton id="acq-keyin" type="radio" variant={watch('dataAcquisition') === 'Key In' ? 'primary' : 'outline-primary'} name="dataAcquisition" value="Key In" checked={watch('dataAcquisition') === 'Key In'} onChange={(e) => setValue('dataAcquisition', e.currentTarget.value, { shouldValidate: true })}>Key In</ToggleButton>
+                                                    </ButtonGroup>
                                                 </div>
                                             </Form.Group>
                                         </Col>
                                         <Col md={6}>
                                             <Form.Group className="mb-3">
                                                 <Form.Label className="fw-medium d-block">ระยะเวลารายงาน</Form.Label>
-                                                <div className="d-flex gap-3 mt-2">
-                                                    <Form.Check type="radio" label="รายปี" value="รายปี" id="period-year" {...register('reportingPeriod')} />
-                                                    <Form.Check type="radio" label="รายงวด" value="รายงวด" id="period-term" {...register('reportingPeriod')} />
-                                                    <Form.Check type="radio" label="รายเดือน" value="รายเดือน" id="period-month" {...register('reportingPeriod')} />
+                                                <div className="mt-2">
+                                                    <ButtonGroup>
+                                                        <ToggleButton id="period-year" type="radio" variant={watch('reportingPeriod') === 'รายปี' ? 'primary' : 'outline-primary'} name="reportingPeriod" value="รายปี" checked={watch('reportingPeriod') === 'รายปี'} onChange={(e) => setValue('reportingPeriod', e.currentTarget.value, { shouldValidate: true })}>รายปี</ToggleButton>
+                                                        <ToggleButton id="period-term" type="radio" variant={watch('reportingPeriod') === 'รายงวด' ? 'primary' : 'outline-primary'} name="reportingPeriod" value="รายงวด" checked={watch('reportingPeriod') === 'รายงวด'} onChange={(e) => setValue('reportingPeriod', e.currentTarget.value, { shouldValidate: true })}>รายงวด</ToggleButton>
+                                                        <ToggleButton id="period-month" type="radio" variant={watch('reportingPeriod') === 'รายเดือน' ? 'primary' : 'outline-primary'} name="reportingPeriod" value="รายเดือน" checked={watch('reportingPeriod') === 'รายเดือน'} onChange={(e) => setValue('reportingPeriod', e.currentTarget.value, { shouldValidate: true })}>รายเดือน</ToggleButton>
+                                                    </ButtonGroup>
                                                 </div>
                                             </Form.Group>
                                         </Col>
@@ -387,11 +405,35 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
                                     <Row>
                                         <Col md={4}>
                                             <Form.Group>
-                                                <Form.Label className="fw-medium text-primary">ทิศทางตัวชี้วัด</Form.Label>
-                                                <Form.Select {...register('targetDirection')}>
-                                                    <option value="up">สูงดี (Higher is Better)</option>
-                                                    <option value="down">ต่ำดี (Lower is Better)</option>
-                                                </Form.Select>
+                                                <Form.Label className="fw-medium text-primary d-block">ทิศทางตัวชี้วัด</Form.Label>
+                                                <div className="mt-2">
+                                                    <ButtonGroup>
+                                                        <ToggleButton
+                                                            id="dir-up"
+                                                            type="radio"
+                                                            variant={watch('targetDirection') === 'up' ? 'primary' : 'outline-primary'}
+                                                            name="targetDirection"
+                                                            value="up"
+                                                            checked={watch('targetDirection') === 'up'}
+                                                            onChange={(e) => setValue('targetDirection', e.currentTarget.value, { shouldValidate: true })}
+                                                        >
+                                                            <IconifyIcon icon="tabler:arrow-up" className="me-1" />
+                                                            สูงดี
+                                                        </ToggleButton>
+                                                        <ToggleButton
+                                                            id="dir-down"
+                                                            type="radio"
+                                                            variant={watch('targetDirection') === 'down' ? 'danger' : 'outline-danger'}
+                                                            name="targetDirection"
+                                                            value="down"
+                                                            checked={watch('targetDirection') === 'down'}
+                                                            onChange={(e) => setValue('targetDirection', e.currentTarget.value, { shouldValidate: true })}
+                                                        >
+                                                            <IconifyIcon icon="tabler:arrow-down" className="me-1" />
+                                                            ต่ำดี
+                                                        </ToggleButton>
+                                                    </ButtonGroup>
+                                                </div>
                                             </Form.Group>
                                         </Col>
                                         <Col md={4}>

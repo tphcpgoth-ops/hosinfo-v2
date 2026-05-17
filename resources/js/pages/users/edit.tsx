@@ -1,7 +1,7 @@
 import PageTitle from '@/components/PageTitle';
 import MainLayout from '@/layouts/MainLayout';
 import { Link, useForm, usePage } from '@inertiajs/react';
-import { Button, Card, CardBody, CardHeader, CardTitle, Col, Row, Form } from 'react-bootstrap';
+import { Button, Card, CardBody, CardHeader, CardTitle, Col, Row, Form, ButtonGroup, ToggleButton } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import Select from 'react-select';
 
@@ -37,6 +37,13 @@ const EditUserPage = ({ user, departments }: Props) => {
         value: dept.id,
         label: dept.dp_name,
     }));
+
+    const roleOptions = [
+        { value: 'admin', label: 'Admin' },
+        { value: 'head', label: 'Head' },
+        { value: 'user', label: 'User' },
+        { value: 'guest', label: 'Guest' }
+    ];
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -97,43 +104,46 @@ const EditUserPage = ({ user, departments }: Props) => {
 
                                     <Col md={6}>
                                         <label className="form-label">บทบาท (Role)</label>
-                                        <select
-                                            className={`form-select ${errors.role ? 'is-invalid' : ''} ${isSelf && auth.user?.role !== 'admin' ? 'bg-light' : ''}`}
-                                            value={data.role}
-                                            onChange={(e) => setData('role', e.target.value)}
-                                            disabled={isSelf && auth.user?.role !== 'admin'}
-                                        >
-                                            <option value="admin">Admin</option>
-                                            <option value="head">Head</option>
-                                            <option value="user">User</option>
-                                            <option value="guest">Guest</option>
-                                        </select>
-                                        {errors.role && <div className="invalid-feedback">{errors.role}</div>}
+                                        <Select
+                                            classNamePrefix="react-select"
+                                            options={roleOptions}
+                                            value={roleOptions.find(opt => opt.value === data.role)}
+                                            onChange={(opt: any) => setData('role', opt ? opt.value : 'user')}
+                                            placeholder="เลือกบทบาท..."
+                                            isDisabled={isSelf && auth.user?.role !== 'admin'}
+                                        />
+                                        {errors.role && <div className="text-danger fs-13 mt-1">{errors.role}</div>}
                                     </Col>
 
                                     <Col md={6}>
                                         <label className="form-label">สถานะการใช้งาน</label>
                                         <div>
-                                            <Form.Check
-                                                inline
-                                                type="radio"
-                                                id="status-active"
-                                                label="เปิดใช้งาน"
-                                                name="is_active"
-                                                checked={data.is_active === true}
-                                                onChange={() => setData('is_active', true)}
-                                                disabled={auth.user?.role !== 'admin'}
-                                            />
-                                            <Form.Check
-                                                inline
-                                                type="radio"
-                                                id="status-inactive"
-                                                label="ปิดใช้งาน"
-                                                name="is_active"
-                                                checked={data.is_active === false}
-                                                onChange={() => setData('is_active', false)}
-                                                disabled={auth.user?.role !== 'admin'}
-                                            />
+                                            <ButtonGroup>
+                                                <ToggleButton
+                                                    id="status-active"
+                                                    type="radio"
+                                                    variant={data.is_active === true ? 'success' : 'outline-success'}
+                                                    name="is_active"
+                                                    value="true"
+                                                    checked={data.is_active === true}
+                                                    onChange={() => setData('is_active', true)}
+                                                    disabled={auth.user?.role !== 'admin'}
+                                                >
+                                                    เปิดใช้งาน
+                                                </ToggleButton>
+                                                <ToggleButton
+                                                    id="status-inactive"
+                                                    type="radio"
+                                                    variant={data.is_active === false ? 'danger' : 'outline-danger'}
+                                                    name="is_active"
+                                                    value="false"
+                                                    checked={data.is_active === false}
+                                                    onChange={() => setData('is_active', false)}
+                                                    disabled={auth.user?.role !== 'admin'}
+                                                >
+                                                    ปิดใช้งาน
+                                                </ToggleButton>
+                                            </ButtonGroup>
                                         </div>
                                         {errors.is_active && <div className="text-danger fs-13 mt-1">{errors.is_active}</div>}
                                     </Col>

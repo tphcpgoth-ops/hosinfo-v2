@@ -84,32 +84,16 @@ const EditDepartmentPage = ({ department }: Props) => {
                                     </Col>
 
                                     <Col md={12}>
-                                        <label className="form-label">สถานะ</label>
-                                        <div>
-                                            <ButtonGroup>
-                                                <ToggleButton
-                                                    id="status-active"
-                                                    type="radio"
-                                                    variant={data.dp_status === 1 ? 'success' : 'outline-success'}
-                                                    name="dp_status"
-                                                    value="1"
-                                                    checked={data.dp_status === 1}
-                                                    onChange={() => setData('dp_status', 1)}
-                                                >
-                                                    เปิดใช้งาน
-                                                </ToggleButton>
-                                                <ToggleButton
-                                                    id="status-inactive"
-                                                    type="radio"
-                                                    variant={data.dp_status === 0 ? 'danger' : 'outline-danger'}
-                                                    name="dp_status"
-                                                    value="0"
-                                                    checked={data.dp_status === 0}
-                                                    onChange={() => setData('dp_status', 0)}
-                                                >
-                                                    ปิดใช้งาน
-                                                </ToggleButton>
-                                            </ButtonGroup>
+                                        <label className="form-label d-block">สถานะ</label>
+                                        <div className="d-flex align-items-center">
+                                            <input
+                                                type="checkbox"
+                                                id="dp_status"
+                                                data-switch="success"
+                                                checked={data.dp_status === 1}
+                                                onChange={(e) => setData('dp_status', e.target.checked ? 1 : 0)}
+                                            />
+                                            <label htmlFor="dp_status" data-on-label="เปิด" data-off-label="ปิด" className="mb-0" />
                                         </div>
                                         {errors.dp_status && <div className="text-danger fs-13 mt-1">{errors.dp_status}</div>}
                                     </Col>

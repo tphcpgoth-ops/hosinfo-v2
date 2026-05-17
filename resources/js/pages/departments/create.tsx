@@ -59,7 +59,7 @@ const CreateDepartmentPage = () => {
                                                 <ToggleButton
                                                     id="type-cross"
                                                     type="radio"
-                                                    variant={data.dp_type === 2 ? 'warning' : 'outline-warning'}
+                                                    variant={data.dp_type === 2 ? 'secondary' : 'outline-secondary'}
                                                     name="dp_type"
                                                     value="2"
                                                     checked={data.dp_type === 2}

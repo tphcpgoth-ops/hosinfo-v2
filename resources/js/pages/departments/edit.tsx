@@ -1,7 +1,7 @@
 import PageTitle from '@/components/PageTitle';
 import MainLayout from '@/layouts/MainLayout';
 import { Link, useForm } from '@inertiajs/react';
-import { Button, Card, CardBody, CardHeader, CardTitle, Col, Row, Form } from 'react-bootstrap';
+import { Button, Card, CardBody, CardHeader, CardTitle, Col, Row, Form, ButtonGroup, ToggleButton } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
 interface Department {
@@ -54,25 +54,31 @@ const EditDepartmentPage = ({ department }: Props) => {
 
                                     <Col md={12}>
                                         <label className="form-label">ประเภทหน่วยงาน</label>
-                                        <div className="d-flex gap-4">
-                                            <Form.Check
-                                                type="radio"
-                                                id="type-dept"
-                                                label="หน่วยงาน"
-                                                name="dp_type"
-                                                checked={data.dp_type === 1}
-                                                onChange={() => setData('dp_type', 1)}
-                                                className="mb-0"
-                                            />
-                                            <Form.Check
-                                                type="radio"
-                                                id="type-cross"
-                                                label="คล่อมสายงาน"
-                                                name="dp_type"
-                                                checked={data.dp_type === 2}
-                                                onChange={() => setData('dp_type', 2)}
-                                                className="mb-0"
-                                            />
+                                        <div>
+                                            <ButtonGroup>
+                                                <ToggleButton
+                                                    id="type-dept"
+                                                    type="radio"
+                                                    variant={data.dp_type === 1 ? 'primary' : 'outline-primary'}
+                                                    name="dp_type"
+                                                    value="1"
+                                                    checked={data.dp_type === 1}
+                                                    onChange={() => setData('dp_type', 1)}
+                                                >
+                                                    หน่วยงาน
+                                                </ToggleButton>
+                                                <ToggleButton
+                                                    id="type-cross"
+                                                    type="radio"
+                                                    variant={data.dp_type === 2 ? 'warning' : 'outline-warning'}
+                                                    name="dp_type"
+                                                    value="2"
+                                                    checked={data.dp_type === 2}
+                                                    onChange={() => setData('dp_type', 2)}
+                                                >
+                                                    คร่อมสายงาน
+                                                </ToggleButton>
+                                            </ButtonGroup>
                                         </div>
                                         {errors.dp_type && <div className="text-danger fs-13 mt-1">{errors.dp_type}</div>}
                                     </Col>
@@ -80,24 +86,30 @@ const EditDepartmentPage = ({ department }: Props) => {
                                     <Col md={12}>
                                         <label className="form-label">สถานะ</label>
                                         <div>
-                                            <Form.Check
-                                                inline
-                                                type="radio"
-                                                id="status-active"
-                                                label="เปิดใช้งาน"
-                                                name="dp_status"
-                                                checked={data.dp_status === 1}
-                                                onChange={() => setData('dp_status', 1)}
-                                            />
-                                            <Form.Check
-                                                inline
-                                                type="radio"
-                                                id="status-inactive"
-                                                label="ปิดใช้งาน"
-                                                name="dp_status"
-                                                checked={data.dp_status === 0}
-                                                onChange={() => setData('dp_status', 0)}
-                                            />
+                                            <ButtonGroup>
+                                                <ToggleButton
+                                                    id="status-active"
+                                                    type="radio"
+                                                    variant={data.dp_status === 1 ? 'success' : 'outline-success'}
+                                                    name="dp_status"
+                                                    value="1"
+                                                    checked={data.dp_status === 1}
+                                                    onChange={() => setData('dp_status', 1)}
+                                                >
+                                                    เปิดใช้งาน
+                                                </ToggleButton>
+                                                <ToggleButton
+                                                    id="status-inactive"
+                                                    type="radio"
+                                                    variant={data.dp_status === 0 ? 'danger' : 'outline-danger'}
+                                                    name="dp_status"
+                                                    value="0"
+                                                    checked={data.dp_status === 0}
+                                                    onChange={() => setData('dp_status', 0)}
+                                                >
+                                                    ปิดใช้งาน
+                                                </ToggleButton>
+                                            </ButtonGroup>
                                         </div>
                                         {errors.dp_status && <div className="text-danger fs-13 mt-1">{errors.dp_status}</div>}
                                     </Col>

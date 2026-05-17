@@ -95,32 +95,16 @@ const CreateUserPage = () => {
                                     </Col>
 
                                     <Col md={6}>
-                                        <label className="form-label">สถานะการใช้งาน</label>
-                                        <div>
-                                            <ButtonGroup>
-                                                <ToggleButton
-                                                    id="status-active"
-                                                    type="radio"
-                                                    variant={data.is_active === true ? 'success' : 'outline-success'}
-                                                    name="is_active"
-                                                    value="true"
-                                                    checked={data.is_active === true}
-                                                    onChange={() => setData('is_active', true)}
-                                                >
-                                                    เปิดใช้งาน
-                                                </ToggleButton>
-                                                <ToggleButton
-                                                    id="status-inactive"
-                                                    type="radio"
-                                                    variant={data.is_active === false ? 'danger' : 'outline-danger'}
-                                                    name="is_active"
-                                                    value="false"
-                                                    checked={data.is_active === false}
-                                                    onChange={() => setData('is_active', false)}
-                                                >
-                                                    ปิดใช้งาน
-                                                </ToggleButton>
-                                            </ButtonGroup>
+                                        <label className="form-label d-block">สถานะการใช้งาน</label>
+                                        <div className="d-flex align-items-center">
+                                            <input
+                                                type="checkbox"
+                                                id="is_active"
+                                                data-switch="success"
+                                                checked={data.is_active === true}
+                                                onChange={(e) => setData('is_active', e.target.checked)}
+                                            />
+                                            <label htmlFor="is_active" data-on-label="เปิด" data-off-label="ปิด" className="mb-0" />
                                         </div>
                                         {errors.is_active && <div className="text-danger fs-13 mt-1">{errors.is_active}</div>}
                                     </Col>

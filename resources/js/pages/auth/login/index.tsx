@@ -3,7 +3,7 @@ import logoDark from '@/images/logo-dark.png';
 import logo from '@/images/logo.png';
 import BaseLayout from '@/layouts/BaseLayout';
 
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 import { Button, Card, Col, FormCheck, FormControl, FormGroup, FormLabel, Row } from 'react-bootstrap';
 
@@ -21,6 +21,12 @@ interface LoginProps {
 }
 
 const LoginPage = ({ canResetPassword }: LoginProps) => {
+    const { name } = usePage().props as { name?: string };
+    const envAppName = import.meta.env.VITE_APP_NAME;
+    const appName = (envAppName && envAppName !== 'undefined' && envAppName !== '${APP_NAME}') 
+        ? envAppName 
+        : (name || 'HOS-info');
+
     const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
         email: '',
         password: '',
@@ -100,7 +106,7 @@ const LoginPage = ({ canResetPassword }: LoginProps) => {
 
 
                             <p className="mt-auto mb-0">
-                                {currentYear} © {import.meta.env.VITE_APP_NAME} - By{' '}
+                                {currentYear} © {appName} - By{' '}
                                 <span className="fw-bold text-decoration-underline text-reset fs-12">Dr.GHOST</span>
                             </p>
                         </Card>

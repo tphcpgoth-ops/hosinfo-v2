@@ -130,9 +130,18 @@ const DepartmentsPage = ({ departments }: Props) => {
                                 {
                                     name: 'ประเภท',
                                     formatter: (type: any) => {
+                                        let text = 'หน่วยงาน';
+                                        let badgeClass = 'bg-info-subtle text-info border border-info-subtle';
+                                        if (type === 2) {
+                                            text = 'คร่อมสายงาน';
+                                            badgeClass = 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+                                        } else if (type === 3) {
+                                            text = 'รพ.สต./PCC';
+                                            badgeClass = 'bg-success-subtle text-success border border-success-subtle';
+                                        }
                                         return html(
-                                            `<span class="badge bg-info-subtle text-info border border-info-subtle">
-                                                ${type === 2 ? 'คล่อมสายงาน' : 'หน่วยงาน'}
+                                            `<span class="badge ${badgeClass}">
+                                                ${text}
                                             </span>`
                                         );
                                     }

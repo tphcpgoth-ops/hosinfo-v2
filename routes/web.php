@@ -54,12 +54,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('departments', \App\Http\Controllers\DepartmentController::class);
 
     });
-
+    
     // Hepatitis Screening
     Route::get('hepatitis/summary', [\App\Http\Controllers\HepatitisScreeningController::class, 'summary'])->name('hepatitis.summary');
     Route::post('hepatitis/import', [\App\Http\Controllers\HepatitisScreeningController::class, 'import'])->name('hepatitis.import');
     Route::resource('hepatitis', \App\Http\Controllers\HepatitisScreeningController::class);
-
     Route::get('/stats/opd', [\App\Http\Controllers\StatController::class, 'opd']);
     Route::get('/end-user-reports', [ReportController::class, 'index'])->name('end-user-reports.index');
 

@@ -6,8 +6,9 @@ import { Link, router, usePage, useForm } from '@inertiajs/react';
 import { Button, Card, Col, Row, Modal, Form, ButtonGroup, ToggleButton, ListGroup, InputGroup } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import CustomFlatpickr from '@/components/CustomFlatpickr';
+import Select from 'react-select';
 
-const HepatitisIndexPage = ({ screenings }: { screenings: any[] }) => {
+const HepatitisIndexPage = ({ screenings, hospitals = [] }: { screenings: any[], hospitals?: any[] }) => {
     const { props } = usePage();
     const [showImport, setShowImport] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -42,6 +43,11 @@ const HepatitisIndexPage = ({ screenings }: { screenings: any[] }) => {
         diagnosis: '',
         remarks: ''
     });
+
+    const hospitalOptions = (hospitals || []).map(h => ({
+        value: h.dp_name,
+        label: h.dp_name
+    }));
 
     // Filtered Screenings
     const filteredScreenings = screenings.filter(s => 
@@ -230,7 +236,14 @@ const HepatitisIndexPage = ({ screenings }: { screenings: any[] }) => {
                                     <Col md={3}>
                                         <Form.Group>
                                             <Form.Label>รพ.สต</Form.Label>
-                                            <Form.Control type="text" value={data.hospital_name} onChange={e => setData('hospital_name', e.target.value)} />
+                                            <Select
+                                                classNamePrefix="react-select"
+                                                options={hospitalOptions}
+                                                value={hospitalOptions.find(opt => opt.value === data.hospital_name) || null}
+                                                onChange={(opt: any) => setData('hospital_name', opt ? opt.value : '')}
+                                                placeholder="เลือก รพ.สต..."
+                                                isClearable
+                                            />
                                         </Form.Group>
                                     </Col>
                                 </Row>

@@ -50,7 +50,7 @@ class DepartmentController extends Controller
         $request->validate([
             'dp_name' => 'required|string|max:255|unique:departments,dp_name',
             'dp_status' => 'required|integer|in:0,1',
-            'dp_type' => 'required|integer|in:1,2',
+            'dp_type' => 'required|integer|in:1,2,3',
         ]);
 
         Department::create([
@@ -92,7 +92,7 @@ class DepartmentController extends Controller
         $request->validate([
             'dp_name' => 'required|string|max:255|unique:departments,dp_name,' . $department->id,
             'dp_status' => 'required|integer|in:0,1',
-            'dp_type' => 'required|integer|in:1,2',
+            'dp_type' => 'required|integer|in:1,2,3',
         ]);
 
         $department->update([

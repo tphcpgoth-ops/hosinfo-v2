@@ -14,8 +14,13 @@ class HepatitisScreeningController extends Controller
     public function index()
     {
         $screenings = HepatitisScreening::orderBy('id', 'desc')->get();
+        $hospitals = \App\Models\Department::where('dp_type', 3)
+            ->where('dp_status', 1)
+            ->orderBy('dp_name', 'asc')
+            ->get();
         return Inertia::render('hepatitis/index', [
-            'screenings' => $screenings
+            'screenings' => $screenings,
+            'hospitals' => $hospitals
         ]);
     }
 

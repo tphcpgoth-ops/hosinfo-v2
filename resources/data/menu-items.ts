@@ -81,14 +81,14 @@ export const MENU_ITEMS: MenuItemType[] = [
         key: 'hepatitis',
         label: 'คัดกรองไวรัสตับอักเสบ',
         icon: 'tabler:virus-search',
-        roles: ['admin', 'head', 'user'],
+        roles: ['admin', 'head', 'user','guest'],
         children: [
             {
                 key: 'hepatitis_summary',
                 label: 'สรุปผลการรักษา',
                 url: '/hepatitis/summary',
                 parentKey: 'hepatitis',
-                roles: ['admin', 'head', 'user'],
+                roles: ['admin', 'head', 'user','guest'],
             },
             {
                 key: 'hepatitis_list',

@@ -45,7 +45,7 @@ class ThaiDAuthController extends Controller
                 'email' => $thaidUser->getId() . '@thaid.local', // Dummy email since ThaiD doesn't provide one
                 'password' => bcrypt(\Illuminate\Support\Str::random(16)),
                 'thaid_id' => $thaidUser->getId(),
-                'role' => 'user', // default role
+                'role' => 'guest', // default role
             ]);
             $isNewUser = true;
         }

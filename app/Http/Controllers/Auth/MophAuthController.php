@@ -80,7 +80,7 @@ class MophAuthController extends Controller
                 'password' => bcrypt(\Illuminate\Support\Str::random(16)),
                 'pid' => $pid,
                 'moph_id' => $mophId,
-                'role' => 'user', // default role
+                'role' => 'guest', // default role
             ]);
         } else {
             // Update moph_id if they previously registered without it but PID matches

@@ -6,6 +6,7 @@ mkdir -p /var/www/storage/logs
 mkdir -p /var/www/storage/framework/sessions
 mkdir -p /var/www/storage/framework/views
 mkdir -p /var/www/storage/framework/cache
+mkdir -p /var/www/storage/app/public
 mkdir -p /var/www/bootstrap/cache
 mkdir -p /var/www/public
 
@@ -16,7 +17,7 @@ cp -rf /var/www/public_temp/* /var/www/public/
 # สร้างไฟล์ log ถ้ายังไม่มี และตั้งสิทธิ์
 touch /var/www/storage/logs/laravel.log
 chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+chmod -R 777 /var/www/storage /var/www/bootstrap/cache
 
 # ฟังก์ชันรอ Database พร้อมทำงาน
 wait_for_db() {

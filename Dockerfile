@@ -45,7 +45,11 @@ COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Set permissions
+RUN mkdir -p /var/www/storage/app/public
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+
+# กำหนดสิทธิ์ให้สามารถ อ่าน/เขียน/เข้าถึง ได้ทั้งหมด
+RUN chmod -R 777 /var/www/storage /var/www/bootstrap/cache
 
 EXPOSE 9000
 

@@ -67,6 +67,17 @@ const CreateDepartmentPage = () => {
                                                 >
                                                     คร่อมสายงาน
                                                 </ToggleButton>
+                                                <ToggleButton
+                                                    id="type-pcc"
+                                                    type="radio"
+                                                    variant={data.dp_type === 3 ? 'info' : 'outline-info'}
+                                                    name="dp_type"
+                                                    value="3"
+                                                    checked={data.dp_type === 3}
+                                                    onChange={() => setData('dp_type', 3)}
+                                                >
+                                                    รพ.สต./PCC
+                                                </ToggleButton>
                                             </ButtonGroup>
                                         </div>
                                         {errors.dp_type && <div className="text-danger fs-13 mt-1">{errors.dp_type}</div>}

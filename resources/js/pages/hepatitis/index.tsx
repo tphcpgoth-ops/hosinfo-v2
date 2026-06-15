@@ -94,14 +94,28 @@ const HepatitisIndexPage = ({ screenings, hospitals = [] }: { screenings: any[],
         if (formMode === 'create') {
             post(route('hepatitis.store'), {
                 onSuccess: () => {
-                    Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
+                    Swal.fire({
+                        title: 'สำเร็จ',
+                        text: 'บันทึกข้อมูลเรียบร้อยแล้ว',
+                        icon: 'success',
+                        showConfirmButton: false,
+                        timer: 1000,
+                        timerProgressBar: true
+                    });
                     handleCreateNew(); // clear form
                 }
             });
         } else {
             put(route('hepatitis.update', selectedId), {
                 onSuccess: () => {
-                    Swal.fire('สำเร็จ', 'แก้ไขข้อมูลเรียบร้อยแล้ว', 'success');
+                    Swal.fire({
+                        title: 'สำเร็จ',
+                        text: 'แก้ไขข้อมูลเรียบร้อยแล้ว',
+                        icon: 'success',
+                        showConfirmButton: false,
+                        timer: 1000,
+                        timerProgressBar: true
+                    });
                 }
             });
         }
@@ -135,7 +149,14 @@ const HepatitisIndexPage = ({ screenings, hospitals = [] }: { screenings: any[],
             onSuccess: () => {
                 setShowImport(false);
                 importForm.reset();
-                Swal.fire('สำเร็จ', 'นำเข้าข้อมูลเรียบร้อยแล้ว', 'success');
+                Swal.fire({
+                    title: 'สำเร็จ',
+                    text: 'นำเข้าข้อมูลเรียบร้อยแล้ว',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    timerProgressBar: true
+                });
             },
         });
     };

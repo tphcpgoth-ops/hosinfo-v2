@@ -4,6 +4,7 @@ import { Link, useForm, usePage } from '@inertiajs/react';
 import { Button, Card, CardBody, CardHeader, CardTitle, Col, Row, Form, ButtonGroup, ToggleButton } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import Select from 'react-select';
+import Swal from 'sweetalert2';
 
 interface User {
     id: number;
@@ -47,7 +48,18 @@ const EditUserPage = ({ user, departments }: Props) => {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(route('users.update', user.id));
+        put(route('users.update', user.id), {
+            onSuccess: () => {
+                Swal.fire({
+                    title: 'สำเร็จ!',
+                    text: 'แก้ไขข้อมูลผู้ใช้งานเรียบร้อยแล้ว',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1000,
+                    timerProgressBar: true
+                });
+            }
+        });
     };
 
     return (

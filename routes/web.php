@@ -29,6 +29,18 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/hosinfo', [HosinfoController::class, 'index'])->name('hosinfo');
 Route::get('/hosinfo/opd', [HosinfoController::class, 'opd'])->name('hosinfo.opd');
 Route::get('/hosinfo/ipd', [HosinfoController::class, 'ipd'])->name('hosinfo.ipd');
+Route::get('/hosinfo/dent', [HosinfoController::class, 'dent'])->name('hosinfo.dent');
+Route::get('/hosinfo/ppt', [HosinfoController::class, 'ppt'])->name('hosinfo.ppt');
+Route::get('/hosinfo/er', [HosinfoController::class, 'er'])->name('hosinfo.er');
+Route::get('/hosinfo/or', [HosinfoController::class, 'or'])->name('hosinfo.or');
+Route::get('/hosinfo/cd', [HosinfoController::class, 'cd'])->name('hosinfo.cd');
+Route::get('/hosinfo/ncd', [HosinfoController::class, 'ncd'])->name('hosinfo.ncd');
+Route::get('/hosinfo/pts', [HosinfoController::class, 'pts'])->name('hosinfo.pts');
+Route::get('/hosinfo/xray', [HosinfoController::class, 'xray'])->name('hosinfo.xray');
+Route::get('/hosinfo/lab', [HosinfoController::class, 'lab'])->name('hosinfo.lab');
+Route::get('/hosinfo/pcc', [HosinfoController::class, 'pcc'])->name('hosinfo.pcc');
+Route::get('/hosinfo/last-update', [HosinfoController::class, 'lastUpdate'])->name('hosinfo.last-update');
+
 
 Route::middleware(['auth', 'verified'])->group(function () {
     

@@ -123,7 +123,7 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                     <p className="text-muted mb-4">สรุปสถิติจำนวนผู้ป่วยใน อัตราครองเตียง และโรคที่พบบ่อย แยกตามปีงบประมาณ</p>
 
                     <Tab.Container defaultActiveKey="charts">
-                        <Nav role="tablist" className="nav-tabs nav-justified nav-bordered nav-bordered-danger mb-3">
+                        <Nav role="tablist" className="nav-tabs nav-bordered nav-bordered-danger mb-3">
                             <Nav.Item>
                                 <Nav.Link eventKey="charts" className="py-2">
                                     <IconifyIcon icon="solar:chart-bold-duotone" className="me-2 fs-18 align-middle" />

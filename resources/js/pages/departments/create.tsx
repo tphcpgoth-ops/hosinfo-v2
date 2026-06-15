@@ -3,6 +3,7 @@ import MainLayout from '@/layouts/MainLayout';
 import { Link, useForm } from '@inertiajs/react';
 import { Button, Card, CardBody, CardHeader, CardTitle, Col, Row, Form, ButtonGroup, ToggleButton } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import Swal from 'sweetalert2';
 
 const CreateDepartmentPage = () => {
     const { data, setData, post, processing, errors } = useForm({
@@ -13,7 +14,18 @@ const CreateDepartmentPage = () => {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('departments.store'));
+        post(route('departments.store'), {
+            onSuccess: () => {
+                Swal.fire({
+                    title: 'สำเร็จ!',
+                    text: 'บันทึกข้อมูลหน่วยงานเรียบร้อยแล้ว',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1000,
+                    timerProgressBar: true
+                });
+            }
+        });
     };
 
     return (

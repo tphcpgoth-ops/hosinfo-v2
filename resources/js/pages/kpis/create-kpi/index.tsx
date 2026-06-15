@@ -103,7 +103,9 @@ const CreateKpiPage = ({ departments = [], nextKpiCode = '', users = [] }: Creat
                     title: 'สำเร็จ!',
                     text: 'บันทึกข้อมูลตัวชี้วัดเรียบร้อยแล้ว',
                     icon: 'success',
-                    confirmButtonText: 'ตกลง'
+                    showConfirmButton: false,
+                    timer: 1000,
+                    timerProgressBar: true
                 });
             },
             onError: (errors) => {

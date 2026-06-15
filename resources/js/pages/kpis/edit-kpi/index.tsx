@@ -110,7 +110,9 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
                     title: 'สำเร็จ!',
                     text: 'แก้ไขข้อมูลตัวชี้วัดเรียบร้อยแล้ว',
                     icon: 'success',
-                    confirmButtonText: 'ตกลง'
+                    showConfirmButton: false,
+                    timer: 1000,
+                    timerProgressBar: true
                 });
             },
             onError: (errors) => {

@@ -4,6 +4,7 @@ import { Link, useForm, usePage } from '@inertiajs/react';
 import { Button, Card, CardBody, CardHeader, CardTitle, Col, Row, Form, ButtonGroup, ToggleButton } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import Select from 'react-select';
+import Swal from 'sweetalert2';
 
 const CreateUserPage = () => {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -31,7 +32,18 @@ const CreateUserPage = () => {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('users.store'));
+        post(route('users.store'), {
+            onSuccess: () => {
+                Swal.fire({
+                    title: 'สำเร็จ!',
+                    text: 'บันทึกข้อมูลผู้ใช้งานเรียบร้อยแล้ว',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1000,
+                    timerProgressBar: true
+                });
+            }
+        });
     };
 
     return (

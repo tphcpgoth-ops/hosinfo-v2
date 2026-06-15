@@ -483,6 +483,7 @@ const KpisPage = ({
                                                     >
                                                         <iconify-icon icon="solar:eye-bold" class="fs-16"></iconify-icon>
                                                     </button>
+                                                    ${isAdminOrHead ? `
                                                     <button 
                                                         class="btn btn-sm btn-soft-success btn-icon rounded-circle" 
                                                         onclick="event.preventDefault(); window.__inertiaRouter.visit('/kpis/${id}/edit')"
@@ -497,6 +498,7 @@ const KpisPage = ({
                                                     >
                                                         <iconify-icon icon="solar:trash-bin-trash-bold" class="fs-16"></iconify-icon>
                                                     </button>
+                                                    ` : ''}
                                                 </div>`
                                             )
                                         },

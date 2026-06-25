@@ -6,8 +6,12 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
+import { usePage } from '@inertiajs/react';
+import { Grid, _ } from 'gridjs-react';
+import { html } from 'gridjs';
 
 const ERStatsPage = ({ api_token, external_api_url }: { api_token: string, external_api_url: string }) => {
+    const { auth } = usePage().props as any;
     const currentBE = new Date().getFullYear() + (new Date().getMonth() > 8 ? 1 : 0) + 543;
     const [fiscalYear, setFiscalYear] = useState(currentBE);
     const [loading, setLoading] = useState(true);
@@ -112,10 +116,10 @@ const ERStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
 
     return (
         <MainLayout>
-            <PageTitle title="สถิติห้องอุบัติเหตุและฉุกเฉิน (Emergency Room Statistics)" subTitle="HOSinfo Stats" />
+            <PageTitle title="สถิติห้องอุบัติเหตุและฉุกเฉิน (Emergency Room Statistics)" subTitle="Stats" />
 
-            <Row className="mb-4 align-items-center">
-                <Col md={6}>
+            <Row className="mb-2 align-items-center">
+                <Col md={3}>
                     <div className="d-flex align-items-center">
                         <label className="me-2 fw-bold text-nowrap">ปีงบประมาณ:</label>
                         <select 
@@ -130,7 +134,7 @@ const ERStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                         {loading && <Spinner animation="border" size="sm" className="ms-3 text-danger" />}
                     </div>
                 </Col>
-                <Col md={6} className="text-md-end mt-3 mt-md-0">
+                <Col md={9} className="text-md-end mt-3 mt-md-0">
                     <button className="btn btn-soft-danger rounded-pill px-4 shadow-sm" onClick={() => fetchData(fiscalYear)}>
                         <IconifyIcon icon="solar:refresh-bold" className="me-1" /> รีเฟรชข้อมูล
                     </button>
@@ -167,12 +171,14 @@ const ERStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                                     ตารางสรุปสิทธิ์
                                 </Nav.Link>
                             </Nav.Item>
-                            <Nav.Item>
-                                <Nav.Link eventKey="patients" className="py-2">
-                                    <IconifyIcon icon="solar:users-group-two-rounded-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    รายชื่อผู้รับบริการ {selectedMonth && `(${selectedMonth})`}
-                                </Nav.Link>
-                            </Nav.Item>
+                            {auth?.user && (
+                                <Nav.Item>
+                                    <Nav.Link eventKey="patients" className="py-2">
+                                        <IconifyIcon icon="solar:users-group-two-rounded-bold-duotone" className="me-2 fs-18 align-middle" />
+                                        รายชื่อผู้รับบริการ {selectedMonth && `(${selectedMonth})`}
+                                    </Nav.Link>
+                                </Nav.Item>
+                            )}
                         </Nav>
                         
                         <Tab.Content>
@@ -306,60 +312,58 @@ const ERStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                                 </div>
                             </Tab.Pane>
 
-                            <Tab.Pane eventKey="patients">
-                                <div ref={patientsRef}>
-                                    <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <h5 className="mb-0 fw-bold text-danger">
-                                            รายชื่อผู้รับบริการ ประจำเดือน {selectedMonth || 'กรุณาเลือกในตาราง'}
-                                        </h5>
-                                        <span className="badge bg-soft-danger text-danger px-3 py-2 rounded-pill fw-bold">
-                                            ทั้งหมด {patientsData.length} ราย
-                                        </span>
-                                    </div>
+                            {auth?.user && (
+                                <Tab.Pane eventKey="patients">
+                                    <div ref={patientsRef}>
+                                        <div className="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 className="mb-0 fw-bold text-danger">
+                                                รายชื่อผู้รับบริการ ประจำเดือน {selectedMonth || 'กรุณาเลือกในตาราง'}
+                                            </h5>
+                                            <span className="badge bg-soft-danger text-danger px-3 py-2 rounded-pill fw-bold">
+                                                ทั้งหมด {patientsData.length} ราย
+                                            </span>
+                                        </div>
 
-                                    {patientsLoading ? (
-                                        <div className="text-center py-5"><Spinner animation="border" variant="danger" /></div>
-                                    ) : patientsData.length === 0 ? (
-                                        <div className="text-center py-5 text-muted">
-                                            <IconifyIcon icon="solar:users-group-two-rounded-broken" className="fs-48 mb-2 text-danger opacity-50" />
-                                            <p className="mb-0">ไม่พบข้อมูลผู้รับบริการ หรือคลิกเลือกตัวเลขในตารางสรุปสิทธิ์เพื่อดูรายชื่อ</p>
-                                        </div>
-                                    ) : (
-                                        <div className="table-responsive border rounded shadow-sm">
-                                            <Table hover striped bordered className="align-middle mb-0 table-sm">
-                                                <thead className="bg-danger text-white">
-                                                    <tr>
-                                                        <th>วันที่รับบริการ</th>
-                                                        <th>HN</th>
-                                                        <th>ชื่อ-นามสกุล</th>
-                                                        <th className="text-center">อายุ (ปี)</th>
-                                                        <th>สิทธิ์การรักษา</th>
-                                                        <th>ประเภท ER</th>
-                                                        <th>การวินิจฉัยหลัก</th>
-                                                        <th className="text-end">ค่าใช้จ่าย</th>
-                                                        <th>ที่อยู่</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {patientsData.map((pt, idx) => (
-                                                        <tr key={idx}>
-                                                            <td>{new Date(pt.vstdate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-                                                            <td><code>{pt.hn}</code></td>
-                                                            <td className="fw-semibold">{pt.ptname}</td>
-                                                            <td className="text-center">{pt.age}</td>
-                                                            <td className="small">{pt.pttypename}</td>
-                                                            <td><span className="badge bg-soft-danger text-danger">{pt.erpttype}</span></td>
-                                                            <td className="small">{pt.dxname || '-'}</td>
-                                                            <td className="text-end fw-bold text-danger">{(pt.income || 0).toLocaleString()}</td>
-                                                            <td className="small text-muted">{pt.address}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </Table>
-                                        </div>
-                                    )}
-                                </div>
-                            </Tab.Pane>
+                                        {patientsLoading ? (
+                                            <div className="text-center py-5"><Spinner animation="border" variant="danger" /></div>
+                                        ) : patientsData.length === 0 ? (
+                                            <div className="text-center py-5 text-muted">
+                                                <IconifyIcon icon="solar:users-group-two-rounded-broken" className="fs-48 mb-2 text-danger opacity-50" />
+                                                <p className="mb-0">ไม่พบข้อมูลผู้รับบริการ หรือคลิกเลือกตัวเลขในตารางสรุปสิทธิ์เพื่อดูรายชื่อ</p>
+                                            </div>
+                                        ) : (
+                                            <Grid
+                                                data={patientsData.map((pt, idx) => [
+                                                    `${new Date(pt.vstdate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}`,
+                                                    html(`<code>${pt.hn}</code>`),
+                                                    pt.ptname,
+                                                    pt.age,
+                                                    pt.pttypename,
+                                                    html(`<span class="badge bg-soft-danger text-danger">${pt.erpttype}</span>`),
+                                                    pt.dxname || '-',
+                                                    (pt.income || 0).toLocaleString(),
+                                                    pt.address
+                                                ])}
+                                                columns={["วันที่รับบริการ", "HN", "ชื่อ-นามสกุล", "อายุ (ปี)", "สิทธิ์การรักษา", "ประเภท ER", "การวินิจฉัยหลัก", "ค่าใช้จ่าย", "ที่อยู่"]}
+                                                search={true}
+                                                pagination={{ limit: 10 }}
+                                                sort={true}
+                                                language={{
+                                                    'search': { 'placeholder': 'ค้นหา...' },
+                                                    'pagination': { 'previous': 'ก่อนหน้า', 'next': 'ถัดไป', 'showing': 'แสดง', 'results': () => 'รายการ' },
+                                                    'noRecordsFound': 'ไม่พบรายชื่อผู้รับบริการ'
+                                                }}
+                                                className={{
+                                                    table: 'table table-hover align-middle mb-0 table-sm',
+                                                    th: 'bg-danger text-white fw-semibold',
+                                                    pagination: 'mt-0 mb-0 p-1',
+                                                    container: 'mt-0 mb-0 p-0'
+                                                }}
+                                            />
+                                        )}
+                                    </div>
+                                </Tab.Pane>
+                            )}
                         </Tab.Content>
                     </Tab.Container>
                 </CardBody>

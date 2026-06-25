@@ -6,8 +6,19 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
+import { usePage } from '@inertiajs/react';
+import WardDetailPage from './WardDetailPage';
 
 const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, external_api_url: string }) => {
+    // Read the ward query parameter from the URL
+    const [wardId, setWardId] = useState<string | null>(null);
+    useEffect(() => {
+        const queryParams = new URLSearchParams(window.location.search);
+        setWardId(queryParams.get('ward'));
+    }, []);
+
+    const { wards } = usePage<any>().props;
+
     const currentBE = new Date().getFullYear() + (new Date().getMonth() > 8 ? 1 : 0) + 543;
     const [fiscalYear, setFiscalYear] = useState(currentBE);
     const [loading, setLoading] = useState(true);
@@ -85,10 +96,22 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
 
     return (
         <MainLayout>
-            <PageTitle title="สถิติผู้ป่วยใน (IPD)" subTitle="HOSinfo Stats" />
+            {wardId ? (
+                <>
+                    <PageTitle title="ข้อมูลผู้ป่วยใน" subTitle="Ward Detail" />
+                    <WardDetailPage 
+                        wardId={wardId} 
+                        api_token={api_token} 
+                        external_api_url={external_api_url} 
+                        wards={wards || []} 
+                    />
+                </>
+            ) : (
+                <>
+                    <PageTitle title="สถิติผู้ป่วยใน (IPD)" subTitle="Stats" />
 
-            <Row className="mb-4 align-items-center">
-                <Col md={6}>
+                    <Row className="mb-2 align-items-center">
+                <Col md={3}>
                     <div className="d-flex align-items-center">
                         <label className="me-2 fw-bold text-nowrap">ปีงบประมาณ:</label>
                         <select 
@@ -103,7 +126,7 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                         {loading && <Spinner animation="border" size="sm" className="ms-3 text-primary" />}
                     </div>
                 </Col>
-                <Col md={6} className="text-md-end mt-3 mt-md-0">
+                <Col md={9} className="text-md-end mt-3 mt-md-0">
                     <button className="btn btn-soft-primary rounded-pill px-4 shadow-sm" onClick={() => fetchData(fiscalYear)}>
                         <IconifyIcon icon="solar:refresh-bold" className="me-1" /> รีเฟรชข้อมูล
                     </button>
@@ -243,6 +266,8 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                     </Tab.Container>
                 </CardBody>
             </Card>
+            </>
+            )}
         </MainLayout>
     );
 };

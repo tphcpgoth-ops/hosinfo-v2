@@ -6,8 +6,12 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
+import { usePage } from '@inertiajs/react';
+import { Grid, _ } from 'gridjs-react';
+import { html } from 'gridjs';
 
 const DentalStatsPage = ({ api_token, external_api_url }: { api_token: string, external_api_url: string }) => {
+    const { auth } = usePage().props as any;
     const currentBE = new Date().getFullYear() + (new Date().getMonth() > 8 ? 1 : 0) + 543;
     const [fiscalYear, setFiscalYear] = useState(currentBE);
     const [loading, setLoading] = useState(true);
@@ -123,10 +127,10 @@ const DentalStatsPage = ({ api_token, external_api_url }: { api_token: string, e
 
     return (
         <MainLayout>
-            <PageTitle title="สถิติทันตกรรม (Dental Statistics)" subTitle="HOSinfo Stats" />
+            <PageTitle title="สถิติทันตกรรม (Dental Statistics)" subTitle="Stats" />
 
-            <Row className="mb-4 align-items-center">
-                <Col md={6}>
+            <Row className="mb-2 align-items-center">
+                <Col md={3}>
                     <div className="d-flex align-items-center">
                         <label className="me-2 fw-bold text-nowrap">ปีงบประมาณ:</label>
                         <select 
@@ -141,7 +145,7 @@ const DentalStatsPage = ({ api_token, external_api_url }: { api_token: string, e
                         {loading && <Spinner animation="border" size="sm" className="ms-3 text-success" />}
                     </div>
                 </Col>
-                <Col md={6} className="text-md-end mt-3 mt-md-0">
+                <Col md={9} className="text-md-end mt-3 mt-md-0">
                     <button className="btn btn-soft-success rounded-pill px-4 shadow-sm" onClick={() => fetchData(fiscalYear)}>
                         <IconifyIcon icon="solar:refresh-bold" className="me-1" /> รีเฟรชข้อมูล
                     </button>
@@ -184,12 +188,14 @@ const DentalStatsPage = ({ api_token, external_api_url }: { api_token: string, e
                                     รายการรักษาทันตกรรม
                                 </Nav.Link>
                             </Nav.Item>
-                            <Nav.Item>
+                            {auth?.user && (
+<Nav.Item>
                                 <Nav.Link eventKey="patients" className="py-2">
                                     <IconifyIcon icon="solar:users-group-two-rounded-bold-duotone" className="me-2 fs-18 align-middle" />
                                     รายชื่อผู้รับบริการ {selectedMonth && `(${selectedMonth})`}
                                 </Nav.Link>
                             </Nav.Item>
+)}
                         </Nav>
                         
                         <Tab.Content>
@@ -439,7 +445,8 @@ const DentalStatsPage = ({ api_token, external_api_url }: { api_token: string, e
                             </Tab.Pane>
 
                             {/* Tab 4: Patient List */}
-                            <Tab.Pane eventKey="patients">
+                            {auth?.user && (
+<Tab.Pane eventKey="patients">
                                 <div ref={patientsRef}>
                                     <div className="d-flex justify-content-between align-items-center mb-3">
                                         <h5 className="fw-bold text-success d-flex align-items-center mb-0">
@@ -461,51 +468,39 @@ const DentalStatsPage = ({ api_token, external_api_url }: { api_token: string, e
                                     ) : patientsLoading ? (
                                         <div className="text-center py-5"><Spinner animation="border" variant="success" className="me-2" /> กำลังดึงข้อมูล...</div>
                                     ) : (
-                                        <div className="table-responsive border rounded shadow-sm" style={{ maxHeight: '700px', overflowY: 'auto' }}>
-                                            <Table hover striped bordered className="align-middle table-sm mb-0">
-                                                <thead className="sticky-top bg-success text-white">
-                                                    <tr>
-                                                        <th className="text-center">ลำดับ</th>
-                                                        <th className="text-center">วันที่รับบริการ</th>
-                                                        <th className="text-center">HN</th>
-                                                        <th>ชื่อ-นามสกุล</th>
-                                                        <th className="text-center">อายุ (ปี)</th>
-                                                        <th>ที่อยู่</th>
-                                                        <th>สิทธิการรักษา</th>
-                                                        <th>การวินิจฉัยหลัก (PDx)</th>
-                                                        <th className="text-end">ค่าใช้จ่ายทันตกรรม</th>
-                                                        <th className="text-end bg-dark text-white">ค่าใช้จ่ายรวม</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {patientsData.length === 0 ? (
-                                                        <tr><td colSpan={10} className="text-center py-4 text-muted">ไม่พบข้อมูลรายชื่อสำหรับเดือนนี้</td></tr>
-                                                    ) : patientsData.map((row, idx) => (
-                                                        <tr key={idx}>
-                                                            <td className="text-center small text-muted">{idx + 1}</td>
-                                                            <td className="text-center small">{row.vstdate}</td>
-                                                            <td className="text-center small fw-bold text-success">{row.hn}</td>
-                                                            <td className="small fw-semibold">{row.pname}{row.fname} {row.lname}</td>
-                                                            <td className="text-center small">{row.age_y || '-'}</td>
-                                                            <td className="small text-muted" style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`${row.addrpart || ''} หมู่ ${row.moopart || ''} ${row.road ? 'ถ.' + row.road : ''} ${row.full_name || ''}`}>
-                                                                {row.addrpart || ''} หมู่ {row.moopart || ''} {row.road ? 'ถ.' + row.road : ''} {row.full_name || ''}
-                                                            </td>
-                                                            <td className="small" style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={row.pttypename}>
-                                                                {row.pttypename}
-                                                            </td>
-                                                            <td className="small fw-bold text-primary">
-                                                                {row.pdx ? `${row.pdx} : ${row.dxname || ''}` : '-'}
-                                                            </td>
-                                                            <td className="text-end small text-success fw-bold">{(row.dent_fee || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                                            <td className="text-end small bg-light-subtle fw-bold">{(row.income || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </Table>
-                                        </div>
+                                        <Grid
+                                                data={patientsData.map((row, idx) => [
+                                                    idx + 1,
+                                                    row.vstdate,
+                                                    row.hn,
+                                                    `${row.pname}${row.fname} ${row.lname}`,
+                                                    row.age_y || '-',
+                                                    `${row.addrpart || ''} หมู่ ${row.moopart || ''} ${row.road ? 'ถ.' + row.road : ''} ${row.full_name || ''}`,
+                                                    row.pttypename,
+                                                    `${row.pdx ? `${row.pdx} : ${row.dxname || ''}` : '-'}`,
+                                                    (row.dent_fee || 0).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+                                                    (row.income || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })
+                                                ])}
+                                                columns={["ลำดับ", "วันที่รับบริการ", "HN", "ชื่อ-นามสกุล", "อายุ (ปี)", "ที่อยู่", "สิทธิการรักษา", "การวินิจฉัยหลัก (PDx)", "ค่าใช้จ่ายทันตกรรม", "ค่าใช้จ่ายรวม"]}
+                                                search={true}
+                                                pagination={{ limit: 10 }}
+                                                sort={true}
+                                                language={{
+                                                    'search': { 'placeholder': 'ค้นหา...' },
+                                                    'pagination': { 'previous': 'ก่อนหน้า', 'next': 'ถัดไป', 'showing': 'แสดง', 'results': () => 'รายการ' },
+                                                    'noRecordsFound': 'ไม่พบรายชื่อผู้รับบริการ'
+                                                }}
+                                                className={{
+                                                    table: 'table table-hover align-middle mb-0 table-sm',
+                                                    th: 'bg-primary text-white fw-semibold',
+                                                    pagination: 'mt-0 mb-0 p-1',
+                                                    container: 'mt-0 mb-0 p-0'
+                                                }}
+                                            />
                                     )}
                                 </div>
                             </Tab.Pane>
+)}
                         </Tab.Content>
                     </Tab.Container>
                 </CardBody>

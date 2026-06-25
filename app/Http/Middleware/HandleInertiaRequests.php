@@ -6,6 +6,8 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -39,6 +41,17 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $wards = Cache::remember('hosxp_active_wards', 86400, function () {
+            $apiUrl = env('VITE_EXTERNAL_API_URL', 'http://127.0.0.1:8800');
+            try {
+                $response = Http::timeout(3)->get($apiUrl . '/api/v1/ward/active-wards');
+                if ($response->successful()) {
+                    return $response->json('data') ?? [];
+                }
+            } catch (\Exception $e) {}
+            return [];
+        });
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -55,6 +68,7 @@ class HandleInertiaRequests extends Middleware
                 'code' => config('hospital.code'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'wards' => $wards,
         ];
     }
 }

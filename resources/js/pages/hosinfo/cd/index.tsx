@@ -6,8 +6,12 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
+import { usePage } from '@inertiajs/react';
+import { Grid, _ } from 'gridjs-react';
+import { html } from 'gridjs';
 
 const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, external_api_url: string }) => {
+    const { auth } = usePage().props as any;
     const currentYear = new Date().getFullYear();
     const [calendarYear, setCalendarYear] = useState(currentYear);
     const [loading, setLoading] = useState(true);
@@ -104,10 +108,10 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
 
     return (
         <MainLayout>
-            <PageTitle title="สถิติโรคติดต่อ 506 (Communicable Diseases Surveillance)" subTitle="HOSinfo Stats" />
+            <PageTitle title="สถิติโรคติดต่อ 506 (Communicable Diseases Surveillance)" subTitle="Stats" />
 
-            <Row className="mb-4 align-items-center">
-                <Col md={6}>
+            <Row className="mb-2 align-items-center">
+                <Col md={3}>
                     <div className="d-flex align-items-center">
                         <label className="me-2 fw-bold text-nowrap">ปี ค.ศ.:</label>
                         <select 
@@ -122,7 +126,7 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                         {loading && <Spinner animation="border" size="sm" className="ms-3 text-warning" />}
                     </div>
                 </Col>
-                <Col md={6} className="text-md-end mt-3 mt-md-0">
+                <Col md={9} className="text-md-end mt-3 mt-md-0">
                     <button className="btn btn-soft-warning rounded-pill px-4 shadow-sm" onClick={() => fetchData(calendarYear)}>
                         <IconifyIcon icon="solar:refresh-bold" className="me-1" /> รีเฟรชข้อมูล
                     </button>
@@ -159,12 +163,14 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                                     ตารางสรุปรายโรค
                                 </Nav.Link>
                             </Nav.Item>
-                            <Nav.Item>
+                            {auth?.user && (
+<Nav.Item>
                                 <Nav.Link eventKey="patients" className="py-2">
                                     <IconifyIcon icon="solar:users-group-two-rounded-bold-duotone" className="me-2 fs-18 align-middle" />
                                     รายชื่อผู้ป่วยที่เฝ้าระวัง {selectedMonth && `(${selectedMonth})`}
                                 </Nav.Link>
                             </Nav.Item>
+)}
                         </Nav>
                         
                         <Tab.Content>
@@ -229,7 +235,8 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                                 </div>
                             </Tab.Pane>
 
-                            <Tab.Pane eventKey="patients">
+                            {auth?.user && (
+<Tab.Pane eventKey="patients">
                                 <div ref={patientsRef}>
                                     <div className="d-flex justify-content-between align-items-center mb-3">
                                         <h5 className="mb-0 fw-bold text-warning">
@@ -248,37 +255,36 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                                             <p className="mb-0">ไม่พบข้อมูลผู้รับบริการ หรือคลิกเลือกตัวเลขในตารางเพื่อดูรายชื่อ</p>
                                         </div>
                                     ) : (
-                                        <div className="table-responsive border rounded shadow-sm">
-                                            <Table hover striped bordered className="align-middle mb-0 table-sm">
-                                                <thead className="bg-warning text-white">
-                                                    <tr>
-                                                        <th>วันที่วินิจฉัย</th>
-                                                        <th>HN</th>
-                                                        <th>ชื่อ-นามสกุล</th>
-                                                        <th>โรคที่เฝ้าระวัง (รง.506)</th>
-                                                        <th>การวินิจฉัยโรค (ICD-10)</th>
-                                                        <th>รายละเอียดโรคหลัก</th>
-                                                        <th>ที่อยู่ผู้ป่วยที่รายงาน</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {patientsData.map((pt, idx) => (
-                                                        <tr key={idx}>
-                                                            <td>{new Date(pt.vstdate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-                                                            <td><code>{pt.hn}</code></td>
-                                                            <td className="fw-semibold">{pt.ptname}</td>
-                                                            <td><span className="badge bg-soft-danger text-danger">{pt.name506}</span></td>
-                                                            <td><code>{pt.pdx}</code></td>
-                                                            <td className="small">{pt.dxname}</td>
-                                                            <td className="small text-muted">{pt.address}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </Table>
-                                        </div>
+                                        <Grid
+                                                data={patientsData.map((pt, idx) => [
+                                                    `${new Date(pt.vstdate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}`,
+                                                    html(`<code>${pt.hn}</code>`),
+                                                    pt.ptname,
+                                                    html(`<span class="badge bg-soft-danger text-danger">${pt.name506}</span>`),
+                                                    html(`<code>${pt.pdx}</code>`),
+                                                    pt.dxname,
+                                                    pt.address
+                                                ])}
+                                                columns={["วันที่วินิจฉัย", "HN", "ชื่อ-นามสกุล", "โรคที่เฝ้าระวัง (รง.506)", "การวินิจฉัยโรค (ICD-10)", "รายละเอียดโรคหลัก", "ที่อยู่ผู้ป่วยที่รายงาน"]}
+                                                search={true}
+                                                pagination={{ limit: 10 }}
+                                                sort={true}
+                                                language={{
+                                                    'search': { 'placeholder': 'ค้นหา...' },
+                                                    'pagination': { 'previous': 'ก่อนหน้า', 'next': 'ถัดไป', 'showing': 'แสดง', 'results': () => 'รายการ' },
+                                                    'noRecordsFound': 'ไม่พบรายชื่อผู้รับบริการ'
+                                                }}
+                                                className={{
+                                                    table: 'table table-hover align-middle mb-0 table-sm',
+                                                    th: 'bg-warning text-white fw-semibold',
+                                                    pagination: 'mt-0 mb-0 p-1',
+                                                    container: 'mt-0 mb-0 p-0'
+                                                }}
+                                            />
                                     )}
                                 </div>
                             </Tab.Pane>
+)}
                         </Tab.Content>
                     </Tab.Container>
                 </CardBody>

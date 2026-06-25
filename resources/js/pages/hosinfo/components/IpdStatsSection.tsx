@@ -1,5 +1,6 @@
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Card, Col, Row, ProgressBar, Spinner } from 'react-bootstrap';
+import { Link } from '@inertiajs/react';
 
 const IpdStatsSection = ({ stats, wards, loading }: { stats: any, wards: any[], loading?: boolean }) => {
     const format = (val: any) => new Intl.NumberFormat().format(val || 0);
@@ -65,26 +66,28 @@ const IpdStatsSection = ({ stats, wards, loading }: { stats: any, wards: any[], 
 
                             return (
                                 <Col md={6} key={ward.ward}>
-                                    <Card className="border-0 shadow-sm overflow-hidden mb-0" style={{ borderRadius: '0' }}>
-                                        <div className="d-flex align-items-center p-2 px-3 bg-white border-start border-4" style={{ borderColor: variant === 'success' ? '#198754' : variant === 'danger' ? '#dc3545' : variant === 'warning' ? '#ffc107' : '#0dcaf0' }}>
-                                            <div className={`bg-${variant}-subtle p-2 rounded-circle me-3 d-flex align-items-center justify-content-center`} style={{ width: '56px', height: '56px' }}>
-                                                <IconifyIcon icon="tabler:bed-filled" className={`text-${variant}`} width="36" height="36" />
-                                            </div>
-                                            <div className="flex-grow-1">
-                                                <div className="d-flex justify-content-between align-items-center mb-1">
-                                                    <span className="fw-bold fs-14 text-dark">{ward.name}</span>
-                                                    <span className="text-muted fs-12">ครองเตียง {occupancy.toFixed(2)}%</span>
+                                    <Link href={`${route('hosinfo.ipd')}?ward=${ward.ward}`} className="text-decoration-none">
+                                        <Card className="border-0 shadow-sm overflow-hidden mb-0" style={{ borderRadius: '0' }}>
+                                            <div className="d-flex align-items-center p-2 px-3 bg-white border-start border-4" style={{ borderColor: variant === 'success' ? '#198754' : variant === 'danger' ? '#dc3545' : variant === 'warning' ? '#ffc107' : '#0dcaf0' }}>
+                                                <div className={`bg-${variant}-subtle p-2 rounded-circle me-3 d-flex align-items-center justify-content-center`} style={{ width: '56px', height: '56px' }}>
+                                                    <IconifyIcon icon="tabler:bed-filled" className={`text-${variant}`} width="36" height="36" />
                                                 </div>
-                                                <div className="fs-13 text-muted mb-1">
-                                                    Admit {format(ward.admitnow)} / {format(ward.bedcount)} เตียง 
-                                                    <span className="ms-1 fw-medium">
-                                                        ({ward.bedcount - ward.admitnow <= 0 ? 'เต็ม' : `ว่าง ${ward.bedcount - ward.admitnow}`})
-                                                    </span>
+                                                <div className="flex-grow-1">
+                                                    <div className="d-flex justify-content-between align-items-center mb-1">
+                                                        <span className="fw-bold fs-14 text-dark">{ward.name}</span>
+                                                        <span className="text-muted fs-12">ครองเตียง {occupancy.toFixed(2)}%</span>
+                                                    </div>
+                                                    <div className="fs-13 text-muted mb-1">
+                                                        Admit {format(ward.admitnow)} / {format(ward.bedcount)} เตียง 
+                                                        <span className="ms-1 fw-medium">
+                                                            ({ward.bedcount - ward.admitnow <= 0 ? 'เต็ม' : `ว่าง ${ward.bedcount - ward.admitnow}`})
+                                                        </span>
+                                                    </div>
+                                                    <ProgressBar now={occupancy} variant={variant} style={{ height: '6px' }} />
                                                 </div>
-                                                <ProgressBar now={occupancy} variant={variant} style={{ height: '6px' }} />
                                             </div>
-                                        </div>
-                                    </Card>
+                                        </Card>
+                                    </Link>
                                 </Col>
                             );
                         })

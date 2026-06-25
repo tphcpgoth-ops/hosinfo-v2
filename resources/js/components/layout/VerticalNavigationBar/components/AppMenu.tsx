@@ -36,28 +36,14 @@ const MenuItemWithChildren = ({ item, className, linkClassName, subMenuClassName
                         <IconifyIcon icon={item.icon} />
                     </span>
                 )}
-                {level1 ? (
-                    <span className="menu-text">{item.label}</span>
-                ) : (
-                    <Link href="" className="side-nav-link ">
-                        <span className="menu-text">{item.label}</span>
-                        <div className="menu-arrow">
-                            <IconifyIcon icon="tabler:chevron-right" width={19} height={19} />
-                        </div>
-                    </Link>
-                )}
+                {!level1 && !item.icon && <IconifyIcon icon="tabler:circle-filled" />}
+                <span className="menu-text">{item.label}</span>
                 {!item.badge ? (
-                    <>
-                        {level1 && (
-                            <span className="menu-arrow">
-                                <IconifyIcon icon="tabler:chevron-right" width={19} height={19} />
-                            </span>
-                        )}
-                    </>
+                    <span className="menu-arrow">
+                        <IconifyIcon icon="tabler:chevron-right" width={19} height={19} />
+                    </span>
                 ) : (
-                    <>
-                        <span className={`badge rounded-pill text-end bg-${item.badge.variant}`}>{item.badge.text}</span>
-                    </>
+                    <span className={`badge rounded-pill text-end bg-${item.badge.variant}`}>{item.badge.text}</span>
                 )}
             </div>
             <Collapse in={open}>
@@ -69,7 +55,7 @@ const MenuItemWithChildren = ({ item, className, linkClassName, subMenuClassName
                                     {child.children ? (
                                         <MenuItemWithChildren
                                             item={child}
-                                            linkClassName={clsx('nav-link', getActiveClass(child))}
+                                            linkClassName={clsx('side-nav-link', getActiveClass(child))}
                                             activeMenuItems={activeMenuItems}
                                             className="side-nav-item"
                                             level={level + 1}

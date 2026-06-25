@@ -6,8 +6,12 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
+import { usePage } from '@inertiajs/react';
+import { Grid, _ } from 'gridjs-react';
+import { html } from 'gridjs';
 
 const NCDStatsPage = ({ api_token, external_api_url }: { api_token: string, external_api_url: string }) => {
+    const { auth } = usePage().props as any;
     const [loading, setLoading] = useState(true);
     const [summaryData, setSummaryData] = useState<any[]>([]);
     const [ageData, setAgeData] = useState<any>({ dm: {}, ht: {} });
@@ -112,11 +116,11 @@ const NCDStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
 
     return (
         <MainLayout>
-            <PageTitle title="สรุปทะเบียนผู้ป่วยโรคไม่ติดต่อเรื้อรัง (NCD Chronic Clinic Registry)" subTitle="HOSinfo Stats" />
+            <PageTitle title="โรคไม่ติดต่อ (NCD)" subTitle="Stats" />
 
-            <Row className="mb-4 align-items-center">
+            <Row className="mb-2 align-items-center">
                 <Col md={6}>
-                    <h5 className="mb-0 text-muted small">ระบบแสดงโครงสร้างการลงทะเบียน ทะเบียนผู้ป่วยเบาหวาน ความดัน ปอดอุดกั้นเรื้อรัง และโรคมะเร็งในเขตพื้นที่รับผิดชอบ</h5>
+                    <h5 className="mb-0 text-muted small">ทะเบียนผู้ป่วยเบาหวาน ความดัน และโรคไม่ติดต่อ</h5>
                 </Col>
                 <Col md={6} className="text-md-end mt-3 mt-md-0">
                     <button className="btn btn-soft-success rounded-pill px-4 shadow-sm" onClick={fetchData}>
@@ -154,12 +158,14 @@ const NCDStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                     ตารางวิเคราะห์ประชากร
                                 </Nav.Link>
                             </Nav.Item>
-                            <Nav.Item>
+                            {auth?.user && (
+<Nav.Item>
                                 <Nav.Link eventKey="patients" className="py-2">
                                     <IconifyIcon icon="solar:users-group-two-rounded-bold-duotone" className="me-2 fs-18 align-middle" />
                                     รายชื่อผู้ป่วยในทะเบียนโรคเรื้อรัง
                                 </Nav.Link>
                             </Nav.Item>
+)}
                         </Nav>
                         
                         <Tab.Content>
@@ -273,7 +279,8 @@ const NCDStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                 </div>
                             </Tab.Pane>
 
-                            <Tab.Pane eventKey="patients">
+                            {auth?.user && (
+<Tab.Pane eventKey="patients">
                                 <div ref={patientsRef}>
                                     <div className="d-flex justify-content-between align-items-center mb-3">
                                         <h5 className="mb-0 fw-bold text-success">
@@ -295,37 +302,36 @@ const NCDStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                             <p className="mb-0">ไม่พบข้อมูลรายชื่อในกลุ่มเป้าหมาย หรือกรุณาเลือกปุ่มด้านขวาบนเพื่อเรียกสถิติ</p>
                                         </div>
                                     ) : (
-                                        <div className="table-responsive border rounded shadow-sm">
-                                            <Table hover striped bordered className="align-middle mb-0 table-sm">
-                                                <thead className="bg-success text-white">
-                                                    <tr>
-                                                        <th>ลำดับ</th>
-                                                        <th>HN</th>
-                                                        <th>ชื่อ-นามสกุลผู้ลงทะเบียน</th>
-                                                        <th className="text-center">อายุปัจจุบัน (ปี)</th>
-                                                        <th>ทะเบียนโรคหลัก</th>
-                                                        <th>วันที่ลงทะเบียนขึ้นทะเบียน</th>
-                                                        <th>ที่อยู่ตามทะเบียนราษฎร์</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {patientsData.map((pt, idx) => (
-                                                        <tr key={idx}>
-                                                            <td>{idx + 1}</td>
-                                                            <td><code>{pt.hn}</code></td>
-                                                            <td className="fw-semibold">{pt.ptname}</td>
-                                                            <td className="text-center">{pt.age}</td>
-                                                            <td><span className="badge bg-soft-success text-success">{pt.disease}</span></td>
-                                                            <td>{pt.vstdate ? new Date(pt.vstdate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}</td>
-                                                            <td className="small text-muted">{pt.address}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </Table>
-                                        </div>
+                                        <Grid
+                                                data={patientsData.map((pt, idx) => [
+                                                    idx + 1,
+                                                    html(`<code>${pt.hn}</code>`),
+                                                    pt.ptname,
+                                                    pt.age,
+                                                    html(`<span class="badge bg-soft-success text-success">${pt.disease}</span>`),
+                                                    `${pt.vstdate ? new Date(pt.vstdate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}`,
+                                                    pt.address
+                                                ])}
+                                                columns={["ลำดับ", "HN", "ชื่อ-นามสกุลผู้ลงทะเบียน", "อายุปัจจุบัน (ปี)", "ทะเบียนโรคหลัก", "วันที่ลงทะเบียนขึ้นทะเบียน", "ที่อยู่ตามทะเบียนราษฎร์"]}
+                                                search={true}
+                                                pagination={{ limit: 10 }}
+                                                sort={true}
+                                                language={{
+                                                    'search': { 'placeholder': 'ค้นหา...' },
+                                                    'pagination': { 'previous': 'ก่อนหน้า', 'next': 'ถัดไป', 'showing': 'แสดง', 'results': () => 'รายการ' },
+                                                    'noRecordsFound': 'ไม่พบรายชื่อผู้รับบริการ'
+                                                }}
+                                                className={{
+                                                    table: 'table table-hover align-middle mb-0 table-sm',
+                                                    th: 'bg-success text-white fw-semibold',
+                                                    pagination: 'mt-0 mb-0 p-1',
+                                                    container: 'mt-0 mb-0 p-0'
+                                                }}
+                                            />
                                     )}
                                 </div>
                             </Tab.Pane>
+)}
                         </Tab.Content>
                     </Tab.Container>
                 </CardBody>

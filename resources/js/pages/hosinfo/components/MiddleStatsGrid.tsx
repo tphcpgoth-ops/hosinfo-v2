@@ -1,26 +1,29 @@
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { Card, Col, Row, Spinner } from 'react-bootstrap';
+import { Link } from '@inertiajs/react';
 
-const SmallStatCard = ({ title, today, month, icon, bgClass, loading }: { title: string, today: string | number, month: string, icon: string, bgClass: string, loading?: boolean }) => {
+const SmallStatCard = ({ title, today, month, icon, bgClass, loading, href }: { title: string, today: string | number, month: string, icon: string, bgClass: string, loading?: boolean, href?: string }) => {
     return (
-        <Card className="border-0 shadow-sm mb-0 overflow-hidden" style={{ borderRadius: '0' }}>
-            <div className="d-flex h-100">
-                <div className={`${bgClass} d-flex align-items-center justify-content-center`} style={{ width: '80px' }}>
-                    <IconifyIcon icon={icon} className="text-white" width="48" height="48" />
-                </div>
-                <div className="p-2 px-3 d-flex flex-column justify-content-center bg-white flex-grow-1">
-                    <div className="d-flex align-items-center mb-2">
-                        {loading ? (
-                            <Spinner animation="border" size="sm" variant="primary" className="me-2" />
-                        ) : (
-                            <span className="fw-bold fs-16 me-2 text-dark">วันนี้ {today}</span>
-                        )}
-                        <span className="text-muted fs-12">{title}</span>
+        <Link href={href || "#"} className="text-decoration-none">
+            <Card className="border-0 shadow-sm mb-0 overflow-hidden" style={{ borderRadius: '0' }}>
+                <div className="d-flex h-100">
+                    <div className={`${bgClass} d-flex align-items-center justify-content-center`} style={{ width: '80px' }}>
+                        <IconifyIcon icon={icon} className="text-white" width="48" height="48" />
                     </div>
-                    <div className="text-muted fs-12">{month}</div>
+                    <div className="p-2 px-3 d-flex flex-column justify-content-center bg-white flex-grow-1">
+                        <div className="d-flex align-items-center mb-2">
+                            {loading ? (
+                                <Spinner animation="border" size="sm" variant="primary" className="me-2" />
+                            ) : (
+                                <span className="fw-bold fs-16 me-2 text-dark">วันนี้ {today}</span>
+                            )}
+                            <span className="text-muted fs-12">{title}</span>
+                        </div>
+                        <div className="text-muted fs-12">{month}</div>
+                    </div>
                 </div>
-            </div>
-        </Card>
+            </Card>
+        </Link>
     );
 };
 
@@ -31,22 +34,24 @@ const MiddleStatsGrid = ({ stats, loading }: { stats: any, loading?: boolean }) 
         <Row className="g-3">
             <Col xl={3} md={6}>
                 <SmallStatCard 
-                    title="X-RAY" 
-                    today={format(stats?.xray?.pt_xray_today)} 
-                    month={`เดือนนี้ ${format(stats?.xray?.ptm_xray_hn)} คน / ${format(stats?.xray?.ptm_xray_vn)} ครั้ง`} 
-                    icon="tabler:x" 
-                    bgClass="bg-info" 
+                    title="ทันตกรรม" 
+                    today={format(stats?.dent?.pt_dent_today)} 
+                    month={`เดือนนี้ ${format(stats?.dent?.ptm_dent_hn)} คน / ${format(stats?.dent?.ptm_dent_vn)} ครั้ง`}
+                    icon="tabler:quote" 
+                    bgClass="bg-warning" 
                     loading={loading}
+                    href={route('hosinfo.dent')}
                 />
             </Col>
             <Col xl={3} md={6}>
                 <SmallStatCard 
-                    title="อุบัติเหตุ" 
-                    today={format(stats?.er?.pt_er_today)} 
-                    month={`เดือนนี้ ${format(stats?.er?.ptm_er_hn)} คน / ${format(stats?.er?.ptm_er_vn)} ครั้ง`} 
-                    icon="tabler:ambulance" 
+                    title="ผู้ป่วยผ่าตัด" 
+                    today={format(stats?.or?.pt_or_today)}
+                    month={`เดือนนี้ ${format(stats?.or?.ptm_or_hn)} คน / ${format(stats?.or?.ptm_or_vn)} ครั้ง`} 
+                    icon="tabler:heartbeat" 
                     bgClass="bg-danger" 
                     loading={loading}
+                    href={route('hosinfo.or')}
                 />
             </Col>
             <Col xl={3} md={6}>
@@ -54,22 +59,55 @@ const MiddleStatsGrid = ({ stats, loading }: { stats: any, loading?: boolean }) 
                     title="กายภาพบำบัด" 
                     today={format(stats?.phy?.pt_phy_today)} 
                     month={`เดือนนี้ ${format(stats?.phy?.ptm_phy_hn)} คน / ${format(stats?.phy?.ptm_phy_vn)} ครั้ง`} 
-                    icon="tabler:wheelchair" 
+                    icon="tabler:physotherapist" 
                     bgClass="bg-success" 
+                    loading={loading}
+                    href={route('hosinfo.pts')}
+                />
+            </Col>
+            <Col xl={3} md={6}>
+                <SmallStatCard 
+                    title="แพทย์แผนไทย" 
+                    today={format(stats?.ttm?.pt_ttm_today)} 
+                    month={`เดือนนี้ ${format(stats?.ttm?.ptm_ttm_hn)} คน / ${format(stats?.ttm?.ptm_ttm_vn)} ครั้ง`} 
+                    icon="tabler:hand-stop" 
+                    bgClass="bg-success" 
+                    loading={loading}
+                    href={route('hosinfo.ppt')}
+                />
+            </Col>
+            <Col xl={3} md={6}>
+                <SmallStatCard 
+                    title="X-RAY" 
+                    today={format(stats?.xray?.pt_xray_today)} 
+                    month={`เดือนนี้ ${format(stats?.xray?.ptm_xray_hn)} คน / ${format(stats?.xray?.ptm_xray_vn)} ครั้ง`} 
+                    icon="tabler:x" 
+                    bgClass="bg-info" 
+                    loading={loading}
+                    href={route('hosinfo.xray')}
+                />
+            </Col>
+
+            <Col xl={3} md={6}>
+                <SmallStatCard 
+                    title="ยาเสพติด" 
+                    today={format(stats?.drug?.pt_drug_today)} 
+                    month={`เดือนนี้ ${format(stats?.drug?.ptm_drug_hn)} คน / ${format(stats?.drug?.ptm_drug_vn)} ครั้ง`} 
+                    icon="tabler:leaf" 
+                    bgClass="bg-secondary" 
                     loading={loading}
                 />
             </Col>
             <Col xl={3} md={6}>
                 <SmallStatCard 
-                    title="ผู้ป่วยผ่าตัด" 
-                    today={format(stats?.or?.pt_or_today)} 
-                    month={`เดือนนี้ ${format(stats?.or?.ptm_or_hn)} คน / ${format(stats?.or?.ptm_or_vn)} ครั้ง (OPD ${format(stats?.or?.ptm_or_opd)} / IPD ${format(stats?.or?.ptm_or_ipd)})`} 
-                    icon="tabler:heartbeat" 
-                    bgClass="bg-warning" 
+                    title="จิตเวช" 
+                    today={format(stats?.psy?.pt_psy_today)} 
+                    month={`เดือนนี้ ${format(stats?.psy?.ptm_psy_hn)} คน / ${format(stats?.psy?.ptm_psy_vn)} ครั้ง`} 
+                    icon="tabler:heart" 
+                    bgClass="bg-primary" 
                     loading={loading}
                 />
             </Col>
-            
             <Col xl={3} md={6}>
                 <SmallStatCard 
                     title="ผู้รับบริการ PCC" 
@@ -78,26 +116,10 @@ const MiddleStatsGrid = ({ stats, loading }: { stats: any, loading?: boolean }) 
                     icon="tabler:stethoscope" 
                     bgClass="bg-primary" 
                     loading={loading}
+                    href={route('hosinfo.pcc')}
                 />
             </Col>
-            <Col xl={3} md={6}>
-                <SmallStatCard 
-                    title="ยาเสพติด" 
-                    today="-" 
-                    month="เดือนนี้ - คน / - ครั้ง" 
-                    icon="tabler:leaf" 
-                    bgClass="bg-secondary" 
-                />
-            </Col>
-            <Col xl={3} md={6}>
-                <SmallStatCard 
-                    title="จิตเวช" 
-                    today="-" 
-                    month="เดือนนี้ - คน / - ครั้ง" 
-                    icon="tabler:heart" 
-                    bgClass="bg-primary" 
-                />
-            </Col>
+
         </Row>
     );
 };

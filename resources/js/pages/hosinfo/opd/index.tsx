@@ -85,10 +85,10 @@ const OpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
 
     return (
         <MainLayout>
-            <PageTitle title="สถิติผู้รับบริการ (OPD/IPD)" subTitle="HOSinfo Stats" />
+            <PageTitle title="สถิติผู้รับบริการ (OPD/IPD)" subTitle="Stats" />
 
-            <Row className="mb-4 align-items-center">
-                <Col md={6}>
+            <Row className="mb-2 align-items-center">
+                <Col md={3}>
                     <div className="d-flex align-items-center">
                         <label className="me-2 fw-bold text-nowrap">ปีงบประมาณ:</label>
                         <select 
@@ -103,7 +103,7 @@ const OpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                         {loading && <Spinner animation="border" size="sm" className="ms-3 text-primary" />}
                     </div>
                 </Col>
-                <Col md={6} className="text-md-end mt-3 mt-md-0">
+                <Col md={9} className="text-md-end mt-3 mt-md-0">
                     <button className="btn btn-soft-primary rounded-pill px-4 shadow-sm" onClick={() => fetchData(fiscalYear)}>
                         <IconifyIcon icon="solar:refresh-bold" className="me-1" /> รีเฟรชข้อมูล
                     </button>

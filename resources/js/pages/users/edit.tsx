@@ -4,8 +4,7 @@ import { Link, useForm, usePage } from '@inertiajs/react';
 import { Button, Card, CardBody, CardHeader, CardTitle, Col, Row, Form, ButtonGroup, ToggleButton } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import Select from 'react-select';
-import Swal from 'sweetalert2';
-
+import { useNotificationContext } from '@/context/useNotificationContext';
 interface User {
     id: number;
     name: string;
@@ -23,6 +22,7 @@ interface Props {
 const EditUserPage = ({ user, departments }: Props) => {
     const { auth } = usePage().props as any;
     const isSelf = auth.user?.id === user.id;
+    const { showNotification } = useNotificationContext();
 
     const { data, setData, put, processing, errors } = useForm({
         name: user.name,
@@ -50,13 +50,11 @@ const EditUserPage = ({ user, departments }: Props) => {
         e.preventDefault();
         put(route('users.update', user.id), {
             onSuccess: () => {
-                Swal.fire({
+                showNotification({
                     title: 'สำเร็จ!',
-                    text: 'แก้ไขข้อมูลผู้ใช้งานเรียบร้อยแล้ว',
-                    icon: 'success',
-                    showConfirmButton: false,
-                    timer: 1000,
-                    timerProgressBar: true
+                    message: 'แก้ไขข้อมูลผู้ใช้งานเรียบร้อยแล้ว',
+                    variant: 'success',
+                    delay: 2000
                 });
             }
         });

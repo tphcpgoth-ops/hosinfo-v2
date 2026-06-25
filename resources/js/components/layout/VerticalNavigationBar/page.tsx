@@ -6,15 +6,43 @@ import { getMenuItems } from '@/helpers/menu';
 
 import { useLayoutContext } from '@/context/useLayoutContext';
 import coffeeImg from '@/images/coffee-cup.svg';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { Button } from 'react-bootstrap';
 import HoverMenuToggle from './components/HoverMenuToggle';
+import { usePage } from '@inertiajs/react';
 
 const AppMenu = lazy(() => import('./components/AppMenu'));
 
 const VerticalNavigationBar = () => {
     const { toggleBackdrop } = useLayoutContext();
-    const menuItems = getMenuItems();
+    const { wards } = usePage<any>().props;
+    
+    const menuItems = useMemo(() => {
+        const baseMenu = JSON.parse(JSON.stringify(getMenuItems()));
+        const statsMenu = baseMenu.find((m: any) => m.key === 'stats');
+        
+        if (statsMenu && wards && wards.length > 0) {
+            const ipdIndex = statsMenu.children.findIndex((c: any) => c.key === 'stats_ipd');
+            if (ipdIndex !== -1) {
+                const wardMenu = {
+                    key: 'stats_ipd_wards',
+                    label: 'ผู้ป่วยใน',
+                    parentKey: 'stats',
+                    roles: ['admin', 'head', 'user'],
+                    children: wards.map((w: any) => ({
+                        key: `ward_${w.ward}`,
+                        label: w.name,
+                        url: `/hosinfo/ipd?ward=${w.ward}`,
+                        parentKey: 'stats_ipd_wards',
+                        roles: ['admin', 'head', 'user']
+                    }))
+                };
+                statsMenu.children.splice(ipdIndex + 1, 0, wardMenu);
+            }
+        }
+        return baseMenu;
+    }, [wards]);
+
     return (
         <div className="sidenav-menu" id="leftside-menu-container">
             <LogoBox />

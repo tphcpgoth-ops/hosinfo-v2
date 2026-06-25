@@ -24,7 +24,16 @@ export const getMenuItemFromURL = (items: MenuItemType | MenuItemType[], url: st
     const cleanUrl = url.split(/[?#]/)[0];
     const itemsArray = items instanceof Array ? items : [items];
 
-    // 1. First pass: look for exact matches
+    // 0. Pass: look for exact matches including query params
+    for (const item of itemsArray) {
+        if (item.url === url) return item;
+        if (item.children) {
+            const found = getMenuItemFromURL(item.children, url);
+            if (found && found.url === url) return found;
+        }
+    }
+
+    // 1. First pass: look for exact matches with cleanUrl
     for (const item of itemsArray) {
         if (item.url === cleanUrl) return item;
         if (item.children) {

@@ -3,7 +3,7 @@ import MainLayout from '@/layouts/MainLayout';
 import { Link, useForm } from '@inertiajs/react';
 import { Button, Card, CardBody, CardHeader, CardTitle, Col, Row, Form, ButtonGroup, ToggleButton } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import Swal from 'sweetalert2';
+import { useNotificationContext } from '@/context/useNotificationContext';
 
 interface Department {
     id: number;
@@ -17,6 +17,7 @@ interface Props {
 }
 
 const EditDepartmentPage = ({ department }: Props) => {
+    const { showNotification } = useNotificationContext();
     const { data, setData, put, processing, errors } = useForm({
         dp_name: department.dp_name,
         dp_status: department.dp_status,
@@ -27,13 +28,11 @@ const EditDepartmentPage = ({ department }: Props) => {
         e.preventDefault();
         put(route('departments.update', department.id), {
             onSuccess: () => {
-                Swal.fire({
+                showNotification({
                     title: 'สำเร็จ!',
-                    text: 'แก้ไขข้อมูลหน่วยงานเรียบร้อยแล้ว',
-                    icon: 'success',
-                    showConfirmButton: false,
-                    timer: 1000,
-                    timerProgressBar: true
+                    message: 'แก้ไขข้อมูลหน่วยงานเรียบร้อยแล้ว',
+                    variant: 'success',
+                    delay: 2000
                 });
             }
         });

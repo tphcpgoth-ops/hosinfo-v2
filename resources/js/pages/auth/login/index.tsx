@@ -78,8 +78,21 @@ const LoginPage = ({ canResetPassword }: LoginProps) => {
 
                 <Row className="g-0 min-vh-100 position-relative z-1">
                     {/* Left Column: Floating Login Card */}
-                    <Col lg={5} md={8} sm={10} className="d-flex flex-column justify-content-center p-4 mx-auto ms-lg-5">
-                        <Card className="w-100 border-0 shadow-lg rounded-4 overflow-hidden" style={{ maxWidth: '450px', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)' }}>
+                    <Col lg={5} md={8} xs={12} className="d-flex flex-column justify-content-center p-0 p-md-4 mx-auto ms-lg-5">
+                        <style>{`
+                            @media (max-width: 767.98px) {
+                                .mobile-fullscreen-card {
+                                    max-width: 100% !important;
+                                    min-height: 100vh !important;
+                                    border-radius: 0 !important;
+                                    background-color: rgba(255, 255, 255, 0.98) !important;
+                                    display: flex;
+                                    flex-direction: column;
+                                    justify-content: center;
+                                }
+                            }
+                        `}</style>
+                        <Card className="w-100 border-0 shadow-lg rounded-4 overflow-hidden mobile-fullscreen-card" style={{ maxWidth: '450px', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)' }}>
                             <div className="p-4 p-xxl-5 d-flex flex-column justify-content-center">
                                 <div className="text-center mb-4 mt-auto">
                                     <Link href="/" className="auth-brand">
@@ -87,23 +100,23 @@ const LoginPage = ({ canResetPassword }: LoginProps) => {
                                         <img src={logo} style={{ width: '80%', height: 'auto', maxHeight: '60px', objectFit: 'contain' }} alt="logo light" className="logo-light" />
                                     </Link>
                                 </div>
-                                <h3 className="fw-semibold mb-3 text-center">เข้าสู่ระบบ</h3>
+                                <h3 className="fw-semibold mb-2 text-center">เข้าสู่ระบบ</h3>
                                 
-                                <div className="d-grid mb-3">
+                                <div className="d-grid mb-0">
                                     <Button as="a" href={route('moph.redirect')} variant="outline-success" className="d-flex justify-content-center align-items-center gap-2 mt-2">
                                         <img src={providerIdIcon} width="70" height="30" alt="ProviderID" style={{ borderRadius: '4px' }} />
                                         เข้าสู่ระบบด้วย ProviderID
                                     </Button>
                                 </div>
 
-                                <div className="d-flex align-items-center my-3">
+                                <div className="d-flex align-items-center my-2">
                                     <hr className="flex-grow-1 m-0" />
                                     <span className="mx-3 text-muted fs-13 fw-semibold">หรือเข้าสู่ระบบด้วยอีเมล</span>
                                     <hr className="flex-grow-1 m-0" />
                                 </div>
 
-                                <form onSubmit={submit} className="text-start mb-4">
-                                    <FormGroup className="mb-3">
+                                <form onSubmit={submit} className="text-start mb-0">
+                                    <FormGroup className="mb-2">
                                         <FormLabel>อีเมล</FormLabel>
                                         <FormControl
                                             type="email"
@@ -114,7 +127,7 @@ const LoginPage = ({ canResetPassword }: LoginProps) => {
                                         {errors.email && <p className="text-danger">{errors.email}</p>}
                                     </FormGroup>
 
-                                    <FormGroup className="mb-3">
+                                    <FormGroup className="mb-2">
                                         <FormLabel>รหัสผ่าน</FormLabel>
                                         <FormControl
                                             type="password"
@@ -125,7 +138,7 @@ const LoginPage = ({ canResetPassword }: LoginProps) => {
                                         {errors.password && <p className="text-danger">{errors.password}</p>}
                                     </FormGroup>
 
-                                    <div className="d-flex justify-content-between mb-4">
+                                    <div className="d-flex justify-content-between mb-2">
                                         <FormCheck checked={data.remember} onChange={() => setData('remember', !data.remember)} label="จำฉันไว้" />
                                     </div>
                                     

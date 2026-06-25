@@ -19,12 +19,12 @@ export const MENU_ITEMS: MenuItemType[] = [
         url: '/hosinfo',
         // roles: ['admin', 'head', 'user'],
     },
-    {
-        key: 'last_update',
-        label: 'Last Update',
-        icon: 'tabler:clock-edit',
-        url: '/hosinfo/last-update',
-    },
+    // {
+    //     key: 'last_update',
+    //     label: 'Last Update',
+    //     icon: 'tabler:clock-edit',
+    //     url: '/hosinfo/last-update',
+    // },
     {
         key: 'stats',
         label: 'ข้อมูลและสถิติ',
@@ -320,13 +320,13 @@ export const HORIZONTAL_MENU_ITEM: MenuItemType[] = [
                     },
                 ],
             },
-            {
-                key: 'last_update',
-                label: 'Last Update',
-                icon: 'tabler:clock-edit',
-                url: '/hosinfo/last-update',
-                parentKey: 'dashboards',
-            },
+            // {
+            //     key: 'last_update',
+            //     label: 'Last Update',
+            //     icon: 'tabler:clock-edit',
+            //     url: '/hosinfo/last-update',
+            //     parentKey: 'dashboards',
+            // },
 
         ],
     },

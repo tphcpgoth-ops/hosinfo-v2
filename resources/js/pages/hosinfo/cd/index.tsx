@@ -163,7 +163,7 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                                     ตารางสรุปรายโรค
                                 </Nav.Link>
                             </Nav.Item>
-                            {auth?.user && (
+                            {auth?.user && ['admin', 'head', 'user'].includes(auth.user.role) && (
 <Nav.Item>
                                 <Nav.Link eventKey="patients" className="py-2">
                                     <IconifyIcon icon="solar:users-group-two-rounded-bold-duotone" className="me-2 fs-18 align-middle" />
@@ -235,7 +235,7 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                                 </div>
                             </Tab.Pane>
 
-                            {auth?.user && (
+                            {auth?.user && ['admin', 'head', 'user'].includes(auth.user.role) && (
 <Tab.Pane eventKey="patients">
                                 <div ref={patientsRef}>
                                     <div className="d-flex justify-content-between align-items-center mb-3">

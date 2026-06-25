@@ -194,7 +194,14 @@ const KpisPage = ({
         
         put(`/kpis/${selectedKpi.id}/monthly`, {
             onSuccess: () => {
-                Swal.fire('สำเร็จ!', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
+                Swal.fire({
+                    title: 'สำเร็จ!',
+                    text: 'บันทึกข้อมูลเรียบร้อยแล้ว',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1000,
+                    timerProgressBar: true
+                });
                 setShowInputModal(false);
             },
             onError: () => {

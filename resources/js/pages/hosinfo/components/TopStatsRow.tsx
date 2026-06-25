@@ -58,7 +58,7 @@ const TopStatsRow = ({ stats, loading }: { stats: any, loading?: boolean }) => {
                     title="อุบัติเหตุ วันนี้" 
                     count={format(stats?.er?.pt_er_today)}  
                     subtitle={`เดือนนี้ ${format(stats?.er?.ptm_er_hn)} คน / ${format(stats?.er?.ptm_er_vn)} ครั้ง`}
-                    icon="tabler:ambulance" 
+                    icon="tabler:car-crash" 
                     bgClass="bg-danger" 
                     loading={loading}
                     href={route('hosinfo.er')}

@@ -61,7 +61,10 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
     const pastYears = [currentYearBE - 3, currentYearBE - 2, currentYearBE - 1];
 
     const departmentOptions = departments.map(dept => ({ value: dept.id.toString(), label: dept.dp_name }));
-    const userOptions = users.map(user => ({ value: user.id.toString(), label: user.name }));
+    const userOptions = [
+        { value: '', label: '-- ไม่กำหนด --' },
+        ...users.map(user => ({ value: user.id.toString(), label: user.name }))
+    ];
 
     const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<IKpiFormInput>({
         defaultValues: {

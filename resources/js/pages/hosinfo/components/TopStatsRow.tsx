@@ -48,7 +48,7 @@ const TopStatsRow = ({ stats, loading }: { stats: any, loading?: boolean }) => {
                     count={format(stats?.ipd?.pt_ipd_today)} 
                     subtitle={`เดือนนี้ ${format(stats?.ipd?.ptm_ipd_hn)} คน / ${format(stats?.ipd?.ptm_ipd_an)} ครั้ง`} 
                     icon="tabler:bed-filled" 
-                    bgClass="bg-warning" 
+                    bgClass="bg-danger" 
                     loading={loading}
                     href={route('hosinfo.ipd')}
                 />
@@ -59,7 +59,7 @@ const TopStatsRow = ({ stats, loading }: { stats: any, loading?: boolean }) => {
                     count={format(stats?.er?.pt_er_today)}  
                     subtitle={`เดือนนี้ ${format(stats?.er?.ptm_er_hn)} คน / ${format(stats?.er?.ptm_er_vn)} ครั้ง`}
                     icon="tabler:car-crash" 
-                    bgClass="bg-danger" 
+                    bgClass="bg-warning" 
                     loading={loading}
                     href={route('hosinfo.er')}
                 />

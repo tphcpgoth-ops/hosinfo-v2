@@ -26,6 +26,11 @@ use Inertia\Inertia;
 
 require __DIR__.'/auth.php';
 
+
+Route::get('/v', function () {
+    return '1.0.2';
+});
+
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/hosinfo', [HosinfoController::class, 'index'])->name('hosinfo');
 Route::get('/hosinfo/appointments', [HosinfoController::class, 'appointments'])->name('hosinfo.appointments');

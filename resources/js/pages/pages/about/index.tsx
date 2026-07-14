@@ -4,6 +4,7 @@ import PageTitle from '@/components/PageTitle';
 import { Card, CardBody, Col, Container, Row } from 'react-bootstrap';
 import { Head } from '@inertiajs/react';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import logoDark from '@/images/HOS-info-logo.png';
 
 const AboutPage = () => {
     return (
@@ -17,14 +18,12 @@ const AboutPage = () => {
                         <Card className="shadow-sm border-0">
                             <CardBody className="p-5">
                                 <div className="text-center mb-5">
-                                    <div className="avatar-xl mx-auto mb-3">
-                                        <div className="avatar-title bg-primary-subtle text-primary rounded-circle display-4">
-                                            <IconifyIcon icon="tabler:info-circle" />
-                                        </div>
+                                    <div className="mx-auto mb-4">
+                                        <img src={logoDark} alt="HOSinfo Logo" style={{ height: '250px', width: 'auto', objectFit: 'contain' }} />
                                     </div>
-                                    <h2 className="fw-bold text-dark mb-3">เกี่ยวกับระบบ HOSinfo</h2>
+                                    {/* <h2 className="fw-bold text-dark mb-3">เกี่ยวกับระบบ HOS-info</h2> */}
                                     <p className="text-muted fs-16 mx-auto" style={{ maxWidth: '600px' }}>
-                                        ระบบบริหารจัดการข้อมูลสารสนเทศและตัวชี้วัดโรงพยาบาล (HOSinfo) ถูกพัฒนาขึ้นเพื่อใช้ในการติดตาม วิเคราะห์ และประเมินผลการดำเนินงานของโรงพยาบาล
+                                        ระบบบริหารจัดการข้อมูลสารสนเทศและตัวชี้วัดโรงพยาบาล (HOS-info) ถูกพัฒนาขึ้นเพื่อใช้ในการติดตาม วิเคราะห์ และประเมินผลการดำเนินงานของโรงพยาบาล
                                     </p>
                                 </div>
 
@@ -60,8 +59,8 @@ const AboutPage = () => {
 
                                 <div className="text-center">
                                     <h4 className="fw-bold mb-3">ทีมผู้พัฒนา</h4>
-                                    <p className="text-muted mb-0">พัฒนาโดย ศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร โรงพยาบาล</p>
-                                    <p className="text-muted mt-2">เวอร์ชั่น 2.0 (HOSinfo 2026)</p>
+                                    <p className="text-muted mb-0">พัฒนาโดย กลุ่มงานสุขภาพดิจิทัล โรงพยาบาลสมเด็จพระยุพราชตะพานหิน</p>
+                                    <p className="text-muted mt-2">เวอร์ชั่น 2.0 (HOS-info 2026)</p>
                                 </div>
                             </CardBody>
                         </Card>

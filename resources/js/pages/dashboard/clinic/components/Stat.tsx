@@ -3,7 +3,7 @@ import { Link } from '@inertiajs/react';
 import { Card, CardBody, Col, Row } from 'react-bootstrap';
 import { statData, StatType } from '../data';
 
-const StatCard = ({ count, details, icon, title, isLabel, isDot }: StatType) => {
+export const StatCard = ({ count, details, icon, title, isLabel, isDot }: StatType) => {
     return (
         <Card>
             <CardBody>

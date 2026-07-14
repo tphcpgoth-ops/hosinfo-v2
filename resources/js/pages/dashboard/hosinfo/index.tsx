@@ -5,6 +5,8 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { useState } from 'react';
 import { Col, Row, Card, CardBody, CardTitle } from 'react-bootstrap';
+import WebboardSection from './components/WebboardSection';
+import Stat, { StatCard } from './components/Stat';
 
 const IconLink = ({ 
     icon, 
@@ -115,7 +117,7 @@ const HorizontalCard = () => {
 };
 
 const HosinfoDashboardPage = () => {
-    const { hospital, stats, statsTitle } = usePage().props as any;
+    const { hospital, stats, statsTitle, webboardPosts } = usePage().props as any;
 
     const getPassedPercentage = (s: any) => {
         return s && s.total > 0 ? Math.round((s.passed / s.total) * 100) : 0;
@@ -171,12 +173,25 @@ const HosinfoDashboardPage = () => {
 
             <Row className="mt-3 mb-3">
                 <Col xs={12}>
-                    <div className="page-title-box d-flex align-items-center">
-                        <h4 className="page-title mb-0 me-2 text-dark fw-bold fs-24">{hospital?.name || 'โรงพยาบาล'}</h4>
-                        <p className="text-dark fw-medium fs-15 d-flex align-items-center gap-1 mb-2">
-                            <IconifyIcon icon="tabler:building-hospital" className="text-muted" />
-                            <span className="badge bg-light-subtle rounded-pill text-dark border fs-12 py-1 px-2">{hospital?.code || 'รหัสโรงพยาบาล'}</span>
-                        </p>
+                    <div className="page-title-box d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div className="d-flex align-items-center">
+                            <h4 className="page-title mb-0 me-2 text-dark fw-bold fs-24">{hospital?.name || 'โรงพยาบาล'}</h4>
+                            <p className="text-dark fw-medium fs-15 d-flex align-items-center gap-1 mb-2">
+                                <IconifyIcon icon="tabler:building-hospital" className="text-muted" />
+                                <span className="badge bg-light-subtle rounded-pill text-dark border fs-12 py-1 px-2">{hospital?.code || 'รหัสโรงพยาบาล'}</span>
+                            </p>
+                        </div>
+                        <div className="d-flex align-items-center text-muted fw-medium fs-14 bg-white px-3 py-2 rounded-pill shadow-sm border">
+                            <IconifyIcon icon="solar:calendar-bold-duotone" className="me-2 text-primary fs-18" />
+                            <span>
+                                {new Date().toLocaleDateString('th-TH', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    weekday: 'long'
+                                })}
+                            </span>
+                        </div>
                     </div>
                 </Col>
             </Row>
@@ -209,15 +224,17 @@ const HosinfoDashboardPage = () => {
                     </div>
                 </Col>
             </Row>
-            
-            <Row className="mt-0 mb-3">
+{/*             
+            <Row className="mt-0 mb-0">
                 <HorizontalCard />
-            </Row>
+            </Row> */}
+
+            <Stat />
 
 
             {stats && (
                 <>
-                    <Row className="mb-2 px-1">
+                    <Row className="mt-4 mb-0 px-1">
                         <Col xs={12}>
                             <h5 className="fw-bold text-dark fs-18 mb-0">{statsTitle}</h5>
                         </Col>
@@ -254,6 +271,12 @@ const HosinfoDashboardPage = () => {
                 </>
             )}
 
+            {/* กระดานข่าวถามตอบ & แจ้งปัญหา (Q&A Webboard) */}
+            <Row className="mt-0 mb-0">
+                <Col xs={12}>
+                    <WebboardSection posts={webboardPosts || []} />
+                </Col>
+            </Row>
         </MainLayout>
     );
 };

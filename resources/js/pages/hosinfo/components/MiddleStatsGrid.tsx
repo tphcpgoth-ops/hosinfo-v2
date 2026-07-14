@@ -96,6 +96,7 @@ const MiddleStatsGrid = ({ stats, loading }: { stats: any, loading?: boolean }) 
                     icon="tabler:leaf" 
                     bgClass="bg-secondary" 
                     loading={loading}
+                    href={route('hosinfo.drug')}
                 />
             </Col>
             <Col xl={3} md={6}>
@@ -106,6 +107,7 @@ const MiddleStatsGrid = ({ stats, loading }: { stats: any, loading?: boolean }) 
                     icon="tabler:brain" 
                     bgClass="bg-primary" 
                     loading={loading}
+                    href={route('hosinfo.psy')}
                 />
             </Col>
             <Col xl={3} md={6}>

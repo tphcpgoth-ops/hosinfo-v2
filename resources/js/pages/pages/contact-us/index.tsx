@@ -41,7 +41,7 @@ const ContactUsPage = () => {
                                             </div>
                                             <div>
                                                 <h6 className="text-white text-opacity-75 mb-1">ที่อยู่</h6>
-                                                <p className="mb-0 fw-medium">ศูนย์คอมพิวเตอร์และสารสนเทศ โรงพยาบาล</p>
+                                                <p className="mb-0 fw-medium">กลุ่มงานสุขภาพดิจิทัล โรงพยาบาลสมเด็จพระยุพราชตะพานหิน</p>
                                             </div>
                                         </div>
 
@@ -53,7 +53,7 @@ const ContactUsPage = () => {
                                             </div>
                                             <div>
                                                 <h6 className="text-white text-opacity-75 mb-1">โทรศัพท์</h6>
-                                                <p className="mb-0 fw-medium">02-123-4567 ต่อ 890</p>
+                                                <p className="mb-0 fw-medium">056-621355 ต่อ 343-344</p>
                                             </div>
                                         </div>
 
@@ -65,7 +65,7 @@ const ContactUsPage = () => {
                                             </div>
                                             <div>
                                                 <h6 className="text-white text-opacity-75 mb-1">อีเมล</h6>
-                                                <p className="mb-0 fw-medium">it-support@hospital.go.th</p>
+                                                <p className="mb-0 fw-medium">admin@tphcp.go.th</p>
                                             </div>
                                         </div>
                                     </CardBody>

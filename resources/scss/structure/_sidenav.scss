@@ -133,7 +133,8 @@
 
 //  Link Dot
 .sub-menu {
-    .side-nav-link svg {
+    .side-nav-link > svg,
+    .side-nav-link .menu-icon svg {
         // content: "";
         // content: "\f671";
         // font-family: "tabler-icons";

@@ -10,7 +10,7 @@ import { usePage } from '@inertiajs/react';
 import { Grid, _ } from 'gridjs-react';
 import { html } from 'gridjs';
 
-const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, external_api_url: string }) => {
+const PsyStatsPage = ({ api_token, external_api_url }: { api_token: string, external_api_url: string }) => {
     const { auth } = usePage().props as any;
     const currentBE = new Date().getFullYear() + (new Date().getMonth() > 8 ? 1 : 0) + 543;
     const [fiscalYear, setFiscalYear] = useState(currentBE);
@@ -32,12 +32,12 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
             const headers = { Authorization: `Bearer ${api_token}` };
 
             const [summaryRes, diseasesRes] = await Promise.all([
-                axios.get(`${apiUrl}/api/v1/cd/stats-summary?fiscal_year=${year}`, { headers }),
-                axios.get(`${apiUrl}/api/v1/cd/stats-diseases?fiscal_year=${year}`, { headers })
+                axios.get(`${apiUrl}/api/v1/psy/stats-summary?fiscal_year=${year}`, { headers }),
+                axios.get(`${apiUrl}/api/v1/psy/stats-diseases?fiscal_year=${year}`, { headers })
             ]);
 
-            setSummaryData(summaryRes.data.data);
-            setDiseasesData(diseasesRes.data.data);
+            setSummaryData(summaryRes.data?.data || []);
+            setDiseasesData(diseasesRes.data?.data || []);
             setError(null);
         } catch (err: any) {
             console.error('API Error:', err);
@@ -55,8 +55,8 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
             const apiUrl = external_api_url || 'http://127.0.0.1:8800';
             const headers = { Authorization: `Bearer ${api_token}` };
 
-            const res = await axios.get(`${apiUrl}/api/v1/cd/patients?ym=${ym}`, { headers });
-            setPatientsData(res.data.data);
+            const res = await axios.get(`${apiUrl}/api/v1/psy/patients?ym=${ym}`, { headers });
+            setPatientsData(res.data?.data || []);
             
             setActiveTab('patients');
             setTimeout(() => {
@@ -78,7 +78,6 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
     const monthNames = ['ต.ค.', 'พ.ย.', 'ธ.ค.', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.'];
     const monthKeys = ['10', '11', '12', '01', '02', '03', '04', '05', '06', '07', '08', '09'];
 
-    // Sort summary data by month order (Oct=10 to Sep=09)
     const sortedSummary = [...summaryData].sort((a, b) => {
         const m1 = parseInt(a.AM || '0');
         const m2 = parseInt(b.AM || '0');
@@ -90,10 +89,10 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
         chart: { type: 'bar', toolbar: { show: true } },
         plotOptions: { bar: { horizontal: false, columnWidth: '45%', borderRadius: 4 } },
         xaxis: { categories: monthNames },
-        colors: ['#ffb300', '#ef5350'],
+        colors: ['#0d6efd', '#6610f2'],
         legend: { position: 'top' },
         fill: { opacity: 1 },
-        title: { text: `จำนวนรายงานผู้รับบริการโรคติดต่อแยกตามเดือน ปีงบประมาณ ${fiscalYear}`, align: 'center', style: { fontSize: '15px', fontWeight: 'bold' } }
+        title: { text: `จำนวนผู้รับบริการคลินิกจิตเวชแยกตามเดือน ปีงบประมาณ ${fiscalYear}`, align: 'center', style: { fontSize: '15px', fontWeight: 'bold' } }
     };
 
     const chartSeries = [
@@ -101,7 +100,7 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
             const found = sortedSummary.find(d => d.AM === k);
             return found ? found.hn_count : 0;
         }) },
-        { name: 'จำนวนรายงานที่พบ (ราย)', data: monthKeys.map(k => {
+        { name: 'จำนวนครั้งที่รับบริการ (ครั้ง/VN)', data: monthKeys.map(k => {
             const found = sortedSummary.find(d => d.AM === k);
             return found ? found.total : 0;
         }) }
@@ -109,7 +108,7 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
 
     return (
         <MainLayout>
-            <PageTitle title="สถิติโรคติดต่อ 506 (Communicable Diseases Surveillance)" subTitle="Stats" />
+            <PageTitle title="สถิติผู้รับบริการคลินิกจิตเวช (Psychiatry & Mental Health Clinic)" subTitle="Stats" />
 
             <Row className="mb-2 align-items-center">
                 <Col md={3}>
@@ -124,11 +123,11 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                                 <option key={i} value={currentBE - i}>{currentBE - i}</option>
                             ))}
                         </select>
-                        {loading && <Spinner animation="border" size="sm" className="ms-3 text-warning" />}
+                        {loading && <Spinner animation="border" size="sm" className="ms-3 text-primary" />}
                     </div>
                 </Col>
                 <Col md={9} className="text-md-end mt-3 mt-md-0">
-                    <button className="btn btn-soft-warning rounded-pill px-4 shadow-sm" onClick={() => fetchData(fiscalYear)}>
+                    <button className="btn btn-soft-primary rounded-pill px-4 shadow-sm" onClick={() => fetchData(fiscalYear)}>
                         <IconifyIcon icon="solar:refresh-bold" className="me-1" /> รีเฟรชข้อมูล
                     </button>
                 </Col>
@@ -145,13 +144,13 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                 <CardBody className="p-4">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <div>
-                            <h5 className="mb-1 fw-bold">รายงานเฝ้าระวังทางระบาดวิทยา (รง. 506)</h5>
-                            <p className="text-muted mb-0 small">สรุปสถิติจำนวนผู้ป่วยโรคติดต่อสำคัญและการกระจายทางภูมิศาสตร์ตามปีงบประมาณ</p>
+                            <h5 className="mb-1 fw-bold text-primary"><IconifyIcon icon="tabler:brain" className="me-2" />รายงานสถิติคลิกนิกจิตเวช (คลินิก 109)</h5>
+                            <p className="text-muted mb-0 small">สรุปสถิติจำนวนผู้รับบริการและกลุ่มโรคทางจิตเวชและสุขภาพจิตตามปีงบประมาณ</p>
                         </div>
                     </div>
 
                     <Tab.Container activeKey={activeTab} onSelect={(k) => k && setActiveTab(k)}>
-                        <Nav role="tablist" className="nav-tabs nav-bordered nav-bordered-warning mb-3">
+                        <Nav role="tablist" className="nav-tabs nav-bordered nav-bordered-primary mb-3">
                             <Nav.Item>
                                 <Nav.Link eventKey="charts" className="py-2">
                                     <IconifyIcon icon="solar:chart-bold-duotone" className="me-2 fs-18 align-middle" />
@@ -161,17 +160,17 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                             <Nav.Item>
                                 <Nav.Link eventKey="tables" className="py-2">
                                     <IconifyIcon icon="solar:table-list-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    ตารางสรุปรายโรค
+                                    ตารางสรุปการวินิจฉัยโรค
                                 </Nav.Link>
                             </Nav.Item>
                             {auth?.user && ['admin', 'head', 'user'].includes(auth.user.role) && (
-<Nav.Item>
-                                <Nav.Link eventKey="patients" className="py-2">
-                                    <IconifyIcon icon="solar:users-group-two-rounded-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    รายชื่อผู้ป่วยที่เฝ้าระวัง {selectedMonth && `(${selectedMonth})`}
-                                </Nav.Link>
-                            </Nav.Item>
-)}
+                                <Nav.Item>
+                                    <Nav.Link eventKey="patients" className="py-2">
+                                        <IconifyIcon icon="solar:users-group-two-rounded-bold-duotone" className="me-2 fs-18 align-middle" />
+                                        รายชื่อผู้รับบริการ {selectedMonth && `(${selectedMonth})`}
+                                    </Nav.Link>
+                                </Nav.Item>
+                            )}
                         </Nav>
                         
                         <Tab.Content>
@@ -180,7 +179,7 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                                     <Col lg={12}>
                                         <div className="border rounded p-3 bg-white shadow-sm">
                                             {loading ? (
-                                                <div className="text-center py-5"><Spinner animation="grow" variant="warning" /></div>
+                                                <div className="text-center py-5"><Spinner animation="grow" variant="primary" /></div>
                                             ) : (
                                                 <ReactApexChart options={chartOptions} series={chartSeries} type="bar" height={380} />
                                             )}
@@ -190,39 +189,39 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                             </Tab.Pane>
 
                             <Tab.Pane eventKey="tables">
-                                <h5 className="mb-3 fw-bold text-warning d-flex align-items-center">
-                                    <IconifyIcon icon="solar:shield-warning-bold" className="me-2" />
-                                    ตารางแสดงจำนวนรายงานผู้ป่วยโรคติดต่อแยกตามประเภทโรคและรายเดือน
+                                <h5 className="mb-3 fw-bold text-primary d-flex align-items-center">
+                                    <IconifyIcon icon="solar:shield-check-bold" className="me-2" />
+                                    ตารางแสดงจำนวนผู้รับบริการแยกตามการวินิจฉัยโรค (ICD-10) และรายเดือน
                                 </h5>
                                 <div className="table-responsive border rounded shadow-sm">
                                     <Table hover bordered striped className="align-middle table-sm mb-0">
-                                        <thead className="bg-warning text-white">
+                                        <thead className="bg-primary text-white">
                                             <tr>
-                                                <th>รหัส 506</th>
-                                                <th>กลุ่มโรค (ภาษาอังกฤษ)</th>
-                                                <th>ชื่อภาษาไทย (โรคติดต่อ)</th>
+                                                <th>รหัสโรค (ICD-10)</th>
+                                                <th>ชื่อโรค / คำอธิบาย</th>
                                                 {monthNames.map((m, i) => <th key={i} className="text-center">{m}</th>)}
                                                 <th className="text-center bg-dark text-white">รวม</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {loading ? (
-                                                <tr><td colSpan={16} className="text-center py-5"><Spinner animation="border" variant="warning" /></td></tr>
+                                                <tr><td colSpan={15} className="text-center py-5"><Spinner animation="border" variant="primary" /></td></tr>
+                                            ) : diseasesData.length === 0 ? (
+                                                <tr><td colSpan={15} className="text-center py-4 text-muted">ไม่พบข้อมูลสถิติการวินิจฉัยโรคในปีนี้</td></tr>
                                             ) : diseasesData.map((row, idx) => (
                                                 <tr key={idx}>
-                                                    <td><code>{row.code506}</code></td>
-                                                    <td className="small fw-semibold">{row.namee}</td>
-                                                    <td className="small text-danger fw-bold">{row.namet}</td>
+                                                    <td><code>{row.code}</code></td>
+                                                    <td className="small fw-semibold">{row.name}</td>
                                                     {monthKeys.map((mk, i) => {
                                                         const mNum = parseInt(mk);
                                                         const y = mNum >= 10 ? fiscalYear - 544 : fiscalYear - 543;
                                                         const ym = `${y}-${mk}`;
-                                                        const displayVal = row.months?.[mk] || 0;
+                                                        const mData = row.months?.[mk] || 0;
                                                         return (
                                                             <td key={i} className="text-center">
-                                                                {displayVal > 0 ? (
-                                                                    <button className="btn btn-link btn-sm p-0 fw-bold text-warning" onClick={() => fetchPatients(ym)}>
-                                                                        {displayVal.toLocaleString()}
+                                                                {mData > 0 ? (
+                                                                    <button className="btn btn-link btn-sm p-0 fw-bold text-primary" onClick={() => fetchPatients(ym)}>
+                                                                        {mData.toLocaleString()}
                                                                     </button>
                                                                 ) : '0'}
                                                             </td>
@@ -237,36 +236,34 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                             </Tab.Pane>
 
                             {auth?.user && ['admin', 'head', 'user'].includes(auth.user.role) && (
-<Tab.Pane eventKey="patients">
-                                <div ref={patientsRef}>
-                                    <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <h5 className="mb-0 fw-bold text-warning">
-                                            รายชื่อผู้ป่วยที่ได้รับการวินิจฉัย ประจำเดือน {selectedMonth || 'กรุณาเลือกในตาราง'}
-                                        </h5>
-                                        <span className="badge bg-soft-warning text-warning px-3 py-2 rounded-pill fw-bold">
-                                            ทั้งหมด {patientsData.length} ราย
-                                        </span>
-                                    </div>
-
-                                    {patientsLoading ? (
-                                        <div className="text-center py-5"><Spinner animation="border" variant="warning" /></div>
-                                    ) : patientsData.length === 0 ? (
-                                        <div className="text-center py-5 text-muted">
-                                            <IconifyIcon icon="solar:users-group-two-rounded-broken" className="fs-48 mb-2 text-warning opacity-50" />
-                                            <p className="mb-0">ไม่พบข้อมูลผู้รับบริการ หรือคลิกเลือกตัวเลขในตารางเพื่อดูรายชื่อ</p>
+                                <Tab.Pane eventKey="patients">
+                                    <div ref={patientsRef}>
+                                        <div className="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 className="mb-0 fw-bold text-primary">
+                                                รายชื่อผู้รับบริการ ประจำเดือน {selectedMonth || 'กรุณาเลือกในตาราง'}
+                                            </h5>
+                                            <span className="badge bg-soft-primary text-primary px-3 py-2 rounded-pill fw-bold">
+                                                ทั้งหมด {patientsData.length} ราย
+                                            </span>
                                         </div>
-                                    ) : (
-                                        <Grid
-                                                data={patientsData.map((pt, idx) => [
+
+                                        {patientsLoading ? (
+                                            <div className="text-center py-5"><Spinner animation="border" variant="primary" /></div>
+                                        ) : patientsData.length === 0 ? (
+                                            <div className="text-center py-5 text-muted">
+                                                <IconifyIcon icon="solar:users-group-two-rounded-broken" className="fs-48 mb-2 text-primary opacity-50" />
+                                                <p className="mb-0">ไม่พบข้อมูลผู้รับบริการ หรือคลิกเลือกตัวเลขในตารางเพื่อดูรายชื่อ</p>
+                                            </div>
+                                        ) : (
+                                            <Grid
+                                                data={patientsData.map((pt) => [
                                                     `${new Date(pt.vstdate).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}`,
                                                     html(`<code>${pt.hn}</code>`),
                                                     pt.ptname,
-                                                    html(`<span class="badge bg-soft-danger text-danger">${pt.name506}</span>`),
                                                     html(`<code>${pt.pdx}</code>`),
-                                                    pt.dxname,
-                                                    pt.address
+                                                    pt.dxname
                                                 ])}
-                                                columns={["วันที่วินิจฉัย", "HN", "ชื่อ-นามสกุล", "โรคที่เฝ้าระวัง (รง.506)", "การวินิจฉัยโรค (ICD-10)", "รายละเอียดโรคหลัก", "ที่อยู่ผู้ป่วยที่รายงาน"]}
+                                                columns={["วันที่รับบริการ", "HN", "ชื่อ-นามสกุล", "การวินิจฉัยหลัก (ICD-10)", "รายละเอียดโรค"]}
                                                 search={true}
                                                 pagination={{ limit: 10 }}
                                                 sort={true}
@@ -277,15 +274,15 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
                                                 }}
                                                 className={{
                                                     table: 'table table-hover align-middle mb-0 table-sm',
-                                                    th: 'bg-warning text-white fw-semibold',
+                                                    th: 'bg-primary text-white fw-semibold',
                                                     pagination: 'mt-0 mb-0 p-1',
                                                     container: 'mt-0 mb-0 p-0'
                                                 }}
                                             />
-                                    )}
-                                </div>
-                            </Tab.Pane>
-)}
+                                        )}
+                                    </div>
+                                </Tab.Pane>
+                            )}
                         </Tab.Content>
                     </Tab.Container>
                 </CardBody>
@@ -294,4 +291,4 @@ const CDStatsPage = ({ api_token, external_api_url }: { api_token: string, exter
     );
 };
 
-export default CDStatsPage;
+export default PsyStatsPage;

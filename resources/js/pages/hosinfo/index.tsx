@@ -6,6 +6,7 @@ import axios from 'axios';
 import TopStatsRow from './components/TopStatsRow';
 import MiddleStatsGrid from './components/MiddleStatsGrid';
 import IpdStatsSection from './components/IpdStatsSection';
+import DiseaseStatsSection from './components/DiseaseStatsSection';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
 const HosinfoPage = ({ api_token, external_api_url }: { api_token: string, external_api_url: string }) => {
@@ -15,6 +16,7 @@ const HosinfoPage = ({ api_token, external_api_url }: { api_token: string, exter
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [forceRefreshCooldown, setForceRefreshCooldown] = useState(0);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const fetchData = async (isBackground = false, force = false) => {
         try {
@@ -62,6 +64,7 @@ const HosinfoPage = ({ api_token, external_api_url }: { api_token: string, exter
         if (forceRefreshCooldown > 0) return;
         setForceRefreshCooldown(10); // 10-second cache bypass cooldown
         fetchData(false, true);
+        setRefreshTrigger((prev) => prev + 1);
     };
 
     return (
@@ -134,10 +137,22 @@ const HosinfoPage = ({ api_token, external_api_url }: { api_token: string, exter
                                 )}
                             </div>
                         </div>
-                        <button 
-                            className="btn btn-sm btn-soft-primary rounded-pill px-3 d-flex align-items-center gap-1"
-                            onClick={handleForceRefresh}
-                            disabled={loading || isRefreshing || forceRefreshCooldown > 0}
+                        <div className="d-flex align-items-center gap-2">
+                            <div className="d-flex align-items-center text-muted fw-medium fs-14 bg-white px-3 py-1 rounded-pill shadow-sm border">
+                                <IconifyIcon icon="solar:calendar-bold-duotone" className="me-2 text-primary fs-16" />
+                                <span>
+                                    {new Date().toLocaleDateString('th-TH', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        weekday: 'long'
+                                    })}
+                                </span>
+                            </div>
+                            <button 
+                                className="btn btn-sm btn-soft-primary rounded-pill px-3 d-flex align-items-center gap-1"
+                                onClick={handleForceRefresh}
+                                disabled={loading || isRefreshing || forceRefreshCooldown > 0}
                         >
                             <IconifyIcon 
                                 icon="solar:refresh-bold" 
@@ -145,6 +160,7 @@ const HosinfoPage = ({ api_token, external_api_url }: { api_token: string, exter
                             />
                             {forceRefreshCooldown > 0 ? `คูลดาวน์ (${forceRefreshCooldown}s)` : 'รีเฟรชข้อมูล'}
                         </button>
+                        </div>
                     </div>
                 </Col>
             </Row>
@@ -159,6 +175,8 @@ const HosinfoPage = ({ api_token, external_api_url }: { api_token: string, exter
             <TopStatsRow stats={data?.stats || {}} loading={loading} />
             <MiddleStatsGrid stats={data?.stats || {}} loading={loading} />
             
+            <DiseaseStatsSection external_api_url={external_api_url} refreshTrigger={refreshTrigger} />
+
             <Row className="mt-4 mb-2">
                 <Col>
                     <h4 className="text-dark fw-bold border-start border-4 border-danger ps-2">สถิติผู้ป่วยในและตึกผู้ป่วย</h4>

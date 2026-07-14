@@ -37,7 +37,7 @@ const SupportPage = () => {
                                             <Accordion.Item eventKey="0" className="border-0 mb-2 shadow-sm rounded">
                                                 <Accordion.Header>ฉันจะแก้ไขข้อมูลส่วนตัวได้อย่างไร?</Accordion.Header>
                                                 <Accordion.Body className="text-muted">
-                                                    คุณสามารถไปที่เมนู "ข้อมูลส่วนตัว (Profile)" ที่แถบด้านบนขวา จากนั้นกดปุ่ม "แก้ไข" เพื่ออัปเดตข้อมูลและบันทึก
+                                                    คุณสามารถไปที่เมนู "บัญชีของฉัน" ที่แถบด้านบนขวา จากนั้นกดปุ่ม "แก้ไข" เพื่ออัปเดตข้อมูลและบันทึก
                                                 </Accordion.Body>
                                             </Accordion.Item>
                                             <Accordion.Item eventKey="1" className="border-0 mb-2 shadow-sm rounded">

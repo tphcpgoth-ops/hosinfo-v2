@@ -21,12 +21,14 @@ use App\Http\Controllers\LayoutsController;
 // custom controller
 use App\Http\Controllers\KpiController;
 use App\Http\Controllers\HosinfoController;
+use App\Http\Controllers\WebboardController;
 use Inertia\Inertia;
 
 require __DIR__.'/auth.php';
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/hosinfo', [HosinfoController::class, 'index'])->name('hosinfo');
+Route::get('/hosinfo/appointments', [HosinfoController::class, 'appointments'])->name('hosinfo.appointments');
 Route::get('/hosinfo/opd', [HosinfoController::class, 'opd'])->name('hosinfo.opd');
 Route::get('/hosinfo/ipd', [HosinfoController::class, 'ipd'])->name('hosinfo.ipd');
 Route::get('/hosinfo/dent', [HosinfoController::class, 'dent'])->name('hosinfo.dent');
@@ -39,6 +41,8 @@ Route::get('/hosinfo/pts', [HosinfoController::class, 'pts'])->name('hosinfo.pts
 Route::get('/hosinfo/xray', [HosinfoController::class, 'xray'])->name('hosinfo.xray');
 Route::get('/hosinfo/lab', [HosinfoController::class, 'lab'])->name('hosinfo.lab');
 Route::get('/hosinfo/pcc', [HosinfoController::class, 'pcc'])->name('hosinfo.pcc');
+Route::get('/hosinfo/drug', [HosinfoController::class, 'drug'])->name('hosinfo.drug');
+Route::get('/hosinfo/psy', [HosinfoController::class, 'psy'])->name('hosinfo.psy');
 Route::get('/hosinfo/last-update', [HosinfoController::class, 'lastUpdate'])->name('hosinfo.last-update');
 
 
@@ -57,6 +61,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/kpis/{id}', [KpiController::class, 'kpisDestroy']);
     Route::put('/kpis/{id}/monthly', [KpiController::class, 'updateMonthlyData']);
     
+    // กระดานข่าวถามตอบและแจ้งปัญหา (Q&A Webboard)
+    Route::post('/webboard/store', [WebboardController::class, 'store'])->name('webboard.store');
+    Route::post('/webboard/{id}/answer', [WebboardController::class, 'answer'])->name('webboard.answer');
+    Route::delete('/webboard/{id}', [WebboardController::class, 'destroy'])->name('webboard.destroy');
+
     Route::get('/users/profile', [\App\Http\Controllers\UserController::class, 'profile'])->name('users.profile');
     Route::post('/users/profile/avatar', [\App\Http\Controllers\UserController::class, 'updateAvatar'])->name('users.avatar');
     Route::resource('users', \App\Http\Controllers\UserController::class);

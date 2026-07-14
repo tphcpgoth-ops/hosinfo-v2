@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Services\JwtService;
+use App\Models\WebboardPost;
 
 class DashboardController extends Controller
 {
@@ -51,11 +52,14 @@ class DashboardController extends Controller
             $allKpis = $query->get();
         }
 
+        $webboardPosts = WebboardPost::with(['user:id,name,avatar,role', 'responder:id,name,avatar,role'])->latest()->get();
+
         return Inertia::render('dashboard/hosinfo/index', [
             'stats' => $stats,
             'statsTitle' => $statsTitle,
             'kpis' => $allKpis,
-            'currentYear' => (int)$year
+            'currentYear' => (int)$year,
+            'webboardPosts' => $webboardPosts
         ]);
     }
 

@@ -5,7 +5,7 @@ import SimpleBar from 'simplebar-react';
 import { getMenuItems } from '@/helpers/menu';
 
 import { useLayoutContext } from '@/context/useLayoutContext';
-import coffeeImg from '@/images/coffee-cup.svg';
+import hosinfoLogo from '@/images/HOS-info-logo.png';
 import { lazy, Suspense, useMemo } from 'react';
 import { Button } from 'react-bootstrap';
 import HoverMenuToggle from './components/HoverMenuToggle';
@@ -57,9 +57,9 @@ const VerticalNavigationBar = () => {
                     <AppMenu menuItems={menuItems} />
 
                     <div className="help-box text-center">
-                        <img src={coffeeImg} height={90} alt="App Logo" />
+                        <img src={hosinfoLogo} height={90} alt="HOS-info Logo" style={{ objectFit: 'contain', maxWidth: '80%' }} />
                         <h5 className="mt-3 fw-semibold fs-16">HOS-info : Hospital Information</h5>
-                        <p className="mb-3 text-muted">Version 2.0.0</p>
+                        <p className="mb-3 text-muted">Version 2.0</p>
                     </div>
                     <div className="clearfix" />
                 </Suspense>

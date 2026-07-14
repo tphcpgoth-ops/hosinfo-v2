@@ -19,6 +19,12 @@ export const MENU_ITEMS: MenuItemType[] = [
         url: '/hosinfo',
         // roles: ['admin', 'head', 'user'],
     },
+    {
+        key: 'hosinfo_appointments',
+        label: 'ปฏิทินคนไข้นัด',
+        icon: 'tabler:calendar-stats',
+        url: '/hosinfo/appointments',
+    },
     // {
     //     key: 'last_update',
     //     label: 'Last Update',
@@ -95,6 +101,18 @@ export const MENU_ITEMS: MenuItemType[] = [
                 key: 'stats_lab',
                 label: 'ชันสูตรสาธารณสุข',
                 url: '/hosinfo/lab',
+                parentKey: 'stats',
+            },
+            {
+                key: 'stats_drug',
+                label: 'ยาเสพติด',
+                url: '/hosinfo/drug',
+                parentKey: 'stats',
+            },
+            {
+                key: 'stats_psy',
+                label: 'จิตเวช',
+                url: '/hosinfo/psy',
                 parentKey: 'stats',
             },
             {
@@ -273,6 +291,18 @@ export const HORIZONTAL_MENU_ITEM: MenuItemType[] = [
                         key: 'stats_lab',
                         label: 'ชันสูตรสาธารณสุข',
                         url: '/hosinfo/lab',
+                        parentKey: 'stats',
+                    },
+                    {
+                        key: 'stats_drug',
+                        label: 'ยาเสพติด',
+                        url: '/hosinfo/drug',
+                        parentKey: 'stats',
+                    },
+                    {
+                        key: 'stats_psy',
+                        label: 'จิตเวช',
+                        url: '/hosinfo/psy',
                         parentKey: 'stats',
                     },
                     {

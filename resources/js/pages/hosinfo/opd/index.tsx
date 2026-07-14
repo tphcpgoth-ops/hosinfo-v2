@@ -13,6 +13,7 @@ const OpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
     const [loading, setLoading] = useState(true);
     const [summaryData, setSummaryData] = useState<any[]>([]);
     const [specialtyData, setSpecialtyData] = useState<any[]>([]);
+    const [nhsoClinicData, setNhsoClinicData] = useState<any[]>([]);
     const [insclData, setInsclData] = useState<{ opd: any[], ipd: any[] }>({ opd: [], ipd: [] });
     const [topDiseases, setTopDiseases] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
@@ -23,15 +24,17 @@ const OpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
             const apiUrl = external_api_url || 'http://127.0.0.1:8800';
             const headers = { Authorization: `Bearer ${api_token}` };
 
-            const [summaryRes, specialtyRes, insclRes, icd10Res] = await Promise.all([
+            const [summaryRes, specialtyRes, nhsoClinicRes, insclRes, icd10Res] = await Promise.all([
                 axios.get(`${apiUrl}/api/v1/opd/stats-summary?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/opd/stats-specialty?fiscal_year=${year}`, { headers }),
+                axios.get(`${apiUrl}/api/v1/opd/stats-nhso-clinic?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/opd/stats-inscl?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/opd/stats-icd10?fiscal_year=${year}`, { headers })
             ]);
 
             setSummaryData(summaryRes.data.data);
             setSpecialtyData(specialtyRes.data.data);
+            setNhsoClinicData(nhsoClinicRes.data.data);
             setInsclData(insclRes.data);
             setTopDiseases(icd10Res.data.data);
             setError(null);
@@ -50,6 +53,20 @@ const OpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
 
     // Chart Options for Monthly Summary
     const monthNames = ['ต.ค.', 'พ.ย.', 'ธ.ค.', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.'];
+    const fullMonthNames: { [key: string]: string } = {
+        '01': 'มกราคม', '1': 'มกราคม',
+        '02': 'กุมภาพันธ์', '2': 'กุมภาพันธ์',
+        '03': 'มีนาคม', '3': 'มีนาคม',
+        '04': 'เมษายน', '4': 'เมษายน',
+        '05': 'พฤษภาคม', '5': 'พฤษภาคม',
+        '06': 'มิถุนายน', '6': 'มิถุนายน',
+        '07': 'กรกฎาคม', '7': 'กรกฎาคม',
+        '08': 'สิงหาคม', '8': 'สิงหาคม',
+        '09': 'กันยายน', '9': 'กันยายน',
+        '10': 'ตุลาคม',
+        '11': 'พฤศจิกายน',
+        '12': 'ธันวาคม'
+    };
     
     // Sort summary data by month order (Oct=10 to Sep=09)
     const sortedSummary = [...summaryData].sort((a, b) => {
@@ -191,52 +208,207 @@ const OpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                             </Tab.Pane>
 
                             <Tab.Pane eventKey="table">
-                                <h5 className="mb-4 fw-bold">ตารางสรุปจำนวนผู้รับบริการแยกตามแผนก</h5>
-                                <div className="table-responsive">
-                                    <Table hover className="align-middle table-sm border">
-                                        <thead className="bg-light-subtle">
-                                            <tr>
-                                                <th rowSpan={2} className="text-center align-middle">แผนก</th>
-                                                <th colSpan={2} className="text-center bg-primary-subtle">ผู้ป่วยนอก (OPD)</th>
-                                                <th colSpan={2} className="text-center bg-success-subtle">ผู้ป่วยใน (IPD)</th>
-                                                <th colSpan={2} className="text-center bg-warning-subtle">รวม</th>
-                                            </tr>
-                                            <tr>
-                                                <th className="text-center">คน</th>
-                                                <th className="text-center">ครั้ง</th>
-                                                <th className="text-center">คน</th>
-                                                <th className="text-center">ครั้ง</th>
-                                                <th className="text-center">คน</th>
-                                                <th className="text-center">ครั้ง</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {loading ? (
-                                                <tr><td colSpan={7} className="text-center py-5"><Spinner animation="border" /></td></tr>
-                                            ) : specialtyData.map((row, idx) => (
-                                                <tr key={idx}>
-                                                    <td>{row.spclty}: {row.name}</td>
-                                                    <td className="text-center">{row.opd_hn.toLocaleString()}</td>
-                                                    <td className="text-center">{row.opd_vn.toLocaleString()}</td>
-                                                    <td className="text-center">{row.ipd_hn.toLocaleString()}</td>
-                                                    <td className="text-center">{row.ipd_an.toLocaleString()}</td>
-                                                    <td className="text-center">{(row.opd_hn + row.ipd_hn).toLocaleString()}</td>
-                                                    <td className="text-center">{(row.opd_vn + row.ipd_an).toLocaleString()}</td>
+                                {/* ตาราง 1: สรุปแยกรายเดือน */}
+                                <div className="border rounded-3 p-3 p-md-4 bg-white mb-4 shadow-sm">
+                                    <div className="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                        <IconifyIcon icon="solar:calendar-bold-duotone" className="me-2 text-primary fs-20" />
+                                        <h6 className="fw-bold fs-16 mb-0 text-dark">จำนวนผู้รับบริการ</h6>
+                                    </div>
+                                    <div className="table-responsive">
+                                        <Table hover className="align-middle table-sm border mb-0" style={{ fontSize: '14px' }}>
+                                            <thead style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>
+                                                <tr>
+                                                    <th rowSpan={2} className="text-start align-middle px-3 py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>เดือน-ปี</th>
+                                                    <th colSpan={2} className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>จำนวนผู้ป่วยนอก</th>
+                                                    <th colSpan={2} className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>จำนวนผู้ป่วยใน</th>
+                                                    <th colSpan={2} className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>จำนวนผู้รับบริการรวม</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                        <tfoot className="bg-light fw-bold border-top-2">
-                                            <tr>
-                                                <td className="text-center">รวมทั้งหมด</td>
-                                                <td className="text-center">{specialtyData.reduce((s, r) => s + r.opd_hn, 0).toLocaleString()}</td>
-                                                <td className="text-center">{specialtyData.reduce((s, r) => s + r.opd_vn, 0).toLocaleString()}</td>
-                                                <td className="text-center">{specialtyData.reduce((s, r) => s + r.ipd_hn, 0).toLocaleString()}</td>
-                                                <td className="text-center">{specialtyData.reduce((s, r) => s + r.ipd_an, 0).toLocaleString()}</td>
-                                                <td className="text-center">{specialtyData.reduce((s, r) => s + (r.opd_hn + r.ipd_hn), 0).toLocaleString()}</td>
-                                                <td className="text-center">{specialtyData.reduce((s, r) => s + (r.opd_vn + r.ipd_an), 0).toLocaleString()}</td>
-                                            </tr>
-                                        </tfoot>
-                                    </Table>
+                                                <tr>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>คน</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>ครั้ง</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>คน</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>ครั้ง</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>คน</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>ครั้ง</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {loading ? (
+                                                    <tr><td colSpan={7} className="text-center py-5"><Spinner animation="border" /></td></tr>
+                                                ) : sortedSummary.length === 0 ? (
+                                                    <tr><td colSpan={7} className="text-center py-4 text-muted">ไม่พบข้อมูล</td></tr>
+                                                ) : (
+                                                    sortedSummary.map((row, idx) => {
+                                                        const amStr = String(row.AM).padStart(2, '0');
+                                                        const ayStr = row.AY || '';
+                                                        const monthName = fullMonthNames[amStr] || '';
+                                                        const opdHn = Number(row.opd_hn) || 0;
+                                                        const opdVn = Number(row.opd_vn) || 0;
+                                                        const ipdHn = Number(row.ipd_hn) || 0;
+                                                        const ipdAn = Number(row.ipd_an) || 0;
+                                                        const totalHn = opdHn + ipdHn;
+                                                        const totalVn = opdVn + ipdAn;
+                                                        return (
+                                                            <tr key={idx}>
+                                                                <td className="text-start px-3 py-2 border">{`${ayStr}${amStr} (${monthName} ${ayStr})`}</td>
+                                                                <td className="text-center py-2 border"><span className="text-primary fw-medium">{opdHn.toLocaleString()}</span></td>
+                                                                <td className="text-center py-2 border"><span className="text-primary fw-medium">{opdVn.toLocaleString()}</span></td>
+                                                                <td className="text-center py-2 border">{ipdHn.toLocaleString()}</td>
+                                                                <td className="text-center py-2 border">{ipdAn.toLocaleString()}</td>
+                                                                <td className="text-center py-2 border">{totalHn.toLocaleString()}</td>
+                                                                <td className="text-center py-2 border">{totalVn.toLocaleString()}</td>
+                                                            </tr>
+                                                        );
+                                                    })
+                                                )}
+                                            </tbody>
+                                            <tfoot style={{ backgroundColor: '#fffbe6', color: '#212529', fontWeight: 'bold' }}>
+                                                <tr>
+                                                    <td className="text-center px-3 py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>รวม</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{sortedSummary.reduce((s, r) => s + (Number(r.opd_hn) || 0), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{sortedSummary.reduce((s, r) => s + (Number(r.opd_vn) || 0), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{sortedSummary.reduce((s, r) => s + (Number(r.ipd_hn) || 0), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{sortedSummary.reduce((s, r) => s + (Number(r.ipd_an) || 0), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{sortedSummary.reduce((s, r) => s + ((Number(r.opd_hn) || 0) + (Number(r.ipd_hn) || 0)), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{sortedSummary.reduce((s, r) => s + ((Number(r.opd_vn) || 0) + (Number(r.ipd_an) || 0)), 0).toLocaleString()}</td>
+                                                </tr>
+                                            </tfoot>
+                                        </Table>
+                                    </div>
+                                </div>
+
+                                {/* ตาราง 2: สรุปแยกรายคลินิก */}
+                                <div className="border rounded-3 p-3 p-md-4 bg-white shadow-sm">
+                                    <div className="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                        <IconifyIcon icon="solar:hospital-bold-duotone" className="me-2 text-success fs-20" />
+                                        <h6 className="fw-bold fs-16 mb-0 text-dark">จำนวนผู้รับบริการรายแผนก (HOSxP)</h6>
+                                    </div>
+                                    <div className="table-responsive">
+                                        <Table hover className="align-middle table-sm border mb-0" style={{ fontSize: '14px' }}>
+                                            <thead style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>
+                                                <tr>
+                                                    <th rowSpan={2} className="text-start align-middle px-3 py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>แผนก</th>
+                                                    <th colSpan={2} className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>จำนวนผู้ป่วยนอก</th>
+                                                    <th colSpan={2} className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>จำนวนผู้ป่วยใน</th>
+                                                    <th colSpan={2} className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>จำนวนผู้รับบริการรวม</th>
+                                                </tr>
+                                                <tr>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>คน</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>ครั้ง</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>คน</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>ครั้ง</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>คน</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>ครั้ง</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {loading ? (
+                                                    <tr><td colSpan={7} className="text-center py-5"><Spinner animation="border" /></td></tr>
+                                                ) : specialtyData.length === 0 ? (
+                                                    <tr><td colSpan={7} className="text-center py-4 text-muted">ไม่พบข้อมูล</td></tr>
+                                                ) : (
+                                                    specialtyData.map((row, idx) => {
+                                                        const opdHn = Number(row.opd_hn) || 0;
+                                                        const opdVn = Number(row.opd_vn) || 0;
+                                                        const ipdHn = Number(row.ipd_hn) || 0;
+                                                        const ipdAn = Number(row.ipd_an) || 0;
+                                                        const totalHn = opdHn + ipdHn;
+                                                        const totalVn = opdVn + ipdAn;
+                                                        return (
+                                                            <tr key={idx}>
+                                                                <td className="text-start px-3 py-2 border">{row.spclty ? `${row.spclty} : ${row.name || ''}` : `: ${row.name || ''}`}</td>
+                                                                <td className="text-center py-2 border"><span className="text-primary fw-medium">{opdHn.toLocaleString()}</span></td>
+                                                                <td className="text-center py-2 border"><span className="text-primary fw-medium">{opdVn.toLocaleString()}</span></td>
+                                                                <td className="text-center py-2 border">{ipdHn.toLocaleString()}</td>
+                                                                <td className="text-center py-2 border">{ipdAn.toLocaleString()}</td>
+                                                                <td className="text-center py-2 border">{totalHn.toLocaleString()}</td>
+                                                                <td className="text-center py-2 border">{totalVn.toLocaleString()}</td>
+                                                            </tr>
+                                                        );
+                                                    })
+                                                )}
+                                            </tbody>
+                                            <tfoot style={{ backgroundColor: '#fffbe6', color: '#212529', fontWeight: 'bold' }}>
+                                                <tr>
+                                                    <td className="text-center px-3 py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>รวม</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{specialtyData.reduce((s, r) => s + (Number(r.opd_hn) || 0), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{specialtyData.reduce((s, r) => s + (Number(r.opd_vn) || 0), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{specialtyData.reduce((s, r) => s + (Number(r.ipd_hn) || 0), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{specialtyData.reduce((s, r) => s + (Number(r.ipd_an) || 0), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{specialtyData.reduce((s, r) => s + ((Number(r.opd_hn) || 0) + (Number(r.ipd_hn) || 0)), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{specialtyData.reduce((s, r) => s + ((Number(r.opd_vn) || 0) + (Number(r.ipd_an) || 0)), 0).toLocaleString()}</td>
+                                                </tr>
+                                            </tfoot>
+                                        </Table>
+                                    </div>
+                                    <div className="text-muted small mt-2">หมายเหตุ : จากตาราง spclty (HOSxP)</div>
+                                </div>
+
+                                {/* ตาราง 3: สรุปแยกรายคลินิก (มาตรฐาน สปสช.) */}
+                                <div className="border rounded-3 p-3 p-md-4 bg-white mt-4 shadow-sm">
+                                    <div className="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                        <IconifyIcon icon="solar:shield-check-bold-duotone" className="me-2 text-info fs-20" />
+                                        <h6 className="fw-bold fs-16 mb-0 text-dark">จำนวนผู้รับบริการรายแผนก (มาตรฐาน สปสช.)</h6>
+                                    </div>
+                                    <div className="table-responsive">
+                                        <Table hover className="align-middle table-sm border mb-0" style={{ fontSize: '14px' }}>
+                                            <thead style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>
+                                                <tr>
+                                                    <th rowSpan={2} className="text-start align-middle px-3 py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>แผนก</th>
+                                                    <th colSpan={2} className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>จำนวนผู้ป่วยนอก</th>
+                                                    <th colSpan={2} className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>จำนวนผู้ป่วยใน</th>
+                                                    <th colSpan={2} className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>จำนวนผู้รับบริการรวม</th>
+                                                </tr>
+                                                <tr>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>คน</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>ครั้ง</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>คน</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>ครั้ง</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>คน</th>
+                                                    <th className="text-center py-2 border" style={{ backgroundColor: '#e2f0f9', color: '#1e293b' }}>ครั้ง</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {loading ? (
+                                                    <tr><td colSpan={7} className="text-center py-5"><Spinner animation="border" /></td></tr>
+                                                ) : nhsoClinicData.length === 0 ? (
+                                                    <tr><td colSpan={7} className="text-center py-4 text-muted">ไม่พบข้อมูล</td></tr>
+                                                ) : (
+                                                    nhsoClinicData.map((row, idx) => {
+                                                        const opdHn = Number(row.opd_hn) || 0;
+                                                        const opdVn = Number(row.opd_vn) || 0;
+                                                        const ipdHn = Number(row.ipd_hn) || 0;
+                                                        const ipdAn = Number(row.ipd_an) || 0;
+                                                        const totalHn = opdHn + ipdHn;
+                                                        const totalVn = opdVn + ipdAn;
+                                                        return (
+                                                            <tr key={idx}>
+                                                                <td className="text-start px-3 py-2 border">{row.nhso_code ? `${row.nhso_code} : ${row.name || ''}` : `: ${row.name || ''}`}</td>
+                                                                <td className="text-center py-2 border"><span className="text-primary fw-medium">{opdHn.toLocaleString()}</span></td>
+                                                                <td className="text-center py-2 border"><span className="text-primary fw-medium">{opdVn.toLocaleString()}</span></td>
+                                                                <td className="text-center py-2 border">{ipdHn.toLocaleString()}</td>
+                                                                <td className="text-center py-2 border">{ipdAn.toLocaleString()}</td>
+                                                                <td className="text-center py-2 border">{totalHn.toLocaleString()}</td>
+                                                                <td className="text-center py-2 border">{totalVn.toLocaleString()}</td>
+                                                            </tr>
+                                                        );
+                                                    })
+                                                )}
+                                            </tbody>
+                                            <tfoot style={{ backgroundColor: '#fffbe6', color: '#212529', fontWeight: 'bold' }}>
+                                                <tr>
+                                                    <td className="text-center px-3 py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>รวม</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{nhsoClinicData.reduce((s, r) => s + (Number(r.opd_hn) || 0), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{nhsoClinicData.reduce((s, r) => s + (Number(r.opd_vn) || 0), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{nhsoClinicData.reduce((s, r) => s + (Number(r.ipd_hn) || 0), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{nhsoClinicData.reduce((s, r) => s + (Number(r.ipd_an) || 0), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{nhsoClinicData.reduce((s, r) => s + ((Number(r.opd_hn) || 0) + (Number(r.ipd_hn) || 0)), 0).toLocaleString()}</td>
+                                                    <td className="text-center py-2 border" style={{ backgroundColor: '#fffbe6', color: '#212529' }}>{nhsoClinicData.reduce((s, r) => s + ((Number(r.opd_vn) || 0) + (Number(r.ipd_an) || 0)), 0).toLocaleString()}</td>
+                                                </tr>
+                                            </tfoot>
+                                        </Table>
+                                    </div>
+                                    <div className="text-muted small mt-2">หมายเหตุ : จากตาราง nhso_clinic</div>
                                 </div>
                             </Tab.Pane>
 

@@ -18,6 +18,14 @@ class HosinfoController extends Controller
         ]);
     }
 
+    public function appointments()
+    {
+        return Inertia::render('hosinfo/appointments/index', [
+            'api_token' => JwtService::generateToken(),
+            'external_api_url' => env('VITE_EXTERNAL_API_URL', 'http://127.0.0.1:8800')
+        ]);
+    }
+
     public function opd()
     {
         return Inertia::render('hosinfo/opd/index', [
@@ -109,6 +117,22 @@ class HosinfoController extends Controller
     public function pcc()
     {
         return Inertia::render('hosinfo/pcc/index', [
+            'api_token' => JwtService::generateToken(),
+            'external_api_url' => env('VITE_EXTERNAL_API_URL', 'http://127.0.0.1:8800')
+        ]);
+    }
+
+    public function drug()
+    {
+        return Inertia::render('hosinfo/drug/index', [
+            'api_token' => JwtService::generateToken(),
+            'external_api_url' => env('VITE_EXTERNAL_API_URL', 'http://127.0.0.1:8800')
+        ]);
+    }
+
+    public function psy()
+    {
+        return Inertia::render('hosinfo/psy/index', [
             'api_token' => JwtService::generateToken(),
             'external_api_url' => env('VITE_EXTERNAL_API_URL', 'http://127.0.0.1:8800')
         ]);

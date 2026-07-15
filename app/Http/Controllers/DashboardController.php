@@ -59,7 +59,9 @@ class DashboardController extends Controller
             'statsTitle' => $statsTitle,
             'kpis' => $allKpis,
             'currentYear' => (int)$year,
-            'webboardPosts' => $webboardPosts
+            'webboardPosts' => $webboardPosts,
+            'api_token' => JwtService::generateToken(),
+            'external_api_url' => env('VITE_EXTERNAL_API_URL', 'http://127.0.0.1:8800')
         ]);
     }
 

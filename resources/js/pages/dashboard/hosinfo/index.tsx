@@ -6,7 +6,6 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { useState } from 'react';
 import { Col, Row, Card, CardBody, CardTitle } from 'react-bootstrap';
 import WebboardSection from './components/WebboardSection';
-import Stat, { StatCard } from './components/Stat';
 
 const IconLink = ({ 
     icon, 
@@ -228,9 +227,6 @@ const HosinfoDashboardPage = () => {
             <Row className="mt-0 mb-0">
                 <HorizontalCard />
             </Row> */}
-
-            <Stat />
-
 
             {stats && (
                 <>

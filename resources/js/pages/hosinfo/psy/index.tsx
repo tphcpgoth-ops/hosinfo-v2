@@ -160,7 +160,7 @@ const PsyStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                             <Nav.Item>
                                 <Nav.Link eventKey="tables" className="py-2">
                                     <IconifyIcon icon="solar:table-list-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    ตารางสรุปการวินิจฉัยโรค
+                                    ตารางข้อมูล
                                 </Nav.Link>
                             </Nav.Item>
                             {auth?.user && ['admin', 'head', 'user'].includes(auth.user.role) && (

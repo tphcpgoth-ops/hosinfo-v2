@@ -4,6 +4,8 @@ import PageTitle from '@/components/PageTitle';
 import { Row, Col } from 'react-bootstrap';
 import AppointmentCalendar from './components/AppointmentCalendar';
 import DepartmentBreakdownModal from './components/DepartmentBreakdownModal';
+import Stat from './components/Stat';
+import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
 interface AppointmentPageProps {
     api_token?: string;
@@ -23,10 +25,27 @@ const AppointmentsPage = ({ api_token, external_api_url }: AppointmentPageProps)
 
     return (
         <MainLayout>
-            <PageTitle title="ปฏิทินคนไข้นัด" subTitle="ข้อมูลและสถิติ" />
+            <PageTitle 
+                title="ปฏิทินคนไข้นัด" 
+                subTitle="ข้อมูลและสถิติ" 
+                rightContent={
+                    <div className="d-flex align-items-center text-muted fw-medium fs-14 bg-white px-3 py-1 rounded-pill shadow-sm border">
+                        <IconifyIcon icon="solar:calendar-bold-duotone" className="me-2 text-primary fs-16" />
+                        <span>
+                            {new Date().toLocaleDateString('th-TH', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                weekday: 'long'
+                            })}
+                        </span>
+                    </div>
+                }
+            />
 
-            <div className="mt-3">
-                <Row>
+            <div className="mt-0">
+                <Stat externalApiUrl={apiUrl} />
+                <Row className="mt-0">
                     <Col xs={12}>
                         <AppointmentCalendar
                             externalApiUrl={apiUrl}

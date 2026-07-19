@@ -79,6 +79,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // admin-only routes
         Route::resource('departments', \App\Http\Controllers\DepartmentController::class);
 
+        // End user reports management (Admin only)
+        Route::get('/end-user-reports/create', [ReportController::class, 'create'])->name('end-user-reports.create');
+        Route::post('/end-user-reports', [ReportController::class, 'store'])->name('end-user-reports.store');
+        Route::post('/end-user-reports/test-query', [ReportController::class, 'testQuery'])->name('end-user-reports.test-query');
+        Route::get('/end-user-reports/{id}/edit', [ReportController::class, 'edit'])->name('end-user-reports.edit');
+        Route::put('/end-user-reports/{id}', [ReportController::class, 'update'])->name('end-user-reports.update');
+        Route::delete('/end-user-reports/{id}', [ReportController::class, 'destroy'])->name('end-user-reports.destroy');
     });
     
     // Hepatitis Screening
@@ -87,6 +94,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('hepatitis', \App\Http\Controllers\HepatitisScreeningController::class);
     Route::get('/stats/opd', [\App\Http\Controllers\StatController::class, 'opd']);
     Route::get('/end-user-reports', [ReportController::class, 'index'])->name('end-user-reports.index');
+    Route::get('/end-user-reports/{id}/view', [ReportController::class, 'viewReport'])->name('end-user-reports.view');
+    Route::post('/end-user-reports/{id}/execute', [ReportController::class, 'executeReport'])->name('end-user-reports.execute');
 
 });
 

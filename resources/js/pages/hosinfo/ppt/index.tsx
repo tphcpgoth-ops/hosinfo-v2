@@ -168,7 +168,7 @@ const TraditionalMedicineStatsPage = ({ api_token, external_api_url }: { api_tok
                             <Nav.Item>
                                 <Nav.Link eventKey="tables" className="py-2">
                                     <IconifyIcon icon="solar:table-list-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    ตารางสรุปสิทธิ์
+                                    ตารางข้อมูล
                                 </Nav.Link>
                             </Nav.Item>
                             {auth?.user && ['admin', 'head', 'user'].includes(auth.user.role) && (

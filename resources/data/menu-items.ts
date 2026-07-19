@@ -124,13 +124,13 @@ export const MENU_ITEMS: MenuItemType[] = [
         ],
     },
 
-    // {
-    //     key: 'reports',
-    //     label: 'รายงาน End User',
-    //     icon: 'tabler:report',
-    //     url: '/end-user-reports',
-    //     roles: ['admin', 'head', 'user'],
-    // },
+    {
+        key: 'reports',
+        label: 'รายงาน End User',
+        icon: 'tabler:report',
+        url: '/end-user-reports',
+        roles: ['admin', 'head', 'user'],
+    },
 
         {
         key: 'kpi',
@@ -313,13 +313,13 @@ export const HORIZONTAL_MENU_ITEM: MenuItemType[] = [
                     },
                 ],
             },
-            // {
-            //     key: 'reports',
-            //     label: 'รายงาน End User',
-            //     url: '/end-user-reports',
-            //     parentKey: 'dashboards',
-            //     roles: ['admin', 'head', 'user'],
-            // },
+            {
+                key: 'reports',
+                label: 'รายงาน End User',
+                url: '/end-user-reports',
+                parentKey: 'dashboards',
+                roles: ['admin', 'head', 'user'],
+            },
             {
                 key: 'kpi',
                 label: 'ตัวชี้วัด',

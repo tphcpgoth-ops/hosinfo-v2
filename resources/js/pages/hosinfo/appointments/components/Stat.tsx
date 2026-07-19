@@ -77,7 +77,7 @@ export const StatCard = ({ count, details = [], icon, title, isLabel, isDot = tr
     );
 };
 
-const Stat = () => {
+const Stat = ({ externalApiUrl }: { externalApiUrl?: string }) => {
     const { external_api_url } = usePage().props as any;
     const [stats, setStats] = useState<StatType[]>([
         {
@@ -122,7 +122,7 @@ const Stat = () => {
     const fetchTopStats = async (silent = false) => {
         try {
             if (!silent) setLoading(true);
-            const apiUrl = external_api_url || import.meta.env.VITE_EXTERNAL_API_URL || 'http://127.0.0.1:8800';
+            const apiUrl = externalApiUrl || external_api_url || import.meta.env.VITE_EXTERNAL_API_URL || 'http://127.0.0.1:8800';
             const res = await axios.get(`${apiUrl}/api/v1/dashboard/top-stats`);
             if (res.data && Array.isArray(res.data)) {
                 setStats(res.data);

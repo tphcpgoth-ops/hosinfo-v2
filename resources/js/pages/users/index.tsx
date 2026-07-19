@@ -81,7 +81,7 @@ const UsersPage = ({ users }: Props) => {
                         <Grid
                             data={users.map((user, idx) => [
                                 idx + 1,
-                                user,
+                                user.name,
                                 user.email,
                                 user.department?.dp_name || '-',
                                 user.role,
@@ -95,12 +95,13 @@ const UsersPage = ({ users }: Props) => {
                                 },
                                 {
                                     name: 'ชื่อ-นามสกุล',
-                                    formatter: (user: any) => {
-                                        const src = user.avatar ? `/storage/${user.avatar}` : defaultAvatar;
+                                    formatter: (name: string, row: any) => {
+                                        const user = row?.cells?.[6]?.data;
+                                        const src = user?.avatar ? `/storage/${user.avatar}` : defaultAvatar;
                                         return html(
                                             `<div class="d-flex align-items-center">
                                                 <img src="${src}" class="avatar-sm rounded-circle me-2" style="object-fit:cover;width:36px;height:36px" alt="avatar" onerror="this.style.display='none'" />
-                                                <span class="text-dark fw-medium">${user.name}</span>
+                                                <span class="text-dark fw-medium">${name || ''}</span>
                                             </div>`
                                         );
                                     }
@@ -163,7 +164,13 @@ const UsersPage = ({ users }: Props) => {
                                     }
                                 }
                             ]}
-                            search={true}
+                            search={{
+                                enabled: true,
+                                selector: (cell: any, _rowIndex: number, cellIndex: number) => {
+                                    if (cellIndex === 6) return '';
+                                    return cell !== null && cell !== undefined ? String(cell) : '';
+                                }
+                            }}
                             pagination={{
                                 limit: 10,
                             }}

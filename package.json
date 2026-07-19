@@ -75,6 +75,7 @@
         "sortablejs": "^1.15.6",
         "sweetalert2": "^11.19.1",
         "sweetalert2-react-content": "^5.1.0",
+        "xlsx": "^0.18.5",
         "yup": "^1.6.1"
     },
     "optionalDependencies": {

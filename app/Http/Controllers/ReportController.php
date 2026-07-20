@@ -224,7 +224,7 @@ class ReportController extends Controller
                 ->timeout(120)
                 ->post("{$apiUrl}/api/v1/report/execute", [
                     'query' => $report->rep_sql_query,
-                    'params' => $params
+                    'params' => (object)$params
                 ]);
 
             if ($response->successful()) {
@@ -283,7 +283,7 @@ class ReportController extends Controller
                 ->timeout(120)
                 ->post("{$apiUrl}/api/v1/report/execute", [
                     'query' => $sql,
-                    'params' => $params
+                    'params' => (object)$params
                 ]);
 
             if ($response->successful()) {

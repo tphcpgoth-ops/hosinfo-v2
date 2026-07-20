@@ -23,6 +23,8 @@ interface Report {
     rep_sql_query: string;
     rep_description: string | null;
     is_active: number;
+    has_date_range?: number;
+    default_date_range?: string | null;
     updated_at: string;
     department?: Department;
 }
@@ -32,6 +34,10 @@ interface ViewReportProps {
 }
 
 const ViewReportPage = ({ report }: ViewReportProps) => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const [startDate, setStartDate] = useState<string>(todayStr);
+    const [endDate, setEndDate] = useState<string>(todayStr);
+
     const [loading, setLoading] = useState(true);
     const [results, setResults] = useState<any[]>([]);
     const [columns, setColumns] = useState<string[]>([]);
@@ -39,12 +45,15 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [perPage, setPerPage] = useState<number>(25);
 
+    const hasDateRange = report.has_date_range === 1 || report.rep_sql_query.includes(':start_date') || report.rep_sql_query.includes(':end_date');
+
     const fetchReportData = async () => {
         setLoading(true);
         setErrorMessage(null);
         setExecutionTime(null);
         try {
-            const res = await axios.post(`/end-user-reports/${report.id}/execute`);
+            const payload = hasDateRange ? { start_date: startDate, end_date: endDate } : {};
+            const res = await axios.post(`/end-user-reports/${report.id}/execute`, payload);
             if (res.data.success) {
                 setColumns(res.data.columns || []);
                 setResults(res.data.results || []);
@@ -177,6 +186,62 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
                     </div>
                 }
             />
+
+            {(report.has_date_range === 1 || report.rep_sql_query.includes(':start_date') || report.rep_sql_query.includes(':end_date')) && (
+                <Card className="shadow-sm border-0 mb-3 bg-white border-start border-primary border-4">
+                    <CardBody className="py-3">
+                        <Row className="align-items-center g-3">
+                            <Col xs={12} md="auto" className="d-flex align-items-center gap-2">
+                                <IconifyIcon icon="tabler:calendar-stats" className="text-primary fs-24" />
+                                <span className="fw-bold fs-15 text-dark">เลือกช่วงวันที่ประมวลผล:</span>
+                            </Col>
+                            <Col xs={12} sm={6} md={3}>
+                                <div className="input-group input-group-sm shadow-sm">
+                                    <span className="input-group-text bg-light fw-medium">ตั้งแต่วันที่</span>
+                                    <input
+                                        type="date"
+                                        className="form-control font-monospace"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                    />
+                                </div>
+                            </Col>
+                            <Col xs={12} sm={6} md={3}>
+                                <div className="input-group input-group-sm shadow-sm">
+                                    <span className="input-group-text bg-light fw-medium">ถึงวันที่</span>
+                                    <input
+                                        type="date"
+                                        className="form-control font-monospace"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                    />
+                                </div>
+                            </Col>
+                            <Col xs={12} md="auto">
+                                <Button
+                                    variant="primary"
+                                    size="sm"
+                                    onClick={fetchReportData}
+                                    disabled={loading}
+                                    className="d-inline-flex align-items-center gap-1 shadow-sm px-3"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                                            กำลังกรอง...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <IconifyIcon icon="tabler:filter" className="fs-16" />
+                                            ประมวลผลตามช่วงวันที่
+                                        </>
+                                    )}
+                                </Button>
+                            </Col>
+                        </Row>
+                    </CardBody>
+                </Card>
+            )}
 
             <Row className="g-3">
                 <Col md={12}>

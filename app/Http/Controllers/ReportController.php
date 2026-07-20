@@ -71,6 +71,8 @@ class ReportController extends Controller
             'rep_sql_query' => 'required|string',
             'rep_description' => 'nullable|string',
             'is_active' => 'nullable|integer|in:0,1',
+            'has_date_range' => 'nullable|integer|in:0,1',
+            'default_date_range' => 'nullable|string|max:50',
         ]);
 
         $sql = trim($request->rep_sql_query);
@@ -85,6 +87,8 @@ class ReportController extends Controller
             'rep_sql_query' => $sql,
             'rep_description' => $request->rep_description ?: null,
             'is_active' => $request->has('is_active') ? $request->is_active : 1,
+            'has_date_range' => $request->has('has_date_range') ? $request->has_date_range : 0,
+            'default_date_range' => $request->default_date_range ?: null,
         ]);
 
         return redirect()->route('end-user-reports.index')->with('success', 'เพิ่มรายงาน End User ใหม่สำเร็จ');
@@ -125,6 +129,8 @@ class ReportController extends Controller
             'rep_sql_query' => 'required|string',
             'rep_description' => 'nullable|string',
             'is_active' => 'nullable|integer|in:0,1',
+            'has_date_range' => 'nullable|integer|in:0,1',
+            'default_date_range' => 'nullable|string|max:50',
         ]);
 
         $sql = trim($request->rep_sql_query);
@@ -138,6 +144,8 @@ class ReportController extends Controller
             'rep_sql_query' => $sql,
             'rep_description' => $request->rep_description ?: null,
             'is_active' => $request->has('is_active') ? $request->is_active : $report->is_active,
+            'has_date_range' => $request->has('has_date_range') ? $request->has_date_range : $report->has_date_range,
+            'default_date_range' => $request->default_date_range ?: null,
         ]);
 
         return redirect()->route('end-user-reports.index')->with('success', 'แก้ไขข้อมูลรายงานสำเร็จ');
@@ -202,11 +210,21 @@ class ReportController extends Controller
             $apiUrl = rtrim(env('VITE_EXTERNAL_API_URL', 'http://127.0.0.1:8800'), '/');
             $token = JwtService::generateToken();
 
+            $params = [];
+            if ($request->has('start_date')) {
+                $params['start_date'] = $request->input('start_date');
+                $params['end_date'] = $request->input('end_date', $params['start_date']);
+            }
+            if ($request->has('params') && is_array($request->input('params'))) {
+                $params = array_merge($params, $request->input('params'));
+            }
+
             $response = Http::withToken($token)
                 ->connectTimeout(3)
                 ->timeout(120)
                 ->post("{$apiUrl}/api/v1/report/execute", [
-                    'query' => $report->rep_sql_query
+                    'query' => $report->rep_sql_query,
+                    'params' => $params
                 ]);
 
             if ($response->successful()) {
@@ -251,11 +269,21 @@ class ReportController extends Controller
             $apiUrl = rtrim(env('VITE_EXTERNAL_API_URL', 'http://127.0.0.1:8800'), '/');
             $token = JwtService::generateToken();
 
+            $params = [];
+            if ($request->has('start_date')) {
+                $params['start_date'] = $request->input('start_date');
+                $params['end_date'] = $request->input('end_date', $params['start_date']);
+            }
+            if ($request->has('params') && is_array($request->input('params'))) {
+                $params = array_merge($params, $request->input('params'));
+            }
+
             $response = Http::withToken($token)
                 ->connectTimeout(3)
                 ->timeout(120)
                 ->post("{$apiUrl}/api/v1/report/execute", [
-                    'query' => $sql
+                    'query' => $sql,
+                    'params' => $params
                 ]);
 
             if ($response->successful()) {

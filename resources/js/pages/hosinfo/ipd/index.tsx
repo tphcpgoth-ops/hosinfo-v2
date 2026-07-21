@@ -203,7 +203,7 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                             <Nav.Item>
                                 <Nav.Link eventKey="summary" className="py-2">
                                     <IconifyIcon icon="solar:pie-chart-3-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    สรุปผู้ป่วยใน
+                                    สรุปค่าใช้จ่าย
                                 </Nav.Link>
                             </Nav.Item>
                             <Nav.Item>

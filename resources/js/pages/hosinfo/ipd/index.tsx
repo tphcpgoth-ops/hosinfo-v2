@@ -28,6 +28,8 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
     const [topDiseases, setTopDiseases] = useState<any[]>([]);
     const [wardMonthlyData, setWardMonthlyData] = useState<any[]>([]);
     const [wardOccupancyData, setWardOccupancyData] = useState<any[]>([]);
+    const [todaySummary, setTodaySummary] = useState<any>(null);
+    const [incomeSummary, setIncomeSummary] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
 
     const fetchData = async (year: number) => {
@@ -36,13 +38,15 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
             const apiUrl = external_api_url || 'http://127.0.0.1:8800';
             const headers = { Authorization: `Bearer ${api_token}` };
 
-            const [summaryRes, occupancyRes, genderRes, icd10Res, wardMonthlyRes, wardOccupancyRes] = await Promise.all([
+            const [summaryRes, occupancyRes, genderRes, icd10Res, wardMonthlyRes, wardOccupancyRes, todayRes, incomeRes] = await Promise.all([
                 axios.get(`${apiUrl}/api/v1/ipd/stats-summary?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/stats-occupancy?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/stats-gender?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/stats-icd10?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/stats-ward-monthly?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/stats-ward-occupancy?fiscal_year=${year}`, { headers }),
+                axios.get(`${apiUrl}/api/v1/ipd/summary-today`, { headers }),
+                axios.get(`${apiUrl}/api/v1/ipd/income-summary?fiscal_year=${year}`, { headers }),
             ]);
 
             setSummaryData(summaryRes.data.data || []);
@@ -51,6 +55,8 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
             setTopDiseases(icd10Res.data.data || []);
             setWardMonthlyData(wardMonthlyRes.data.data || []);
             setWardOccupancyData(wardOccupancyRes.data.data || []);
+            setTodaySummary(todayRes.data || null);
+            setIncomeSummary(incomeRes.data || null);
             setError(null);
         } catch (err: any) {
             console.error('API Error:', err);
@@ -175,8 +181,14 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                     <h5 className="mb-1 fw-bold">สถิติผู้ป่วยใน (IPD)</h5>
                     <p className="text-muted mb-4">สรุปสถิติจำนวนผู้ป่วยใน อัตราครองเตียง และโรคที่พบบ่อย แยกตามปีงบประมาณ</p>
 
-                    <Tab.Container defaultActiveKey="charts">
+                    <Tab.Container defaultActiveKey="summary">
                         <Nav role="tablist" className="nav-tabs nav-bordered nav-bordered-danger mb-3">
+                            <Nav.Item>
+                                <Nav.Link eventKey="summary" className="py-2">
+                                    <IconifyIcon icon="solar:pie-chart-3-bold-duotone" className="me-2 fs-18 align-middle" />
+                                    สรุปผู้ป่วยใน
+                                </Nav.Link>
+                            </Nav.Item>
                             <Nav.Item>
                                 <Nav.Link eventKey="charts" className="py-2">
                                     <IconifyIcon icon="solar:chart-bold-duotone" className="me-2 fs-18 align-middle" />
@@ -198,6 +210,119 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                         </Nav>
 
                         <Tab.Content>
+                            <Tab.Pane eventKey="summary">
+                                <Row className="g-4">
+                                    {/* Left Side: สรุปข้อมูลผู้ป่วยใน วันนี้ */}
+                                    <Col lg={4}>
+                                        <div className="border rounded bg-white overflow-hidden shadow-sm">
+                                            {/* Red Header Card */}
+                                            <div style={{ backgroundColor: '#d9534f' }} className="p-4 text-center text-white">
+                                                <h4 className="fw-bold mb-1 text-white">สรุปข้อมูลผู้ป่วยใน วันนี้</h4>
+                                                <p className="mb-0 fs-13 text-white-50">
+                                                    จำนวนเตียงทั้งหมด <span className="fw-bold text-white fs-15">{todaySummary?.total_beds || 0}</span> เตียง
+                                                </p>
+                                            </div>
+                                            {/* List Items */}
+                                            <div className="p-3">
+                                                <div className="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                                    <span className="fw-medium text-dark fs-14">รับใหม่วันนี้</span>
+                                                    <span className="badge rounded-pill px-3 py-1 fs-12 text-white" style={{ backgroundColor: '#d9534f' }}>
+                                                        {todaySummary?.new_admit_today || 0} เตียง
+                                                    </span>
+                                                </div>
+                                                <div className="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                                    <span className="fw-medium text-dark fs-14">จำหน่ายวันนี้</span>
+                                                    <span className="badge rounded-pill px-3 py-1 fs-12 text-white" style={{ backgroundColor: '#f0ad4e' }}>
+                                                        {todaySummary?.discharge_today || 0} เตียง
+                                                    </span>
+                                                </div>
+                                                <div className="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                                    <span className="fw-medium text-dark fs-14">Admit อยู่</span>
+                                                    <span className="badge rounded-pill px-3 py-1 fs-12 text-white" style={{ backgroundColor: '#0275d8' }}>
+                                                        {todaySummary?.current_admit || 0} เตียง
+                                                    </span>
+                                                </div>
+                                                <div className="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                                    <span className="fw-medium text-dark fs-14">เตียงว่าง</span>
+                                                    <span className="badge rounded-pill px-3 py-1 fs-12 text-white" style={{ backgroundColor: '#5cb85c' }}>
+                                                        {todaySummary?.available_beds || 0} เตียง
+                                                    </span>
+                                                </div>
+                                                <div className="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                                    <span className="fw-medium text-dark fs-14">ย้ายเตียงวันนี้</span>
+                                                    <span className="badge rounded-pill px-3 py-1 fs-12 text-white" style={{ backgroundColor: '#f0ad4e' }}>
+                                                        {todaySummary?.transfer_today || 0} ราย
+                                                    </span>
+                                                </div>
+                                                <div className="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                                    <span className="fw-medium text-dark fs-14">อัตราการครองเตียง</span>
+                                                    <span className="badge rounded-pill px-3 py-1 fs-12 text-white" style={{ backgroundColor: '#d9534f' }}>
+                                                        {todaySummary?.occupancy_rate || 0} %
+                                                    </span>
+                                                </div>
+                                                <div className="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                                    <span className="fw-medium text-dark fs-14">สิทธิ์ชำระเงินและเบิกได้</span>
+                                                    <span className="badge rounded-pill px-3 py-1 fs-12 text-white" style={{ backgroundColor: '#6c757d' }}>
+                                                        {todaySummary?.pttype_pay || 0} เตียง
+                                                    </span>
+                                                </div>
+                                                <div className="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                                    <span className="fw-medium text-dark fs-14">สิทธิ์ UC</span>
+                                                    <span className="badge rounded-pill px-3 py-1 fs-12 text-white" style={{ backgroundColor: '#6c757d' }}>
+                                                        {todaySummary?.pttype_uc || 0} เตียง
+                                                    </span>
+                                                </div>
+                                                <div className="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                                    <span className="fw-medium text-dark fs-14">สิทธิ์อื่นๆ</span>
+                                                    <span className="badge rounded-pill px-3 py-1 fs-12 text-white" style={{ backgroundColor: '#6c757d' }}>
+                                                        {todaySummary?.pttype_other || 0} เตียง
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Col>
+
+                                    {/* Right Side: ค่าใช้จ่ายผู้ป่วยในรวม */}
+                                    <Col lg={8}>
+                                        <div className="border rounded bg-white p-4 shadow-sm">
+                                            <div className="text-center mb-4 pb-2 border-bottom">
+                                                <h4 className="fw-bold text-dark mb-1 d-flex align-items-center justify-content-center flex-wrap">
+                                                    ค่าใช้จ่ายผู้ป่วยในรวม
+                                                    <span className="text-danger fs-28 fw-bold mx-2">
+                                                        {incomeSummary?.total_income != null ? incomeSummary.total_income.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+                                                    </span>
+                                                    บาท
+                                                </h4>
+                                            </div>
+
+                                            <div className="table-responsive">
+                                                <Table hover bordered size="sm" className="align-middle fs-13 mb-0">
+                                                    <thead className="table-light">
+                                                        <tr>
+                                                            <th className="text-center" style={{ width: '90px' }}>รหัสหมวด</th>
+                                                            <th>หมวดค่าใช้จ่าย (Income)</th>
+                                                            <th className="text-end" style={{ width: '160px' }}>มูลค่า</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {loading ? (
+                                                            <tr><td colSpan={3} className="text-center py-4"><Spinner animation="border" size="sm" /></td></tr>
+                                                        ) : (incomeSummary?.items || []).map((item: any, idx: number) => (
+                                                            <tr key={idx}>
+                                                                <td className="text-center text-primary font-monospace">{item.code}</td>
+                                                                <td className="fw-medium">{item.name}</td>
+                                                                <td className="text-end font-monospace fw-bold text-dark">
+                                                                    {Number(item.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </Table>
+                                            </div>
+                                        </div>
+                                    </Col>
+                                </Row>
+                            </Tab.Pane>
                             <Tab.Pane eventKey="charts">
                                 <Row className="g-4">
                                     <Col lg={12}>

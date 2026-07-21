@@ -200,8 +200,8 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                         <Tab.Content>
                             <Tab.Pane eventKey="charts">
                                 <Row className="g-4">
-                                    <Col lg={6}>
-                                        <div className="border rounded p-3 bg-white h-100">
+                                    <Col lg={12}>
+                                        <div className="border rounded p-4 bg-white shadow-sm">
                                             {loading ? (
                                                 <div className="text-center py-5"><Spinner animation="grow" variant="primary" /></div>
                                             ) : (
@@ -209,24 +209,24 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                                     options={visitChartOptions} 
                                                     series={[{ name: 'ผู้ป่วยใน (ราย)', data: sortedSummary.map(d => d.count) }]} 
                                                     type="bar" 
-                                                    height={350} 
+                                                    height={420} 
                                                 />
                                             )}
                                         </div>
                                     </Col>
-                                    <Col lg={6}>
-                                        <div className="border rounded p-3 bg-white h-100">
+                                    <Col lg={12}>
+                                        <div className="border rounded p-4 bg-white shadow-sm">
                                             {loading ? (
                                                 <div className="text-center py-5"><Spinner animation="grow" variant="primary" /></div>
                                             ) : (
                                                 <ReactApexChart 
                                                     options={occupancyChartOptions} 
                                                     series={[
-                                                        { name: 'อัตราครองเตียง', type: 'column', data: sortedOccupancy.map(d => d.admsum) },
+                                                        { name: 'อัตราครองเตียง (%)', type: 'column', data: sortedOccupancy.map(d => d.admsum) },
                                                         { name: 'แนวโน้ม', type: 'line', data: sortedOccupancy.map(d => d.admsum) }
                                                     ]} 
                                                     type="line" 
-                                                    height={350} 
+                                                    height={420} 
                                                 />
                                             )}
                                         </div>

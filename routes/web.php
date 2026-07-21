@@ -94,6 +94,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('hepatitis', \App\Http\Controllers\HepatitisScreeningController::class);
     Route::get('/stats/opd', [\App\Http\Controllers\StatController::class, 'opd']);
     Route::get('/end-user-reports', [ReportController::class, 'index'])->name('end-user-reports.index');
+    Route::get('/end-user-reports/master-filters', [ReportController::class, 'getMasterFilters'])->name('end-user-reports.master-filters');
     Route::get('/end-user-reports/{id}/view', [ReportController::class, 'viewReport'])->name('end-user-reports.view');
     Route::post('/end-user-reports/{id}/execute', [ReportController::class, 'executeReport'])->name('end-user-reports.execute');
 

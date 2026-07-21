@@ -23,6 +23,8 @@ interface Report {
     is_active: number;
     has_date_range?: number;
     default_date_range?: string | null;
+    has_department?: number;
+    has_spclty?: number;
 }
 
 interface EditReportProps {
@@ -48,6 +50,8 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
         is_active: report.is_active !== undefined ? report.is_active : 1,
         has_date_range: report.has_date_range !== undefined ? report.has_date_range : 0,
         default_date_range: report.default_date_range || 'today',
+        has_department: report.has_department !== undefined ? report.has_department : 0,
+        has_spclty: report.has_spclty !== undefined ? report.has_spclty : 0,
     });
 
     const [testing, setTesting] = useState(false);
@@ -75,6 +79,8 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
                 params: {
                     start_date: todayStr,
                     end_date: todayStr,
+                    department: '',
+                    spclty: '',
                 },
             });
 
@@ -209,10 +215,12 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
                                         </div>
 
                                         <div className="mb-3 pt-3 border-top border-dashed">
-                                            <label className="form-label d-block text-primary fw-bold">
-                                                <IconifyIcon icon="tabler:calendar-time" className="me-1 fs-18" />
-                                                เงื่อนไขเลือกช่วงวันที่สำหรับรายงานนี้
+                                            <label className="form-label d-block text-primary fw-bold mb-2">
+                                                <IconifyIcon icon="tabler:filter" className="me-1 fs-18" />
+                                                ตั้งค่าตัวกรองข้อมูลสำหรับรายงานนี้ (Parameters)
                                             </label>
+
+                                            {/* Date Range Switch */}
                                             <div className="form-check form-switch fs-14 mb-2">
                                                 <input
                                                     className="form-check-input"
@@ -223,20 +231,69 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
                                                     onChange={(e) => setData('has_date_range', e.target.checked ? 1 : 0)}
                                                 />
                                                 <label className="form-check-label" htmlFor="has_date_range_switch">
-                                                    เปิดใช้งานการเลือกช่วงวันที่ (<code className="text-danger">:start_date</code> และ <code className="text-danger">:end_date</code>)
+                                                    เปิดใช้งานช่วงวันที่ (<code className="text-danger">:start_date</code> และ <code className="text-danger">:end_date</code>)
                                                 </label>
                                             </div>
                                             {data.has_date_range === 1 && (
-                                                <div className="bg-primary-subtle p-3 rounded mt-2 border border-primary-subtle fs-13">
+                                                <div className="bg-primary-subtle p-3 rounded mb-3 border border-primary-subtle fs-13">
                                                     <div className="d-flex align-items-center gap-1 text-primary fw-bold mb-1">
                                                         <IconifyIcon icon="tabler:info-circle" className="fs-16" />
-                                                        คำแนะนำในการเขียน SQL Query กับช่วงวันที่:
+                                                        ตัวอย่าง SQL ช่วงวันที่:
                                                     </div>
-                                                    <p className="mb-1 text-dark">
-                                                        เมื่อเปิดใช้งาน แถบเลือกวันที่เริ่มต้นและวันที่สิ้นสุดจะปรากฏในหน้าดูรายงาน ให้ใช้ตัวแปร <code className="bg-white px-1 rounded text-danger">:start_date</code> และ <code className="bg-white px-1 rounded text-danger">:end_date</code> ในเงื่อนไข WHERE ของคำสั่ง SQL ด้านขวา เช่น:
-                                                    </p>
-                                                    <pre className="bg-dark text-light p-2 rounded mb-0 font-monospace fs-12 mt-2">
+                                                    <pre className="bg-dark text-light p-2 rounded mb-0 font-monospace fs-12">
 {`WHERE vstdate BETWEEN :start_date AND :end_date`}
+                                                    </pre>
+                                                </div>
+                                            )}
+
+                                            {/* Department Switch */}
+                                            <div className="form-check form-switch fs-14 mb-2">
+                                                <input
+                                                    className="form-check-input"
+                                                    type="checkbox"
+                                                    role="switch"
+                                                    id="has_department_switch"
+                                                    checked={data.has_department === 1}
+                                                    onChange={(e) => setData('has_department', e.target.checked ? 1 : 0)}
+                                                />
+                                                <label className="form-check-label" htmlFor="has_department_switch">
+                                                    เปิดใช้งานเลือกห้องตรวจ (<code className="text-danger">:department</code> จากตาราง kskdepartment)
+                                                </label>
+                                            </div>
+                                            {data.has_department === 1 && (
+                                                <div className="bg-info-subtle p-3 rounded mb-3 border border-info-subtle fs-13">
+                                                    <div className="d-flex align-items-center gap-1 text-info-emphasis fw-bold mb-1">
+                                                        <IconifyIcon icon="tabler:building-hospital" className="fs-16" />
+                                                        ตัวอย่าง SQL เลือกห้องตรวจ:
+                                                    </div>
+                                                    <pre className="bg-dark text-light p-2 rounded mb-0 font-monospace fs-12">
+{`WHERE (depcode = :department OR :department = '')`}
+                                                    </pre>
+                                                </div>
+                                            )}
+
+                                            {/* Specialty Switch */}
+                                            <div className="form-check form-switch fs-14 mb-2">
+                                                <input
+                                                    className="form-check-input"
+                                                    type="checkbox"
+                                                    role="switch"
+                                                    id="has_spclty_switch"
+                                                    checked={data.has_spclty === 1}
+                                                    onChange={(e) => setData('has_spclty', e.target.checked ? 1 : 0)}
+                                                />
+                                                <label className="form-check-label" htmlFor="has_spclty_switch">
+                                                    เปิดใช้งานเลือกแผนก/สาขาการรักษา (<code className="text-danger">:spclty</code> จากตาราง spclty)
+                                                </label>
+                                            </div>
+                                            {data.has_spclty === 1 && (
+                                                <div className="bg-success-subtle p-3 rounded mb-2 border border-success-subtle fs-13">
+                                                    <div className="d-flex align-items-center gap-1 text-success fw-bold mb-1">
+                                                        <IconifyIcon icon="tabler:stethoscope" className="fs-16" />
+                                                        ตัวอย่าง SQL เลือกแผนก/สาขา:
+                                                    </div>
+                                                    <pre className="bg-dark text-light p-2 rounded mb-0 font-monospace fs-12">
+{`WHERE (spclty = :spclty OR :spclty = '')`}
                                                     </pre>
                                                 </div>
                                             )}

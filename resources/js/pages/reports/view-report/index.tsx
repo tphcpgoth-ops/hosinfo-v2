@@ -25,6 +25,8 @@ interface Report {
     is_active: number;
     has_date_range?: number;
     default_date_range?: string | null;
+    has_department?: number;
+    has_spclty?: number;
     updated_at: string;
     department?: Department;
 }
@@ -37,6 +39,12 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
     const todayStr = new Date().toISOString().split('T')[0];
     const [startDate, setStartDate] = useState<string>(todayStr);
     const [endDate, setEndDate] = useState<string>(todayStr);
+    const [selectedDepcode, setSelectedDepcode] = useState<string>('');
+    const [selectedSpclty, setSelectedSpclty] = useState<string>('');
+
+    const [kskDepartments, setKskDepartments] = useState<Array<{ depcode: string; department: string }>>([]);
+    const [spclties, setSpclties] = useState<Array<{ spclty: string; name: string }>>([]);
+    const [loadingFilters, setLoadingFilters] = useState<boolean>(false);
 
     const [loading, setLoading] = useState(true);
     const [results, setResults] = useState<any[]>([]);
@@ -46,13 +54,46 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
     const [perPage, setPerPage] = useState<number>(25);
 
     const hasDateRange = report.has_date_range === 1 || report.rep_sql_query.includes(':start_date') || report.rep_sql_query.includes(':end_date');
+    const hasDepartment = report.has_department === 1 || report.rep_sql_query.includes(':department');
+    const hasSpclty = report.has_spclty === 1 || report.rep_sql_query.includes(':spclty');
+    const hasAnyFilter = hasDateRange || hasDepartment || hasSpclty;
+
+    useEffect(() => {
+        const loadMasterFilters = async () => {
+            try {
+                setLoadingFilters(true);
+                const res = await axios.get('/end-user-reports/master-filters');
+                if (res.data.success) {
+                    setKskDepartments(res.data.kskdepartment || []);
+                    setSpclties(res.data.spclty || []);
+                }
+            } catch (err) {
+                console.error('Failed to load master filter options', err);
+            } finally {
+                setLoadingFilters(false);
+            }
+        };
+        if (hasDepartment || hasSpclty) {
+            loadMasterFilters();
+        }
+    }, [hasDepartment, hasSpclty]);
 
     const fetchReportData = async () => {
         setLoading(true);
         setErrorMessage(null);
         setExecutionTime(null);
         try {
-            const payload = hasDateRange ? { start_date: startDate, end_date: endDate } : {};
+            const payload: any = {};
+            if (hasDateRange) {
+                payload.start_date = startDate;
+                payload.end_date = endDate;
+            }
+            if (hasDepartment) {
+                payload.department = selectedDepcode;
+            }
+            if (hasSpclty) {
+                payload.spclty = selectedSpclty;
+            }
             const res = await axios.post(`/end-user-reports/${report.id}/execute`, payload);
             if (res.data.success) {
                 setColumns(res.data.columns || []);
@@ -187,53 +228,99 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
                 }
             />
 
-            {(report.has_date_range === 1 || report.rep_sql_query.includes(':start_date') || report.rep_sql_query.includes(':end_date')) && (
+            {hasAnyFilter && (
                 <Card className="shadow-sm border-0 mb-3 bg-white border-start border-primary border-4">
                     <CardBody className="py-3">
                         <Row className="align-items-center g-3">
                             <Col xs={12} md="auto" className="d-flex align-items-center gap-2">
-                                <IconifyIcon icon="tabler:calendar-stats" className="text-primary fs-24" />
-                                <span className="fw-bold fs-15 text-dark">เลือกช่วงวันที่ประมวลผล:</span>
+                                <IconifyIcon icon="tabler:filter" className="text-primary fs-24" />
+                                <span className="fw-bold fs-15 text-dark">เงื่อนไขและตัวกรองรายงาน:</span>
                             </Col>
-                            <Col xs={12} sm={6} md={3}>
-                                <div className="input-group input-group-sm shadow-sm">
-                                    <span className="input-group-text bg-light fw-medium">ตั้งแต่วันที่</span>
-                                    <input
-                                        type="date"
-                                        className="form-control font-monospace"
-                                        value={startDate}
-                                        onChange={(e) => setStartDate(e.target.value)}
-                                    />
-                                </div>
-                            </Col>
-                            <Col xs={12} sm={6} md={3}>
-                                <div className="input-group input-group-sm shadow-sm">
-                                    <span className="input-group-text bg-light fw-medium">ถึงวันที่</span>
-                                    <input
-                                        type="date"
-                                        className="form-control font-monospace"
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                    />
-                                </div>
-                            </Col>
-                            <Col xs={12} md="auto">
+
+                            {hasDateRange && (
+                                <>
+                                    <Col xs={12} sm={6} md={3}>
+                                        <div className="input-group input-group-sm shadow-sm">
+                                            <span className="input-group-text bg-light fw-medium">ตั้งแต่วันที่</span>
+                                            <input
+                                                type="date"
+                                                className="form-control font-monospace"
+                                                value={startDate}
+                                                onChange={(e) => setStartDate(e.target.value)}
+                                            />
+                                        </div>
+                                    </Col>
+                                    <Col xs={12} sm={6} md={3}>
+                                        <div className="input-group input-group-sm shadow-sm">
+                                            <span className="input-group-text bg-light fw-medium">ถึงวันที่</span>
+                                            <input
+                                                type="date"
+                                                className="form-control font-monospace"
+                                                value={endDate}
+                                                onChange={(e) => setEndDate(e.target.value)}
+                                            />
+                                        </div>
+                                    </Col>
+                                </>
+                            )}
+
+                            {hasDepartment && (
+                                <Col xs={12} sm={6} md={3}>
+                                    <div className="input-group input-group-sm shadow-sm">
+                                        <span className="input-group-text bg-light fw-medium">ห้องตรวจ</span>
+                                        <select
+                                            className="form-select fs-13"
+                                            value={selectedDepcode}
+                                            onChange={(e) => setSelectedDepcode(e.target.value)}
+                                        >
+                                            <option value="">-- ทั้งหมด (ทุกห้องตรวจ) --</option>
+                                            {kskDepartments.map((dept) => (
+                                                <option key={dept.depcode} value={dept.depcode}>
+                                                    [{dept.depcode}] {dept.department}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </Col>
+                            )}
+
+                            {hasSpclty && (
+                                <Col xs={12} sm={6} md={3}>
+                                    <div className="input-group input-group-sm shadow-sm">
+                                        <span className="input-group-text bg-light fw-medium">แผนก/สาขา</span>
+                                        <select
+                                            className="form-select fs-13"
+                                            value={selectedSpclty}
+                                            onChange={(e) => setSelectedSpclty(e.target.value)}
+                                        >
+                                            <option value="">-- ทั้งหมด (ทุกแผนก) --</option>
+                                            {spclties.map((sp) => (
+                                                <option key={sp.spclty} value={sp.spclty}>
+                                                    [{sp.spclty}] {sp.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </Col>
+                            )}
+
+                            <Col xs={12} md="auto" className="ms-auto">
                                 <Button
                                     variant="primary"
                                     size="sm"
                                     onClick={fetchReportData}
-                                    disabled={loading}
+                                    disabled={loading || loadingFilters}
                                     className="d-inline-flex align-items-center gap-1 shadow-sm px-3"
                                 >
                                     {loading ? (
                                         <>
                                             <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-                                            กำลังกรอง...
+                                            กำลังประมวลผล...
                                         </>
                                     ) : (
                                         <>
                                             <IconifyIcon icon="tabler:filter" className="fs-16" />
-                                            ประมวลผลตามช่วงวันที่
+                                            ประมวลผลตามตัวกรอง
                                         </>
                                     )}
                                 </Button>

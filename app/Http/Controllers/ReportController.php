@@ -73,6 +73,8 @@ class ReportController extends Controller
             'is_active' => 'nullable|integer|in:0,1',
             'has_date_range' => 'nullable|integer|in:0,1',
             'default_date_range' => 'nullable|string|max:50',
+            'has_department' => 'nullable|integer|in:0,1',
+            'has_spclty' => 'nullable|integer|in:0,1',
         ]);
 
         $sql = trim($request->rep_sql_query);
@@ -89,6 +91,8 @@ class ReportController extends Controller
             'is_active' => $request->has('is_active') ? $request->is_active : 1,
             'has_date_range' => $request->has('has_date_range') ? $request->has_date_range : 0,
             'default_date_range' => $request->default_date_range ?: null,
+            'has_department' => $request->has('has_department') ? $request->has_department : 0,
+            'has_spclty' => $request->has('has_spclty') ? $request->has_spclty : 0,
         ]);
 
         return redirect()->route('end-user-reports.index')->with('success', 'เพิ่มรายงาน End User ใหม่สำเร็จ');
@@ -131,6 +135,8 @@ class ReportController extends Controller
             'is_active' => 'nullable|integer|in:0,1',
             'has_date_range' => 'nullable|integer|in:0,1',
             'default_date_range' => 'nullable|string|max:50',
+            'has_department' => 'nullable|integer|in:0,1',
+            'has_spclty' => 'nullable|integer|in:0,1',
         ]);
 
         $sql = trim($request->rep_sql_query);
@@ -146,6 +152,8 @@ class ReportController extends Controller
             'is_active' => $request->has('is_active') ? $request->is_active : $report->is_active,
             'has_date_range' => $request->has('has_date_range') ? $request->has_date_range : $report->has_date_range,
             'default_date_range' => $request->default_date_range ?: null,
+            'has_department' => $request->has('has_department') ? $request->has_department : $report->has_department,
+            'has_spclty' => $request->has('has_spclty') ? $request->has_spclty : $report->has_spclty,
         ]);
 
         return redirect()->route('end-user-reports.index')->with('success', 'แก้ไขข้อมูลรายงานสำเร็จ');
@@ -215,6 +223,12 @@ class ReportController extends Controller
                 $params['start_date'] = $request->input('start_date');
                 $params['end_date'] = $request->input('end_date', $params['start_date']);
             }
+            if ($request->has('department')) {
+                $params['department'] = $request->input('department');
+            }
+            if ($request->has('spclty')) {
+                $params['spclty'] = $request->input('spclty');
+            }
             if ($request->has('params') && is_array($request->input('params'))) {
                 $params = array_merge($params, $request->input('params'));
             }
@@ -274,6 +288,12 @@ class ReportController extends Controller
                 $params['start_date'] = $request->input('start_date');
                 $params['end_date'] = $request->input('end_date', $params['start_date']);
             }
+            if ($request->has('department')) {
+                $params['department'] = $request->input('department');
+            }
+            if ($request->has('spclty')) {
+                $params['spclty'] = $request->input('spclty');
+            }
             if ($request->has('params') && is_array($request->input('params'))) {
                 $params = array_merge($params, $request->input('params'));
             }
@@ -310,6 +330,31 @@ class ReportController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'ไม่สามารถเชื่อมต่อ HOSxP API ฝั่ง Backend ได้: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * ดึงรายการตัวเลือก Master สำหรับตัวกรอง (kskdepartment, spclty) จาก Python Backend
+     */
+    public function getMasterFilters(Request $request)
+    {
+        try {
+            $apiUrl = rtrim(env('VITE_EXTERNAL_API_URL', 'http://127.0.0.1:8800'), '/');
+            $token = JwtService::generateToken();
+
+            $kskRes = Http::withToken($token)->connectTimeout(3)->timeout(10)->get("{$apiUrl}/api/v1/report/master/kskdepartment");
+            $spcltyRes = Http::withToken($token)->connectTimeout(3)->timeout(10)->get("{$apiUrl}/api/v1/report/master/spclty");
+
+            return response()->json([
+                'success' => true,
+                'kskdepartment' => $kskRes->successful() ? ($kskRes->json('data') ?? []) : [],
+                'spclty' => $spcltyRes->successful() ? ($spcltyRes->json('data') ?? []) : [],
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ไม่สามารถเชื่อมต่อ HOSxP API ฝั่ง Backend เพื่อดึงข้อมูล Master Filters ได้: ' . $e->getMessage()
             ], 500);
         }
     }

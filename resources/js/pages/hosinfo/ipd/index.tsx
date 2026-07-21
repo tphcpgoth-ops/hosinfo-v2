@@ -103,10 +103,11 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
     };
 
     const sortDataByFiscalMonth = (data: any[]) => {
+        if (!Array.isArray(data)) return [];
         const order = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9];
         return [...data].sort((a, b) => {
-            const m1 = parseInt(a.AM);
-            const m2 = parseInt(b.AM);
+            const m1 = parseInt(a?.AM || '0');
+            const m2 = parseInt(b?.AM || '0');
             return order.indexOf(m1) - order.indexOf(m2);
         });
     };
@@ -563,7 +564,8 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                             <Tab.Pane eventKey="admit-list">
                                 {(() => {
                                     // Search filtering
-                                    const filteredList = admitList.filter(item => {
+                                    const filteredList = (admitList || []).filter(item => {
+                                        if (!item) return false;
                                         if (!searchTerm) return true;
                                         const term = searchTerm.toLowerCase();
                                         return (

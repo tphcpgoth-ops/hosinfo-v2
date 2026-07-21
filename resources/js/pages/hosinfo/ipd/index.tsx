@@ -54,7 +54,7 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                 axios.get(`${apiUrl}/api/v1/ipd/stats-ward-monthly?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/stats-ward-occupancy?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/summary-today`, { headers }),
-                axios.get(`${apiUrl}/api/v1/ipd/income-summary?fiscal_year=${year}`, { headers }),
+                axios.get(`${apiUrl}/api/v1/ipd/income-summary`, { headers }),
                 auth?.user ? axios.get(`${apiUrl}/api/v1/ipd/admit-list`, { headers }) : Promise.resolve({ data: { data: [] } }),
             ]);
 
@@ -221,7 +221,7 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                             {auth?.user && (
                                 <Nav.Item>
                                     <Nav.Link eventKey="admit-list" className="py-2">
-                                        <IconifyIcon icon="solar:user-list-bold-duotone" className="me-2 fs-18 align-middle" />
+                                        <IconifyIcon icon="solar:users-group-two-rounded-bold-duotone" className="me-2 fs-18 align-middle" />
                                         รายชื่อผู้ป่วย Admit
                                     </Nav.Link>
                                 </Nav.Item>

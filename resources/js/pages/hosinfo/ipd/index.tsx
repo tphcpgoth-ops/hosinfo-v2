@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, Fragment } from 'react';
 import PageTitle from '@/components/PageTitle';
 import MainLayout from '@/layouts/MainLayout';
 import { Card, CardBody, Col, Row, Spinner, Table, Tab, Nav, Form, Pagination } from 'react-bootstrap';
@@ -17,7 +17,7 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
         setWardId(queryParams.get('ward'));
     }, []);
 
-    const { wards } = usePage<any>().props;
+    const { auth, wards } = usePage<any>().props;
 
     const currentBE = new Date().getFullYear() + (new Date().getMonth() > 8 ? 1 : 0) + 543;
     const [fiscalYear, setFiscalYear] = useState(currentBE);
@@ -55,7 +55,7 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                 axios.get(`${apiUrl}/api/v1/ipd/stats-ward-occupancy?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/summary-today`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/income-summary?fiscal_year=${year}`, { headers }),
-                axios.get(`${apiUrl}/api/v1/ipd/admit-list`, { headers }),
+                auth?.user ? axios.get(`${apiUrl}/api/v1/ipd/admit-list`, { headers }) : Promise.resolve({ data: { data: [] } }),
             ]);
 
             setSummaryData(summaryRes.data.data || []);
@@ -66,7 +66,7 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
             setWardOccupancyData(wardOccupancyRes.data.data || []);
             setTodaySummary(todayRes.data || null);
             setIncomeSummary(incomeRes.data || null);
-            setAdmitList(admitRes.data.data || []);
+            setAdmitList(admitRes?.data?.data || []);
             setError(null);
         } catch (err: any) {
             console.error('API Error:', err);
@@ -192,18 +192,18 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                     <h5 className="mb-1 fw-bold">สถิติผู้ป่วยใน (IPD)</h5>
                     <p className="text-muted mb-4">สรุปสถิติจำนวนผู้ป่วยใน อัตราครองเตียง และโรคที่พบบ่อย แยกตามปีงบประมาณ</p>
 
-                    <Tab.Container defaultActiveKey="summary">
+                    <Tab.Container defaultActiveKey="charts">
                         <Nav role="tablist" className="nav-tabs nav-bordered nav-bordered-danger mb-3">
-                            <Nav.Item>
-                                <Nav.Link eventKey="summary" className="py-2">
-                                    <IconifyIcon icon="solar:pie-chart-3-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    สรุปผู้ป่วยใน
-                                </Nav.Link>
-                            </Nav.Item>
                             <Nav.Item>
                                 <Nav.Link eventKey="charts" className="py-2">
                                     <IconifyIcon icon="solar:chart-bold-duotone" className="me-2 fs-18 align-middle" />
                                     แผนภูมิสถิติ
+                                </Nav.Link>
+                            </Nav.Item>
+                            <Nav.Item>
+                                <Nav.Link eventKey="summary" className="py-2">
+                                    <IconifyIcon icon="solar:pie-chart-3-bold-duotone" className="me-2 fs-18 align-middle" />
+                                    สรุปผู้ป่วยใน
                                 </Nav.Link>
                             </Nav.Item>
                             <Nav.Item>
@@ -218,12 +218,14 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                     20 อันดับโรค
                                 </Nav.Link>
                             </Nav.Item>
-                            <Nav.Item>
-                                <Nav.Link eventKey="admit-list" className="py-2">
-                                    <IconifyIcon icon="solar:user-list-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    รายชื่อผู้ป่วย Admit
-                                </Nav.Link>
-                            </Nav.Item>
+                            {auth?.user && (
+                                <Nav.Item>
+                                    <Nav.Link eventKey="admit-list" className="py-2">
+                                        <IconifyIcon icon="solar:user-list-bold-duotone" className="me-2 fs-18 align-middle" />
+                                        รายชื่อผู้ป่วย Admit
+                                    </Nav.Link>
+                                </Nav.Item>
+                            )}
                         </Nav>
 
                         <Tab.Content>
@@ -561,9 +563,10 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                 </div>
                             </Tab.Pane>
 
-                            <Tab.Pane eventKey="admit-list">
-                                {(() => {
-                                    // Search filtering
+                            {auth?.user && (
+                                <Tab.Pane eventKey="admit-list">
+                                    {(() => {
+                                        // Search filtering
                                     const filteredList = (admitList || []).filter(item => {
                                         if (!item) return false;
                                         if (!searchTerm) return true;
@@ -747,7 +750,8 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                         </div>
                                     );
                                 })()}
-                            </Tab.Pane>
+                                </Tab.Pane>
+                            )}
                         </Tab.Content>
                     </Tab.Container>
                 </CardBody>

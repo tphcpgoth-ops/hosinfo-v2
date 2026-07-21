@@ -135,7 +135,7 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
         plotOptions: { bar: { columnWidth: '50%' } },
         xaxis: { categories: monthNames },
         yaxis: [
-            { title: { text: 'อัตราครองเตียง (%)' }, labels: { formatter: (val) => `${val.toFixed(1)}%` } }
+            { title: { text: 'อัตราครองเตียง (%)' }, labels: { formatter: (val) => typeof val === 'number' && !isNaN(val) ? `${val.toFixed(1)}%` : '0.0%' } }
         ],
         colors: ['#3e60d5', '#f15776'],
         title: { text: `อัตราการครองเตียง ปีงบประมาณ ${fiscalYear}`, align: 'center' }

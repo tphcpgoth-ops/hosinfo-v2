@@ -16,7 +16,7 @@ const WardDetailPage = ({ wardId, api_token, external_api_url, wards }: WardDeta
     const [patients, setPatients] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
 
-    const wardName = wards.find((w: any) => w.ward === wardId)?.name || `ตึก ${wardId}`;
+    const wardName = (wards || []).find((w: any) => w.ward === wardId)?.name || `ตึก ${wardId}`;
 
     const fetchData = async () => {
         try {

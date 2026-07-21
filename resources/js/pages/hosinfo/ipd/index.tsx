@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import PageTitle from '@/components/PageTitle';
 import MainLayout from '@/layouts/MainLayout';
-import { Card, CardBody, Col, Row, Spinner, Table, Tab, Nav } from 'react-bootstrap';
+import { Card, CardBody, Col, Row, Spinner, Table, Tab, Nav, Form, Pagination } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
@@ -30,6 +30,14 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
     const [wardOccupancyData, setWardOccupancyData] = useState<any[]>([]);
     const [todaySummary, setTodaySummary] = useState<any>(null);
     const [incomeSummary, setIncomeSummary] = useState<any>(null);
+    const [admitList, setAdmitList] = useState<any[]>([]);
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [perPage, setPerPage] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [sortField, setSortField] = useState('vstdate');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
     const [error, setError] = useState<string | null>(null);
 
     const fetchData = async (year: number) => {
@@ -38,7 +46,7 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
             const apiUrl = external_api_url || 'http://127.0.0.1:8800';
             const headers = { Authorization: `Bearer ${api_token}` };
 
-            const [summaryRes, occupancyRes, genderRes, icd10Res, wardMonthlyRes, wardOccupancyRes, todayRes, incomeRes] = await Promise.all([
+            const [summaryRes, occupancyRes, genderRes, icd10Res, wardMonthlyRes, wardOccupancyRes, todayRes, incomeRes, admitRes] = await Promise.all([
                 axios.get(`${apiUrl}/api/v1/ipd/stats-summary?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/stats-occupancy?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/stats-gender?fiscal_year=${year}`, { headers }),
@@ -47,6 +55,7 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                 axios.get(`${apiUrl}/api/v1/ipd/stats-ward-occupancy?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/summary-today`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/income-summary?fiscal_year=${year}`, { headers }),
+                axios.get(`${apiUrl}/api/v1/ipd/admit-list`, { headers }),
             ]);
 
             setSummaryData(summaryRes.data.data || []);
@@ -57,6 +66,7 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
             setWardOccupancyData(wardOccupancyRes.data.data || []);
             setTodaySummary(todayRes.data || null);
             setIncomeSummary(incomeRes.data || null);
+            setAdmitList(admitRes.data.data || []);
             setError(null);
         } catch (err: any) {
             console.error('API Error:', err);
@@ -205,6 +215,12 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                 <Nav.Link eventKey="disease" className="py-2">
                                     <IconifyIcon icon="solar:sort-from-bottom-to-top-line-duotone" className="me-2 fs-18 align-middle" />
                                     20 อันดับโรค
+                                </Nav.Link>
+                            </Nav.Item>
+                            <Nav.Item>
+                                <Nav.Link eventKey="admit-list" className="py-2">
+                                    <IconifyIcon icon="solar:user-list-bold-duotone" className="me-2 fs-18 align-middle" />
+                                    รายชื่อผู้ป่วย Admit
                                 </Nav.Link>
                             </Nav.Item>
                         </Nav>
@@ -542,6 +558,193 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                         </tbody>
                                     </Table>
                                 </div>
+                            </Tab.Pane>
+
+                            <Tab.Pane eventKey="admit-list">
+                                {(() => {
+                                    // Search filtering
+                                    const filteredList = admitList.filter(item => {
+                                        if (!searchTerm) return true;
+                                        const term = searchTerm.toLowerCase();
+                                        return (
+                                            (item.vstdate || '').toLowerCase().includes(term) ||
+                                            (item.hn || '').toLowerCase().includes(term) ||
+                                            (item.an || '').toLowerCase().includes(term) ||
+                                            (item.pt_name || '').toLowerCase().includes(term) ||
+                                            (item.address || '').toLowerCase().includes(term) ||
+                                            (item.pttype_name || '').toLowerCase().includes(term) ||
+                                            (item.ward_name || '').toLowerCase().includes(term)
+                                        );
+                                    });
+
+                                    // Sorting
+                                    const sortedList = [...filteredList].sort((a, b) => {
+                                        let valA = a[sortField] ?? '';
+                                        let valB = b[sortField] ?? '';
+                                        if (typeof valA === 'number' && typeof valB === 'number') {
+                                            return sortDirection === 'asc' ? valA - valB : valB - valA;
+                                        }
+                                        valA = String(valA).toLowerCase();
+                                        valB = String(valB).toLowerCase();
+                                        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+                                        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+                                        return 0;
+                                    });
+
+                                    // Pagination
+                                    const totalItems = sortedList.length;
+                                    const totalPages = Math.ceil(totalItems / perPage) || 1;
+                                    const activePage = Math.min(currentPage, totalPages);
+                                    const startIndex = (activePage - 1) * perPage;
+                                    const paginatedList = sortedList.slice(startIndex, startIndex + perPage);
+
+                                    const handleSort = (field: string) => {
+                                        if (sortField === field) {
+                                            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+                                        } else {
+                                            setSortField(field);
+                                            setSortDirection('asc');
+                                        }
+                                    };
+
+                                    return (
+                                        <div className="space-y-3">
+                                            {/* Header Title matching reference image */}
+                                            <h5 className="fw-bold mb-3 text-dark">
+                                                รายชื่อผู้ป่วยใน Admit ขณะนี้ <span className="text-dark fw-bold">{admitList.length}</span> เตียง
+                                            </h5>
+
+                                            {/* Filter & Search Bar */}
+                                            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <span className="fs-13 text-muted">แสดง</span>
+                                                    <Form.Select 
+                                                        size="sm" 
+                                                        style={{ width: '80px' }} 
+                                                        value={perPage} 
+                                                        onChange={e => { setPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                                                    >
+                                                        <option value={10}>10</option>
+                                                        <option value={25}>25</option>
+                                                        <option value={50}>50</option>
+                                                        <option value={100}>100</option>
+                                                    </Form.Select>
+                                                    <span className="fs-13 text-muted">รายการต่อหน้า</span>
+                                                </div>
+
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <span className="fs-13 text-muted">ค้นหา :</span>
+                                                    <Form.Control 
+                                                        type="text" 
+                                                        size="sm" 
+                                                        style={{ width: '220px' }} 
+                                                        placeholder="ค้นหาชื่อ, HN, AN..." 
+                                                        value={searchTerm} 
+                                                        onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Data Table */}
+                                            <div className="table-responsive">
+                                                <Table bordered hover size="sm" className="align-middle fs-13 mb-0">
+                                                    <thead style={{ backgroundColor: '#dff0d8' }} className="text-center align-middle">
+                                                        <tr>
+                                                            <th style={{ backgroundColor: '#dff0d8', cursor: 'pointer' }} onClick={() => handleSort('vstdate')}>
+                                                                วัน admit {sortField === 'vstdate' ? (sortDirection === 'asc' ? '↑' : '↓') : '↑↓'}
+                                                            </th>
+                                                            <th style={{ backgroundColor: '#dff0d8', cursor: 'pointer' }} onClick={() => handleSort('hn')}>
+                                                                HN / AN {sortField === 'hn' ? (sortDirection === 'asc' ? '↑' : '↓') : '↑↓'}
+                                                            </th>
+                                                            <th style={{ backgroundColor: '#dff0d8', cursor: 'pointer' }} onClick={() => handleSort('pt_name')}>
+                                                                ชื่อ-นามสกุล {sortField === 'pt_name' ? (sortDirection === 'asc' ? '↑' : '↓') : '↑↓'}
+                                                            </th>
+                                                            <th style={{ backgroundColor: '#dff0d8', cursor: 'pointer' }} onClick={() => handleSort('age')}>
+                                                                อายุ {sortField === 'age' ? (sortDirection === 'asc' ? '↑' : '↓') : '↑↓'}
+                                                            </th>
+                                                            <th style={{ backgroundColor: '#dff0d8', cursor: 'pointer', minWidth: '220px' }} onClick={() => handleSort('address')}>
+                                                                ที่อยู่ {sortField === 'address' ? (sortDirection === 'asc' ? '↑' : '↓') : '↑↓'}
+                                                            </th>
+                                                            <th style={{ backgroundColor: '#dff0d8', cursor: 'pointer' }} onClick={() => handleSort('pttype_name')}>
+                                                                สิทธิรักษาพยาบาล {sortField === 'pttype_name' ? (sortDirection === 'asc' ? '↑' : '↓') : '↑↓'}
+                                                            </th>
+                                                            <th style={{ backgroundColor: '#dff0d8', cursor: 'pointer' }} onClick={() => handleSort('ward_name')}>
+                                                                ตึก {sortField === 'ward_name' ? (sortDirection === 'asc' ? '↑' : '↓') : '↑↓'}
+                                                            </th>
+                                                            <th style={{ backgroundColor: '#dff0d8', cursor: 'pointer' }} onClick={() => handleSort('adm_days')}>
+                                                                จำนวนวันนอน {sortField === 'adm_days' ? (sortDirection === 'asc' ? '↑' : '↓') : '↑↓'}
+                                                            </th>
+                                                            <th style={{ backgroundColor: '#dff0d8', cursor: 'pointer', minWidth: '110px' }} onClick={() => handleSort('total_expense')}>
+                                                                ค่าใช้จ่าย {sortField === 'total_expense' ? (sortDirection === 'asc' ? '↑' : '↓') : '↑↓'}
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {loading ? (
+                                                            <tr><td colSpan={9} className="text-center py-4"><Spinner animation="border" size="sm" /></td></tr>
+                                                        ) : paginatedList.length === 0 ? (
+                                                            <tr><td colSpan={9} className="text-center py-4 text-muted">ไม่พบรายการข้อมูลผู้ป่วย Admit</td></tr>
+                                                        ) : (
+                                                            paginatedList.map((row, idx) => (
+                                                                <tr key={idx}>
+                                                                    <td className="text-center font-monospace">{row.vstdate || '-'}</td>
+                                                                    <td className="text-center font-monospace">
+                                                                        {row.hn ? `${row.hn} / ${row.an}` : `/ ${row.an}`}
+                                                                    </td>
+                                                                    <td className="fw-bold text-dark">{row.pt_name || '-'}</td>
+                                                                    <td className="text-center">{row.age ?? '-'}</td>
+                                                                    <td className="fs-12 text-secondary">{row.address || '-'}</td>
+                                                                    <td className="fs-12">{row.pttype_name || '-'}</td>
+                                                                    <td className="text-center fw-medium">{row.ward_name || '-'}</td>
+                                                                    <td className="text-center font-monospace">{row.adm_days ?? 0}</td>
+                                                                    <td className="text-end font-monospace text-dark">
+                                                                        {Number(row.total_expense || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                                    </td>
+                                                                </tr>
+                                                            ))
+                                                        )}
+                                                    </tbody>
+                                                </Table>
+                                            </div>
+
+                                            {/* Footer Pagination */}
+                                            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-2">
+                                                <div className="fs-13 text-muted">
+                                                    แสดง {totalItems === 0 ? 0 : startIndex + 1} ถึง {Math.min(startIndex + perPage, totalItems)} จาก {totalItems} รายการ
+                                                </div>
+
+                                                <Pagination className="pagination-sm mb-0">
+                                                    <Pagination.Prev 
+                                                        disabled={activePage <= 1} 
+                                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                                    >
+                                                        ก่อนหน้า
+                                                    </Pagination.Prev>
+                                                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                                        .filter(p => p === 1 || p === totalPages || Math.abs(p - activePage) <= 2)
+                                                        .map((p, i, arr) => (
+                                                            <React.Fragment key={p}>
+                                                                {i > 0 && arr[i - 1] !== p - 1 && <Pagination.Ellipsis disabled />}
+                                                                <Pagination.Item 
+                                                                    active={p === activePage} 
+                                                                    onClick={() => setCurrentPage(p)}
+                                                                >
+                                                                    {p}
+                                                                </Pagination.Item>
+                                                            </React.Fragment>
+                                                        ))
+                                                    }
+                                                    <Pagination.Next 
+                                                        disabled={activePage >= totalPages} 
+                                                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                                    >
+                                                        ถัดไป
+                                                    </Pagination.Next>
+                                                </Pagination>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </Tab.Pane>
                         </Tab.Content>
                     </Tab.Container>

@@ -26,6 +26,8 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
     const [occupancyData, setOccupancyData] = useState<any[]>([]);
     const [genderData, setGenderData] = useState<any[]>([]);
     const [topDiseases, setTopDiseases] = useState<any[]>([]);
+    const [wardMonthlyData, setWardMonthlyData] = useState<any[]>([]);
+    const [wardOccupancyData, setWardOccupancyData] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     const fetchData = async (year: number) => {
@@ -34,17 +36,21 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
             const apiUrl = external_api_url || 'http://127.0.0.1:8800';
             const headers = { Authorization: `Bearer ${api_token}` };
 
-            const [summaryRes, occupancyRes, genderRes, icd10Res] = await Promise.all([
+            const [summaryRes, occupancyRes, genderRes, icd10Res, wardMonthlyRes, wardOccupancyRes] = await Promise.all([
                 axios.get(`${apiUrl}/api/v1/ipd/stats-summary?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/stats-occupancy?fiscal_year=${year}`, { headers }),
                 axios.get(`${apiUrl}/api/v1/ipd/stats-gender?fiscal_year=${year}`, { headers }),
-                axios.get(`${apiUrl}/api/v1/ipd/stats-icd10?fiscal_year=${year}`, { headers })
+                axios.get(`${apiUrl}/api/v1/ipd/stats-icd10?fiscal_year=${year}`, { headers }),
+                axios.get(`${apiUrl}/api/v1/ipd/stats-ward-monthly?fiscal_year=${year}`, { headers }),
+                axios.get(`${apiUrl}/api/v1/ipd/stats-ward-occupancy?fiscal_year=${year}`, { headers }),
             ]);
 
-            setSummaryData(summaryRes.data.data);
-            setOccupancyData(occupancyRes.data.data);
-            setGenderData(genderRes.data.data);
-            setTopDiseases(icd10Res.data.data);
+            setSummaryData(summaryRes.data.data || []);
+            setOccupancyData(occupancyRes.data.data || []);
+            setGenderData(genderRes.data.data || []);
+            setTopDiseases(icd10Res.data.data || []);
+            setWardMonthlyData(wardMonthlyRes.data.data || []);
+            setWardOccupancyData(wardOccupancyRes.data.data || []);
             setError(null);
         } catch (err: any) {
             console.error('API Error:', err);
@@ -61,6 +67,25 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
 
     const monthNames = ['ต.ค.', 'พ.ย.', 'ธ.ค.', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.'];
     
+    const getMonthName = (monthStr: string) => {
+        const m = parseInt(monthStr, 10);
+        const monthNamesMap: { [key: number]: string } = {
+            10: 'ตุลาคม (ต.ค.)',
+            11: 'พฤศจิกายน (พ.ย.)',
+            12: 'ธันวาคม (ธ.ค.)',
+            1: 'มกราคม (ม.ค.)',
+            2: 'กุมภาพันธ์ (ก.พ.)',
+            3: 'มีนาคม (มี.ค.)',
+            4: 'เมษายน (เม.ย.)',
+            5: 'พฤษภาคม (พ.ค.)',
+            6: 'มิถุนายน (มิ.ย.)',
+            7: 'กรกฎาคม (ก.ค.)',
+            8: 'สิงหาคม (ส.ค.)',
+            9: 'กันยายน (ก.ย.)'
+        };
+        return monthNamesMap[m] || monthStr;
+    };
+
     const sortDataByFiscalMonth = (data: any[]) => {
         const order = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9];
         return [...data].sort((a, b) => {
@@ -72,6 +97,11 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
 
     const sortedSummary = sortDataByFiscalMonth(summaryData);
     const sortedOccupancy = sortDataByFiscalMonth(occupancyData);
+
+    const totalIpdPatients = sortedSummary.reduce((acc, curr) => acc + (curr.count || 0), 0);
+    const avgOccupancyRate = sortedOccupancy.length > 0
+        ? sortedOccupancy.reduce((acc, curr) => acc + (typeof curr.admsum === 'number' ? curr.admsum : parseFloat(curr.admsum || 0)), 0) / sortedOccupancy.length
+        : 0;
 
     const visitChartOptions: ApexOptions = {
         chart: { type: 'bar', toolbar: { show: true } },
@@ -156,7 +186,7 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                             <Nav.Item>
                                 <Nav.Link eventKey="gender" className="py-2">
                                     <IconifyIcon icon="solar:users-group-two-rounded-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    สัดส่วนเพศ
+                                    ตารางข้อมูล
                                 </Nav.Link>
                             </Nav.Item>
                             <Nav.Item>
@@ -205,28 +235,154 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                             </Tab.Pane>
 
                             <Tab.Pane eventKey="gender">
-                                <Row className="justify-content-center">
-                                    <Col lg={6}>
-                                        <div className="border rounded p-4 bg-white text-center">
-                                            <h6 className="mb-4 fw-bold">สัดส่วนชาย-หญิง ที่นอนโรงพยาบาล</h6>
-                                            {loading ? (
-                                                <div className="text-center py-5"><Spinner animation="grow" variant="primary" /></div>
-                                            ) : (
-                                                <ReactApexChart 
-                                                    options={{
-                                                        chart: { type: 'pie' },
-                                                        labels: genderData.map(d => d.name || 'ไม่ระบุ'),
-                                                        legend: { position: 'bottom' },
-                                                        colors: ['#3e60d5', '#f15776']
-                                                    }} 
-                                                    series={genderData.map(d => d.count)} 
-                                                    type="pie" 
-                                                    height={350} 
-                                                />
-                                            )}
+                                {(() => {
+                                    const monthlySumKeys = ['m10', 'm11', 'm12', 'm01', 'm02', 'm03', 'm04', 'm05', 'm06', 'm07', 'm08', 'm09'];
+                                    const monthTotals: any = {};
+                                    monthlySumKeys.forEach(k => {
+                                        monthTotals[k] = wardMonthlyData.reduce((sum, row) => sum + (parseInt(row[k], 10) || 0), 0);
+                                    });
+                                    const grandMonthlyTotal = wardMonthlyData.reduce((sum, row) => sum + (parseInt(row.total, 10) || 0), 0);
+
+                                    const totalPatientsCount = wardOccupancyData.reduce((sum, row) => sum + (parseInt(row.patient_count, 10) || 0), 0);
+                                    const totalAdmDays = wardOccupancyData.reduce((sum, row) => sum + (parseFloat(row.total_admdate) || 0), 0);
+                                    const overallAvgStay = totalPatientsCount > 0 ? (totalAdmDays / totalPatientsCount) : 0;
+                                    const totalBedCount = wardOccupancyData.reduce((sum, row) => sum + (parseInt(row.bedcount, 10) || 0), 0);
+                                    const overallOccupancyRate = totalBedCount > 0 ? ((totalAdmDays * 100) / (totalBedCount * 365)) : 0;
+
+                                    return (
+                                        <div className="space-y-4">
+                                            {/* Table 1: จำนวนผู้ป่วยใน ปีงบประมาณ */}
+                                            <div className="mb-4">
+                                                <h6 className="fw-bold mb-2 text-dark">
+                                                    จำนวนผู้ป่วยใน ปีงบประมาณ {fiscalYear} ({fiscalYear - 1 - 543 < 0 ? '' : `1 ต.ค.${fiscalYear - 1} - 30 ก.ย.${fiscalYear}`})
+                                                </h6>
+                                                <div className="table-responsive">
+                                                    <Table bordered hover size="sm" className="align-middle fs-13 mb-0">
+                                                        <thead style={{ backgroundColor: '#d9edf7' }} className="text-center align-middle">
+                                                            <tr>
+                                                                <th style={{ backgroundColor: '#d9edf7', minWidth: '120px' }}>ตึก</th>
+                                                                <th style={{ backgroundColor: '#d9edf7' }}>ต.ค.</th>
+                                                                <th style={{ backgroundColor: '#d9edf7' }}>พ.ย.</th>
+                                                                <th style={{ backgroundColor: '#d9edf7' }}>ธ.ค.</th>
+                                                                <th style={{ backgroundColor: '#d9edf7' }}>ม.ค.</th>
+                                                                <th style={{ backgroundColor: '#d9edf7' }}>ก.พ.</th>
+                                                                <th style={{ backgroundColor: '#d9edf7' }}>มี.ค.</th>
+                                                                <th style={{ backgroundColor: '#d9edf7' }}>เม.ย.</th>
+                                                                <th style={{ backgroundColor: '#d9edf7' }}>พ.ค.</th>
+                                                                <th style={{ backgroundColor: '#d9edf7' }}>มิ.ย.</th>
+                                                                <th style={{ backgroundColor: '#d9edf7' }}>ก.ค.</th>
+                                                                <th style={{ backgroundColor: '#d9edf7' }}>ส.ค.</th>
+                                                                <th style={{ backgroundColor: '#d9edf7' }}>ก.ย.</th>
+                                                                <th style={{ backgroundColor: '#d9edf7', minWidth: '70px' }}>รวม</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {loading ? (
+                                                                <tr><td colSpan={14} className="text-center py-4"><Spinner animation="border" size="sm" /></td></tr>
+                                                            ) : wardMonthlyData.map((row, idx) => {
+                                                                const rowSum = (parseInt(row.m10, 10) || 0) + (parseInt(row.m11, 10) || 0) + (parseInt(row.m12, 10) || 0) +
+                                                                               (parseInt(row.m01, 10) || 0) + (parseInt(row.m02, 10) || 0) + (parseInt(row.m03, 10) || 0) +
+                                                                               (parseInt(row.m04, 10) || 0) + (parseInt(row.m05, 10) || 0) + (parseInt(row.m06, 10) || 0) +
+                                                                               (parseInt(row.m07, 10) || 0) + (parseInt(row.m08, 10) || 0) + (parseInt(row.m09, 10) || 0);
+                                                                return (
+                                                                    <tr key={idx}>
+                                                                        <td className="fw-bold">{row.ward_name}</td>
+                                                                        <td className="text-center">{row.m10 ? Number(row.m10).toLocaleString() : 0}</td>
+                                                                        <td className="text-center">{row.m11 ? Number(row.m11).toLocaleString() : 0}</td>
+                                                                        <td className="text-center">{row.m12 ? Number(row.m12).toLocaleString() : 0}</td>
+                                                                        <td className="text-center">{row.m01 ? Number(row.m01).toLocaleString() : 0}</td>
+                                                                        <td className="text-center">{row.m02 ? Number(row.m02).toLocaleString() : 0}</td>
+                                                                        <td className="text-center">{row.m03 ? Number(row.m03).toLocaleString() : 0}</td>
+                                                                        <td className="text-center">{row.m04 ? Number(row.m04).toLocaleString() : 0}</td>
+                                                                        <td className="text-center">{row.m05 ? Number(row.m05).toLocaleString() : 0}</td>
+                                                                        <td className="text-center">{row.m06 ? Number(row.m06).toLocaleString() : 0}</td>
+                                                                        <td className="text-center">{row.m07 ? Number(row.m07).toLocaleString() : 0}</td>
+                                                                        <td className="text-center">{row.m08 ? Number(row.m08).toLocaleString() : 0}</td>
+                                                                        <td className="text-center">{row.m09 ? Number(row.m09).toLocaleString() : 0}</td>
+                                                                        <td className="text-center fw-bold">{rowSum.toLocaleString()}</td>
+                                                                    </tr>
+                                                                );
+                                                            })}
+                                                        </tbody>
+                                                        {!loading && wardMonthlyData.length > 0 && (
+                                                            <tfoot style={{ backgroundColor: '#fcf8e3' }}>
+                                                                <tr className="fw-bold text-center">
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="fw-bold">รวม</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-primary">{monthTotals.m10?.toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-primary">{monthTotals.m11?.toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-primary">{monthTotals.m12?.toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-primary">{monthTotals.m01?.toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-primary">{monthTotals.m02?.toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-primary">{monthTotals.m03?.toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-primary">{monthTotals.m04?.toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-primary">{monthTotals.m05?.toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-primary">{monthTotals.m06?.toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-primary">{monthTotals.m07?.toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-primary">{monthTotals.m08?.toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-primary">{monthTotals.m09?.toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-dark fs-14 fw-bold">{grandMonthlyTotal.toLocaleString()}</td>
+                                                                </tr>
+                                                            </tfoot>
+                                                        )}
+                                                    </Table>
+                                                </div>
+                                            </div>
+
+                                            {/* Table 2: อัตราการครองเตียง (แยกหอผู้ป่วย) */}
+                                            <div className="mt-4 pt-2">
+                                                <h6 className="fw-bold mb-2 text-dark">
+                                                    อัตราการครองเตียง (แยกหอผู้ป่วย) ปีงบประมาณ {fiscalYear} ({fiscalYear - 1 - 543 < 0 ? '' : `1 ต.ค.${fiscalYear - 1} - 30 ก.ย.${fiscalYear}`})
+                                                </h6>
+                                                <div className="table-responsive">
+                                                    <Table bordered hover size="sm" className="align-middle fs-13 mb-0">
+                                                        <thead style={{ backgroundColor: '#dff0d8' }} className="text-center align-middle">
+                                                            <tr>
+                                                                <th style={{ backgroundColor: '#dff0d8', minWidth: '150px' }}>ตึก</th>
+                                                                <th style={{ backgroundColor: '#dff0d8' }}>จำนวนผู้ป่วย</th>
+                                                                <th style={{ backgroundColor: '#dff0d8' }}>จำนวนวันนอน</th>
+                                                                <th style={{ backgroundColor: '#dff0d8' }}>เฉลี่ยวันนอนต่อคน</th>
+                                                                <th style={{ backgroundColor: '#dff0d8' }}>อัตราการครองเตียง</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {loading ? (
+                                                                <tr><td colSpan={5} className="text-center py-4"><Spinner animation="border" size="sm" /></td></tr>
+                                                            ) : wardOccupancyData.map((row, idx) => {
+                                                                const pCount = parseInt(row.patient_count, 10) || 0;
+                                                                const admDays = parseFloat(row.total_admdate) || 0;
+                                                                const avgDays = pCount > 0 ? (admDays / pCount) : 0;
+                                                                const occRate = parseFloat(row.occupancy_rate) || 0;
+                                                                return (
+                                                                    <tr key={idx}>
+                                                                        <td className="fw-bold">{row.ward_name}</td>
+                                                                        <td className="text-center">{pCount.toLocaleString()}</td>
+                                                                        <td className="text-center">{admDays.toLocaleString()}</td>
+                                                                        <td className="text-center font-monospace">{avgDays.toFixed(2)}</td>
+                                                                        <td className="text-center font-monospace fw-medium">{occRate.toFixed(2)}</td>
+                                                                    </tr>
+                                                                );
+                                                            })}
+                                                        </tbody>
+                                                        {!loading && wardOccupancyData.length > 0 && (
+                                                            <tfoot style={{ backgroundColor: '#fcf8e3' }}>
+                                                                <tr className="fw-bold text-center">
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="fw-bold">รวม</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }}>{totalPatientsCount.toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }}>{Math.round(totalAdmDays).toLocaleString()}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="font-monospace">{overallAvgStay.toFixed(2)}</td>
+                                                                    <td style={{ backgroundColor: '#fcf8e3' }} className="text-danger fw-bold font-monospace">
+                                                                        {overallOccupancyRate.toFixed(2)}
+                                                                        {totalBedCount > 0 && <span className="d-block fs-11 text-danger font-sans-serif fw-normal">(คิดจาก {totalBedCount} เตียง)</span>}
+                                                                    </td>
+                                                                </tr>
+                                                            </tfoot>
+                                                        )}
+                                                    </Table>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </Col>
-                                </Row>
+                                    );
+                                })()}
                             </Tab.Pane>
 
                             <Tab.Pane eventKey="disease">

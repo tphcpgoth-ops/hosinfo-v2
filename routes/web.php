@@ -28,7 +28,7 @@ require __DIR__.'/auth.php';
 
 
 Route::get('/v', function () {
-    return '1.0.2';
+    return '1.0.3';
 });
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');

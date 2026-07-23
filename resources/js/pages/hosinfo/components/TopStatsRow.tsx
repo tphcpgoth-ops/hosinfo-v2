@@ -72,6 +72,7 @@ const TopStatsRow = ({ stats, loading }: { stats: any, loading?: boolean }) => {
                     icon="tabler:ambulance" 
                     bgClass="bg-secondary" 
                     loading={loading}
+                    href={route('hosinfo.refer')}
                 />
             </Col>
         </Row>

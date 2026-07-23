@@ -50,6 +50,12 @@ export const MENU_ITEMS: MenuItemType[] = [
                 parentKey: 'stats',
             },
             {
+                key: 'stats_refer',
+                label: 'รับ-ส่งต่อ',
+                url: '/hosinfo/refer',
+                parentKey: 'stats',
+            },
+            {
                 key: 'stats_dent',
                 label: 'ทันตกรรม',
                 url: '/hosinfo/dent',
@@ -237,6 +243,12 @@ export const HORIZONTAL_MENU_ITEM: MenuItemType[] = [
                         url: '/hosinfo/ipd',
                         parentKey: 'stats',
                         // roles: ['admin', 'head', 'user'],
+                    },
+                    {
+                        key: 'stats_refer',
+                        label: 'รับ-ส่งต่อ',
+                        url: '/hosinfo/refer',
+                        parentKey: 'stats',
                     },
                     {
                         key: 'stats_dent',

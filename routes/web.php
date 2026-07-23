@@ -36,6 +36,7 @@ Route::get('/hosinfo', [HosinfoController::class, 'index'])->name('hosinfo');
 Route::get('/hosinfo/appointments', [HosinfoController::class, 'appointments'])->name('hosinfo.appointments');
 Route::get('/hosinfo/opd', [HosinfoController::class, 'opd'])->name('hosinfo.opd');
 Route::get('/hosinfo/ipd', [HosinfoController::class, 'ipd'])->name('hosinfo.ipd');
+Route::get('/hosinfo/refer', [HosinfoController::class, 'refer'])->name('hosinfo.refer');
 Route::get('/hosinfo/dent', [HosinfoController::class, 'dent'])->name('hosinfo.dent');
 Route::get('/hosinfo/ppt', [HosinfoController::class, 'ppt'])->name('hosinfo.ppt');
 Route::get('/hosinfo/er', [HosinfoController::class, 'er'])->name('hosinfo.er');

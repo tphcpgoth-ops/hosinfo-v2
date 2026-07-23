@@ -42,6 +42,14 @@ class HosinfoController extends Controller
         ]);
     }
 
+    public function refer()
+    {
+        return Inertia::render('hosinfo/refer/index', [
+            'api_token' => JwtService::generateToken(),
+            'external_api_url' => env('VITE_EXTERNAL_API_URL', 'http://127.0.0.1:8800')
+        ]);
+    }
+
     public function dent()
     {
         return Inertia::render('hosinfo/dent/index', [

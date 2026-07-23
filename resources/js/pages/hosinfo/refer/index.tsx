@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { usePage } from '@inertiajs/react';
 import PageTitle from '@/components/PageTitle';
 import MainLayout from '@/layouts/MainLayout';
 import { Card, CardBody, Col, Row, Spinner, Table, Tab, Nav, Button, Form, Badge } from 'react-bootstrap';
@@ -60,6 +61,7 @@ interface ReferCase {
 }
 
 const ReferStatsPage = ({ api_token, external_api_url }: { api_token: string; external_api_url: string }) => {
+    const { auth } = usePage<any>().props;
     const currentBE = new Date().getFullYear() + (new Date().getMonth() > 8 ? 1 : 0) + 543;
     const [fiscalYear, setFiscalYear] = useState<number>(currentBE);
     const [trendMode, setTrendMode] = useState<'monthly' | 'weekly' | 'hourly'>('monthly');
@@ -210,14 +212,14 @@ const ReferStatsPage = ({ api_token, external_api_url }: { api_token: string; ex
 
     return (
         <MainLayout>
-            <PageTitle title="รับ-ส่งต่อ (Referral)" subTitle="Dashboard สถิติการรับส่งต่อผู้ป่วย" />
+            <PageTitle title="รับ-ส่งต่อ (Referral)" subTitle="สถิติการรับส่งต่อผู้ป่วย" />
 
             {/* Top Control Bar */}
             <Row className="mb-4 align-items-center">
                 <Col md={6}>
                     <h4 className="fw-bold mb-1 d-flex align-items-center text-dark">
                         <IconifyIcon icon="solar:transfer-horizontal-bold-duotone" className="me-2 text-danger fs-28" />
-                        ระบบสถิติการรับ-ส่งต่อผู้ป่วย (Referral Dashboard)
+                        สถิติการรับ-ส่งต่อผู้ป่วย
                     </h4>
                     <p className="text-muted mb-0 fs-13">วิเคราะห์ข้อมูลการ Refer In / Refer Out, โรงพยาบาลต้นทาง-ปลายทาง และระดับความวิกฤต</p>
                 </Col>
@@ -325,7 +327,7 @@ const ReferStatsPage = ({ api_token, external_api_url }: { api_token: string; ex
                                     <IconifyIcon icon="solar:siren-bold" />
                                 </div>
                                 <div>
-                                    <p className="text-muted mb-0 fs-13 fw-medium">เคสวิกฤต/ฉุกเฉิน</p>
+                                    <p className="text-muted mb-0 fs-13 fw-medium">วิกฤต/ฉุกเฉิน</p>
                                     <h3 className="fw-bold mb-0 text-danger">
                                         {loading ? <Spinner animation="border" size="sm" /> : summary.emergency_cases.toLocaleString()}
                                         <span className="fs-13 fw-normal text-muted ms-1">ราย</span>
@@ -345,33 +347,35 @@ const ReferStatsPage = ({ api_token, external_api_url }: { api_token: string; ex
                             <Nav.Item>
                                 <Nav.Link eventKey="overview" className="py-2 fs-14">
                                     <IconifyIcon icon="solar:chart-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    ภาพรวมสถิติและแนวโน้ม
+                                    สถิติและแนวโน้ม
                                 </Nav.Link>
                             </Nav.Item>
                             <Nav.Item>
                                 <Nav.Link eventKey="hospitals" className="py-2 fs-14">
                                     <IconifyIcon icon="solar:hospital-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    สัดส่วน รพ. ต้นทาง-ปลายทาง & สาเหตุ
+                                    สัดส่วน รพ.รับ-ส่งต่อ & สาเหตุ
                                 </Nav.Link>
                             </Nav.Item>
                             <Nav.Item>
                                 <Nav.Link eventKey="icd10" className="py-2 fs-14">
                                     <IconifyIcon icon="solar:document-medicine-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    อันดับโรค ICD-10
+                                    10 อันดับโรคส่งต่อ
                                 </Nav.Link>
                             </Nav.Item>
                             <Nav.Item>
                                 <Nav.Link eventKey="triage" className="py-2 fs-14">
                                     <IconifyIcon icon="solar:shield-warning-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    ระดับความวิกฤต Triage
+                                    ระดับความเร่งด่วน Triage
                                 </Nav.Link>
                             </Nav.Item>
-                            <Nav.Item>
-                                <Nav.Link eventKey="cases" className="py-2 fs-14">
-                                    <IconifyIcon icon="solar:users-group-two-rounded-bold-duotone" className="me-2 fs-18 align-middle" />
-                                    รายชื่อเคสส่งต่อ
-                                </Nav.Link>
-                            </Nav.Item>
+                            {auth?.user && (
+                                <Nav.Item>
+                                    <Nav.Link eventKey="cases" className="py-2 fs-14">
+                                        <IconifyIcon icon="solar:users-group-two-rounded-bold-duotone" className="me-2 fs-18 align-middle" />
+                                        รายชื่อผู้ป่วยส่งต่อ
+                                    </Nav.Link>
+                                </Nav.Item>
+                            )}
                         </Nav>
                     </CardBody>
                 </Card>
@@ -577,71 +581,73 @@ const ReferStatsPage = ({ api_token, external_api_url }: { api_token: string; ex
                     </Tab.Pane>
 
                     {/* Tab 5: Cases List */}
-                    <Tab.Pane eventKey="cases">
-                        <Card className="border-0 shadow-sm mb-4">
-                            <CardBody className="p-4">
-                                <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-                                    <div>
-                                        <h5 className="fw-bold text-dark mb-1">รายชื่อผู้ป่วยส่งต่อล่าสุด (Refer Out Cases)</h5>
-                                        <p className="text-muted mb-0 fs-13">ค้นหาและดูข้อมูลการส่งตัวย้อนหลัง</p>
+                    {auth?.user && (
+                        <Tab.Pane eventKey="cases">
+                            <Card className="border-0 shadow-sm mb-4">
+                                <CardBody className="p-4">
+                                    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                        <div>
+                                            <h5 className="fw-bold text-dark mb-1">รายชื่อผู้ป่วยส่งต่อล่าสุด (Refer Out Cases)</h5>
+                                            <p className="text-muted mb-0 fs-13">ค้นหาและดูข้อมูลการส่งตัวย้อนหลัง</p>
+                                        </div>
+                                        <div style={{ maxWidth: '300px', width: '100%' }}>
+                                            <Form.Control 
+                                                size="sm" 
+                                                type="text" 
+                                                placeholder="🔍 ค้นหา HN, ชื่อผู้ป่วย, รพ. หรือ โรค..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                        </div>
                                     </div>
-                                    <div style={{ maxWidth: '300px', width: '100%' }}>
-                                        <Form.Control 
-                                            size="sm" 
-                                            type="text" 
-                                            placeholder="🔍 ค้นหา HN, ชื่อผู้ป่วย, รพ. หรือ โรค..."
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
-                                    </div>
-                                </div>
 
-                                <div className="table-responsive">
-                                    <Table hover bordered size="sm" className="align-middle fs-13 mb-0">
-                                        <thead className="table-light">
-                                            <tr>
-                                                <th className="text-center" style={{ width: '110px' }}>วัน-เวลาส่งตัว</th>
-                                                <th className="text-center" style={{ width: '90px' }}>HN</th>
-                                                <th>ชื่อ-นามสกุล</th>
-                                                <th>รพ. ปลายทาง</th>
-                                                <th className="text-center" style={{ width: '80px' }}>ICD-10</th>
-                                                <th>การวินิจฉัย</th>
-                                                <th>สาเหตุที่ส่งต่อ</th>
-                                                <th className="text-center" style={{ width: '110px' }}>ระดับความเร่งด่วน</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {loading ? (
-                                                <tr><td colSpan={8} className="text-center py-5"><Spinner animation="border" size="sm" /></td></tr>
-                                            ) : filteredCases.length > 0 ? (
-                                                filteredCases.map((item) => (
-                                                    <tr key={item.referout_id}>
-                                                        <td className="text-center font-monospace fs-12">
-                                                            {item.refer_date}<br />
-                                                            <span className="text-muted fs-11">{item.refer_time}</span>
-                                                        </td>
-                                                        <td className="text-center font-monospace text-primary fw-bold">{item.hn}</td>
-                                                        <td className="fw-medium text-dark">{item.pt_name}</td>
-                                                        <td className="fw-semibold text-danger">{item.dest_hospname}</td>
-                                                        <td className="text-center font-monospace fw-bold">{item.pdx}</td>
-                                                        <td>{item.diag}</td>
-                                                        <td className="text-secondary fs-12">{item.cause_name}</td>
-                                                        <td className="text-center">
-                                                            <Badge bg="secondary" className="px-2 py-1 fs-11">
-                                                                {item.emergency_name}
-                                                            </Badge>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            ) : (
-                                                <tr><td colSpan={8} className="text-center py-4 text-muted">ไม่พบข้อมูลตามคำค้นหา</td></tr>
-                                            )}
-                                        </tbody>
-                                    </Table>
-                                </div>
-                            </CardBody>
-                        </Card>
-                    </Tab.Pane>
+                                    <div className="table-responsive">
+                                        <Table hover bordered size="sm" className="align-middle fs-13 mb-0">
+                                            <thead className="table-light">
+                                                <tr>
+                                                    <th className="text-center" style={{ width: '110px' }}>วัน-เวลาส่งตัว</th>
+                                                    <th className="text-center" style={{ width: '90px' }}>HN</th>
+                                                    <th>ชื่อ-นามสกุล</th>
+                                                    <th>รพ. ปลายทาง</th>
+                                                    <th className="text-center" style={{ width: '80px' }}>ICD-10</th>
+                                                    <th>การวินิจฉัย</th>
+                                                    <th>สาเหตุที่ส่งต่อ</th>
+                                                    <th className="text-center" style={{ width: '110px' }}>ระดับความเร่งด่วน</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {loading ? (
+                                                    <tr><td colSpan={8} className="text-center py-5"><Spinner animation="border" size="sm" /></td></tr>
+                                                ) : filteredCases.length > 0 ? (
+                                                    filteredCases.map((item) => (
+                                                        <tr key={item.referout_id}>
+                                                            <td className="text-center font-monospace fs-12">
+                                                                {item.refer_date}<br />
+                                                                <span className="text-muted fs-11">{item.refer_time}</span>
+                                                            </td>
+                                                            <td className="text-center font-monospace text-primary fw-bold">{item.hn}</td>
+                                                            <td className="fw-medium text-dark">{item.pt_name}</td>
+                                                            <td className="fw-semibold text-danger">{item.dest_hospname}</td>
+                                                            <td className="text-center font-monospace fw-bold">{item.pdx}</td>
+                                                            <td>{item.diag}</td>
+                                                            <td className="text-secondary fs-12">{item.cause_name}</td>
+                                                            <td className="text-center">
+                                                                <Badge bg="secondary" className="px-2 py-1 fs-11">
+                                                                    {item.emergency_name}
+                                                                </Badge>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr><td colSpan={8} className="text-center py-4 text-muted">ไม่พบข้อมูลตามคำค้นหา</td></tr>
+                                                )}
+                                            </tbody>
+                                        </Table>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        </Tab.Pane>
+                    )}
                 </Tab.Content>
             </Tab.Container>
         </MainLayout>

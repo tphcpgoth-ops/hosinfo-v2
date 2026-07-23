@@ -82,14 +82,7 @@ const PCCStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
     }, [fiscalYear]);
 
     const monthNames = ['ต.ค.', 'พ.ย.', 'ธ.ค.', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.'];
-    const monthKeys = ['m10', 'm11', 'm12', 'm01', 'm02', 'm03', 'm04', 'm05', 'm06', 'm07', 'm08', 'm09'];
-
-    const sortedSummary = [...summaryData].sort((a, b) => {
-        const m1 = parseInt(a.AM);
-        const m2 = parseInt(b.AM);
-        const order = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-        return order.indexOf(m1) - order.indexOf(m2);
-    });
+    const monthNumKeys = ['10', '11', '12', '01', '02', '03', '04', '05', '06', '07', '08', '09'];
 
     const chartOptions: ApexOptions = {
         chart: { type: 'bar', toolbar: { show: true } },
@@ -102,8 +95,20 @@ const PCCStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
     };
 
     const chartSeries = [
-        { name: 'จำนวนผู้ป่วย (คน/HN)', data: sortedSummary.map(d => d.hn_count) },
-        { name: 'จำนวนครั้งที่รับบริการ (ครั้ง/VN)', data: sortedSummary.map(d => d.total) }
+        { 
+            name: 'จำนวนผู้ป่วย (คน/HN)', 
+            data: monthNumKeys.map(k => {
+                const found = summaryData.find(d => d.AM && parseInt(d.AM) === parseInt(k));
+                return found ? (found.hn_count || 0) : 0;
+            }) 
+        },
+        { 
+            name: 'จำนวนครั้งที่รับบริการ (ครั้ง/VN)', 
+            data: monthNumKeys.map(k => {
+                const found = summaryData.find(d => d.AM && parseInt(d.AM) === parseInt(k));
+                return found ? (found.total || 0) : 0;
+            }) 
+        }
     ];
 
     const getPieOptions = (title: string, labels: string[]): ApexOptions => ({

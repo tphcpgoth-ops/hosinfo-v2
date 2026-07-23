@@ -97,12 +97,12 @@ const DrugStatsPage = ({ api_token, external_api_url }: { api_token: string, ext
 
     const chartSeries = [
         { name: 'จำนวนผู้ป่วยสะสม (คน/HN)', data: monthKeys.map(k => {
-            const found = sortedSummary.find(d => d.AM === k);
-            return found ? found.hn_count : 0;
+            const found = summaryData.find(d => d.AM && parseInt(d.AM) === parseInt(k));
+            return found ? (found.hn_count || 0) : 0;
         }) },
         { name: 'จำนวนครั้งที่รับบริการ (ครั้ง/VN)', data: monthKeys.map(k => {
-            const found = sortedSummary.find(d => d.AM === k);
-            return found ? found.total : 0;
+            const found = summaryData.find(d => d.AM && parseInt(d.AM) === parseInt(k));
+            return found ? (found.total || 0) : 0;
         }) }
     ];
 

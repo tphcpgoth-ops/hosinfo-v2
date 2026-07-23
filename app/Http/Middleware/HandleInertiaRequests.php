@@ -41,16 +41,21 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        $wards = Cache::remember('hosxp_active_wards', 86400, function () {
+        $wards = Cache::get('hosxp_active_wards');
+        if (empty($wards)) {
             $apiUrl = env('VITE_EXTERNAL_API_URL', 'http://127.0.0.1:8800');
             try {
-                $response = Http::timeout(3)->get($apiUrl . '/api/v1/ward/active-wards');
+                $response = Http::timeout(5)->get($apiUrl . '/api/v1/ward/active-wards');
                 if ($response->successful()) {
-                    return $response->json('data') ?? [];
+                    $fetchedWards = $response->json('data') ?? [];
+                    if (!empty($fetchedWards)) {
+                        $wards = $fetchedWards;
+                        Cache::put('hosxp_active_wards', $wards, 86400);
+                    }
                 }
             } catch (\Exception $e) {}
-            return [];
-        });
+        }
+        $wards = $wards ?? [];
 
         return [
             ...parent::share($request),

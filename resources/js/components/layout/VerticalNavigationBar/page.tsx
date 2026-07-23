@@ -26,7 +26,7 @@ const VerticalNavigationBar = () => {
             if (ipdIndex !== -1) {
                 const wardMenu = {
                     key: 'stats_ipd_wards',
-                    label: 'ผู้ป่วยใน',
+                    label: 'ตึกผู้ป่วยใน',
                     parentKey: 'stats',
                     roles: ['admin', 'head', 'user'],
                     children: wards.map((w: any) => ({

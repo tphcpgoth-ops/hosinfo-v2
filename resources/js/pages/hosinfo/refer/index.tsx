@@ -144,8 +144,8 @@ const ReferStatsPage = ({ api_token, external_api_url }: { api_token: string; ex
     }), [trends]);
 
     const trendChartSeries = useMemo(() => [
-        { name: 'ส่งตัวออก (Refer Out)', data: trends.map(t => t.refer_out) },
-        { name: 'รับส่งต่อเข้า (Refer In)', data: trends.map(t => t.refer_in) }
+        { name: 'ส่งต่อ (Refer Out)', data: trends.map(t => t.refer_out) },
+        { name: 'รับไว้รักษา (Refer In)', data: trends.map(t => t.refer_in) }
     ], [trends]);
 
     // Hosp Out Donut Options
@@ -233,9 +233,12 @@ const ReferStatsPage = ({ api_token, external_api_url }: { api_token: string; ex
                             onChange={(e) => setFiscalYear(Number(e.target.value))}
                             style={{ cursor: 'pointer', width: 'auto' }}
                         >
-                            {[2569, 2568, 2567, 2566, 2565].map(year => (
-                                <option key={year} value={year}>ปีงบประมาณ {year}</option>
-                            ))}
+                            {[...Array(5)].map((_, i) => {
+                                const year = currentBE - i;
+                                return (
+                                    <option key={year} value={year}>{year}</option>
+                                );
+                            })}
                         </Form.Select>
                     </div>
 
@@ -268,7 +271,7 @@ const ReferStatsPage = ({ api_token, external_api_url }: { api_token: string; ex
                                     <IconifyIcon icon="solar:transfer-horizontal-bold" />
                                 </div>
                                 <div>
-                                    <p className="text-muted mb-0 fs-13 fw-medium">เคสรับ-ส่งต่อรวม</p>
+                                    <p className="text-muted mb-0 fs-13 fw-medium">รับ-ส่งต่อรวม</p>
                                     <h3 className="fw-bold mb-0 text-dark">
                                         {loading ? <Spinner animation="border" size="sm" /> : summary.total_refer.toLocaleString()}
                                         <span className="fs-13 fw-normal text-muted ms-1">ราย</span>
@@ -286,7 +289,7 @@ const ReferStatsPage = ({ api_token, external_api_url }: { api_token: string; ex
                                     <IconifyIcon icon="solar:export-bold" />
                                 </div>
                                 <div>
-                                    <p className="text-muted mb-0 fs-13 fw-medium">ส่งตัวออก (Refer Out)</p>
+                                    <p className="text-muted mb-0 fs-13 fw-medium">ส่งต่อ (Refer Out)</p>
                                     <h3 className="fw-bold mb-0 text-dark">
                                         {loading ? <Spinner animation="border" size="sm" /> : summary.total_referout.toLocaleString()}
                                         <span className="fs-13 fw-normal text-muted ms-1">ราย</span>
@@ -304,7 +307,7 @@ const ReferStatsPage = ({ api_token, external_api_url }: { api_token: string; ex
                                     <IconifyIcon icon="solar:import-bold" />
                                 </div>
                                 <div>
-                                    <p className="text-muted mb-0 fs-13 fw-medium">รับส่งต่อเข้า (Refer In)</p>
+                                    <p className="text-muted mb-0 fs-13 fw-medium">รับไว้รักษา (Refer In)</p>
                                     <h3 className="fw-bold mb-0 text-dark">
                                         {loading ? <Spinner animation="border" size="sm" /> : summary.total_referin.toLocaleString()}
                                         <span className="fs-13 fw-normal text-muted ms-1">ราย</span>

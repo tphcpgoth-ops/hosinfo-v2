@@ -85,25 +85,33 @@ const ReferStatsPage = ({ api_token, external_api_url }: { api_token: string; ex
         try {
             setLoading(true);
             const apiUrl = external_api_url || 'http://127.0.0.1:8800';
-            const headers = { Authorization: `Bearer ${api_token}` };
+            const headers = api_token ? { Authorization: `Bearer ${api_token}` } : {};
 
-            const [summaryRes, trendsRes, hospRes, causesRes, triageRes, casesRes] = await Promise.all([
-                axios.get(`${apiUrl}/api/v1/refer/summary?fiscal_year=${year}`, { headers }),
-                axios.get(`${apiUrl}/api/v1/refer/trends?fiscal_year=${year}&mode=${mode}`, { headers }),
-                axios.get(`${apiUrl}/api/v1/refer/hospitals?fiscal_year=${year}`, { headers }),
-                axios.get(`${apiUrl}/api/v1/refer/causes-icd10?fiscal_year=${year}`, { headers }),
-                axios.get(`${apiUrl}/api/v1/refer/triage-levels?fiscal_year=${year}`, { headers }),
-                axios.get(`${apiUrl}/api/v1/refer/referout-list?fiscal_year=${year}`, { headers }),
-            ]);
+            const publicRequests: Promise<any>[] = [
+                axios.get(`${apiUrl}/api/v1/refer/summary?fiscal_year=${year}`),
+                axios.get(`${apiUrl}/api/v1/refer/trends?fiscal_year=${year}&mode=${mode}`),
+                axios.get(`${apiUrl}/api/v1/refer/hospitals?fiscal_year=${year}`),
+                axios.get(`${apiUrl}/api/v1/refer/causes-icd10?fiscal_year=${year}`),
+                axios.get(`${apiUrl}/api/v1/refer/triage-levels?fiscal_year=${year}`),
+            ];
 
-            setSummary(summaryRes.data);
-            setTrends(trendsRes.data.data || []);
-            setHospitalsOut(hospRes.data.refer_out || []);
-            setHospitalsIn(hospRes.data.refer_in || []);
-            setTopICD10(causesRes.data.top_icd10 || []);
-            setReferCauses(causesRes.data.refer_causes || []);
-            setTriageLevels(triageRes.data.triage_levels || []);
-            setReferCases(casesRes.data.data || []);
+            if (auth?.user) {
+                publicRequests.push(axios.get(`${apiUrl}/api/v1/refer/referout-list?fiscal_year=${year}`, { headers }));
+            }
+
+            const results = await Promise.all(publicRequests);
+
+            setSummary(results[0].data);
+            setTrends(results[1].data.data || []);
+            setHospitalsOut(results[2].data.refer_out || []);
+            setHospitalsIn(results[2].data.refer_in || []);
+            setTopICD10(results[3].data.top_icd10 || []);
+            setReferCauses(results[3].data.refer_causes || []);
+            setTriageLevels(results[4].data.triage_levels || []);
+
+            if (auth?.user && results[5]) {
+                setReferCases(results[5].data.data || []);
+            }
             setError(null);
         } catch (err: any) {
             console.error('Refer API Error:', err);

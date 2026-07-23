@@ -40,10 +40,10 @@ const PCCStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                 axios.get(`${apiUrl}/api/v1/pcc/stats-inscl-breakdown?fiscal_year=${year}`, { headers })
             ]);
 
-            setSummaryData(summaryRes.data.data);
-            setInsclData(insclRes.data.data);
-            setDiseasesData(diseasesRes.data.data);
-            setInsclBreakdown(breakdownRes.data);
+            setSummaryData(summaryRes.data?.data || []);
+            setInsclData(insclRes.data?.data || []);
+            setDiseasesData(diseasesRes.data?.data || []);
+            setInsclBreakdown(breakdownRes.data || { patients: [], visits: [] });
             setError(null);
         } catch (err: any) {
             console.error('API Error:', err);
@@ -62,7 +62,7 @@ const PCCStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
             const headers = { Authorization: `Bearer ${api_token}` };
 
             const res = await axios.get(`${apiUrl}/api/v1/pcc/patients?ym=${ym}`, { headers });
-            setPatientsData(res.data.data);
+            setPatientsData(res.data?.data || []);
             
             setActiveTab('patients');
             setTimeout(() => {
@@ -82,6 +82,7 @@ const PCCStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
     }, [fiscalYear]);
 
     const monthNames = ['ต.ค.', 'พ.ย.', 'ธ.ค.', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.'];
+    const monthKeys = ['m10', 'm11', 'm12', 'm01', 'm02', 'm03', 'm04', 'm05', 'm06', 'm07', 'm08', 'm09'];
     const monthNumKeys = ['10', '11', '12', '01', '02', '03', '04', '05', '06', '07', '08', '09'];
 
     const chartOptions: ApexOptions = {
@@ -98,14 +99,14 @@ const PCCStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
         { 
             name: 'จำนวนผู้ป่วย (คน/HN)', 
             data: monthNumKeys.map(k => {
-                const found = summaryData.find(d => d.AM && parseInt(d.AM) === parseInt(k));
+                const found = (summaryData || []).find(d => d.AM && parseInt(d.AM) === parseInt(k));
                 return found ? (found.hn_count || 0) : 0;
             }) 
         },
         { 
             name: 'จำนวนครั้งที่รับบริการ (ครั้ง/VN)', 
             data: monthNumKeys.map(k => {
-                const found = summaryData.find(d => d.AM && parseInt(d.AM) === parseInt(k));
+                const found = (summaryData || []).find(d => d.AM && parseInt(d.AM) === parseInt(k));
                 return found ? (found.total || 0) : 0;
             }) 
         }
@@ -205,8 +206,8 @@ const PCCStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                                 <div className="text-center py-5"><Spinner animation="grow" variant="success" /></div>
                                             ) : (
                                                 <ReactApexChart 
-                                                    options={getPieOptions('สัดส่วนผู้รับบริการแยกตามสิทธิการรักษา (ครั้ง)', insclData.map(i => i.inscl_name || 'ไม่ระบุ'))} 
-                                                    series={insclData.map(i => i.count)} 
+                                                    options={getPieOptions('สัดส่วนผู้รับบริการแยกตามสิทธิการรักษา (ครั้ง)', (insclData || []).map(i => i.inscl_name || 'ไม่ระบุ'))} 
+                                                    series={(insclData || []).map(i => i.count || 0)} 
                                                     type="pie" 
                                                     height={340} 
                                                 />
@@ -232,11 +233,11 @@ const PCCStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {diseasesData.slice(0, 10).map((d, idx) => (
+                                                            {(diseasesData || []).slice(0, 10).map((d, idx) => (
                                                                 <tr key={idx}>
                                                                     <td><code>{d.code}</code></td>
                                                                     <td className="small fw-semibold">{d.name}</td>
-                                                                    <td className="text-end fw-bold text-success">{d.total.toLocaleString()}</td>
+                                                                    <td className="text-end fw-bold text-success">{(d.total || 0).toLocaleString()}</td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>
@@ -266,7 +267,7 @@ const PCCStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                         <tbody>
                                             {loading ? (
                                                 <tr><td colSpan={15} className="text-center py-5"><Spinner animation="border" variant="success" /></td></tr>
-                                            ) : insclBreakdown.patients.map((row, idx) => (
+                                            ) : (insclBreakdown?.patients || []).map((row, idx) => (
                                                 <tr key={idx}>
                                                     <td><code>{row.pttype}</code></td>
                                                     <td className="small fw-semibold">{row.pttypename || 'ไม่ระบุ'}</td>
@@ -284,7 +285,7 @@ const PCCStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                                             </td>
                                                         );
                                                     })}
-                                                    <td className="text-center fw-bold bg-light">{row.total.toLocaleString()}</td>
+                                                    <td className="text-center fw-bold bg-light">{(row.total || 0).toLocaleString()}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -308,7 +309,7 @@ const PCCStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                         <tbody>
                                             {loading ? (
                                                 <tr><td colSpan={15} className="text-center py-5"><Spinner animation="border" variant="success" /></td></tr>
-                                            ) : insclBreakdown.visits.map((row, idx) => (
+                                            ) : (insclBreakdown?.visits || []).map((row, idx) => (
                                                 <tr key={idx}>
                                                     <td><code>{row.pttype}</code></td>
                                                     <td className="small fw-semibold">{row.pttypename || 'ไม่ระบุ'}</td>
@@ -326,7 +327,7 @@ const PCCStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                                             </td>
                                                         );
                                                     })}
-                                                    <td className="text-center fw-bold bg-light">{row.total.toLocaleString()}</td>
+                                                    <td className="text-center fw-bold bg-light">{(row.total || 0).toLocaleString()}</td>
                                                 </tr>
                                             ))}
                                         </tbody>

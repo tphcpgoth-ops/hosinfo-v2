@@ -8,6 +8,7 @@ import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { usePage } from '@inertiajs/react';
 import WardDetailPage from './WardDetailPage';
+import DailyActivityReport from './components/DailyActivityReport';
 
 const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, external_api_url: string }) => {
     // Read the ward query parameter from the URL
@@ -216,6 +217,12 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                 <Nav.Link eventKey="disease" className="py-2">
                                     <IconifyIcon icon="solar:sort-from-bottom-to-top-line-duotone" className="me-2 fs-18 align-middle" />
                                     20 อันดับโรค
+                                </Nav.Link>
+                            </Nav.Item>
+                            <Nav.Item>
+                                <Nav.Link eventKey="daily-report" className="py-2">
+                                    <IconifyIcon icon="solar:clipboard-text-bold-duotone" className="me-2 fs-18 align-middle" />
+                                    บันทึกกิจกรรมประจำวัน (ตึกผู้ป่วย)
                                 </Nav.Link>
                             </Nav.Item>
                             {auth?.user && (
@@ -486,6 +493,14 @@ const IpdStatsPage = ({ api_token, external_api_url }: { api_token: string, exte
                                         </tbody>
                                     </Table>
                                 </div>
+                            </Tab.Pane>
+
+                            <Tab.Pane eventKey="daily-report">
+                                <DailyActivityReport 
+                                    api_token={api_token} 
+                                    external_api_url={external_api_url} 
+                                    wards={wards || []} 
+                                />
                             </Tab.Pane>
 
                             {auth?.user && (

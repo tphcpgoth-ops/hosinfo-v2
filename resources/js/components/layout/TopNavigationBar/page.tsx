@@ -28,6 +28,14 @@ const TopNavigationBarPage = () => {
                     >
                         MIS 4.0
                     </a>
+                    <a 
+                        href="http://prism.tphcp.go.th" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="btn btn-outline-success btn-sm ms-1"
+                    >
+                        PRISM
+                    </a>
                     {/* <div
                         className="topbar-search text-muted d-none d-xl-flex gap-2 align-items-center"
                         data-bs-toggle="modal"

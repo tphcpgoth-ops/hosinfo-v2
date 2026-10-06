@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import MainLayout from '@/layouts/MainLayout';
 import { Link, useForm } from '@inertiajs/react';
-import { Button, Card, CardBody, CardHeader, CardTitle, Col, Row, Table, Alert, Spinner } from 'react-bootstrap';
+import { Button, Card, CardBody, CardHeader, CardTitle, Col, Row, Table, Alert, Spinner, Badge } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import Select from 'react-select';
+import { CraftFilter } from '../components/CraftFilterTypes';
+import CraftFilterBuilder from '../components/CraftFilterBuilder';
 
 interface Department {
     id: number;
@@ -25,6 +27,7 @@ interface Report {
     default_date_range?: string | null;
     has_department?: number;
     has_spclty?: number;
+    craft_filters?: CraftFilter[] | null;
 }
 
 interface EditReportProps {
@@ -41,6 +44,9 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
         })),
     ];
 
+    const initialCraftFilters: CraftFilter[] =
+        report.craft_filters && Array.isArray(report.craft_filters) ? report.craft_filters : [];
+
     const { data, setData, put, processing, errors } = useForm({
         rep_code: report.rep_code || '',
         rep_name: report.rep_name || '',
@@ -52,8 +58,11 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
         default_date_range: report.default_date_range || 'today',
         has_department: report.has_department !== undefined ? report.has_department : 0,
         has_spclty: report.has_spclty !== undefined ? report.has_spclty : 0,
+        craft_filters: initialCraftFilters,
     });
 
+    const sqlTextareaRef = useRef<HTMLTextAreaElement>(null);
+    const [testCraftParams, setTestCraftParams] = useState<Record<string, string>>({});
     const [testing, setTesting] = useState(false);
     const [previewData, setPreviewData] = useState<{
         columns: string[];
@@ -61,6 +70,38 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
         total: number;
     } | null>(null);
     const [testError, setTestError] = useState<string | null>(null);
+
+    // ซิงค์ค่า default ของ craft_filters ไปยัง testCraftParams
+    useEffect(() => {
+        setTestCraftParams((prev) => {
+            const next = { ...prev };
+            data.craft_filters.forEach((filter) => {
+                if (next[filter.name] === undefined) {
+                    next[filter.name] = filter.default_value || (filter.options[0]?.value ?? '');
+                }
+            });
+            return next;
+        });
+    }, [data.craft_filters]);
+
+    // ฟังก์ชันแทรกแท็กตัวแปรลงในตำแหน่งเคอร์เซอร์ของ SQL textarea
+    const insertTag = (tagName: string) => {
+        const tag = tagName.startsWith(':') ? tagName : `{{${tagName}}}`;
+        if (!sqlTextareaRef.current) {
+            setData('rep_sql_query', (data.rep_sql_query ? data.rep_sql_query + ' ' : '') + tag);
+            return;
+        }
+        const textarea = sqlTextareaRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const currentVal = data.rep_sql_query;
+        const newVal = currentVal.substring(0, start) + tag + currentVal.substring(end);
+        setData('rep_sql_query', newVal);
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + tag.length, start + tag.length);
+        }, 0);
+    };
 
     const handleTestQuery = async () => {
         if (!data.rep_sql_query.trim()) {
@@ -76,6 +117,8 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
             const todayStr = new Date().toISOString().split('T')[0];
             const response = await axios.post('/end-user-reports/test-query', {
                 query: data.rep_sql_query,
+                craft_filters: data.craft_filters,
+                craft_params: testCraftParams,
                 params: {
                     start_date: todayStr,
                     end_date: todayStr,
@@ -132,12 +175,13 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
                 <Col lg={12}>
                     <form onSubmit={submit}>
                         <Row className="g-3">
-                            <Col lg={5}>
-                                <Card className="shadow-sm border-0 h-100">
+                            <Col lg={5} className="d-flex flex-column gap-3">
+                                {/* การ์ดข้อมูลทั่วไป */}
+                                <Card className="shadow-sm border-0">
                                     <CardHeader className="bg-light-subtle py-3 border-bottom border-dashed">
                                         <CardTitle as="h5" className="mb-0 d-flex align-items-center">
-                                            <IconifyIcon icon="tabler:edit" className="me-2 text-warning fs-18" />
-                                            แก้ไขข้อมูลทั่วไปของรายงาน
+                                            <IconifyIcon icon="tabler:file-info" className="me-2 text-primary fs-18" />
+                                            ข้อมูลทั่วไปของรายงาน
                                         </CardTitle>
                                     </CardHeader>
                                     <CardBody>
@@ -185,7 +229,7 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
                                             <label className="form-label">คำอธิบาย / นิยาม / เงื่อนไขรายงาน</label>
                                             <textarea
                                                 className={`form-control ${errors.rep_description ? 'is-invalid' : ''}`}
-                                                rows={4}
+                                                rows={3}
                                                 value={data.rep_description}
                                                 onChange={(e) => setData('rep_description', e.target.value)}
                                                 placeholder="อธิบายเงื่อนไขการดึงข้อมูล หรือข้อแนะนำในการอ่านรายงาน..."
@@ -206,7 +250,7 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
                                                 />
                                                 <label className="form-check-label" htmlFor="is_active_switch">
                                                     {data.is_active === 1 ? (
-                                                        <span className="badge bg-success-subtle text-success">เปิดใช้งาน</span>
+                                                        <span className="badge bg-success-subtle text-success">เปิดใช้งานทันที</span>
                                                     ) : (
                                                         <span className="badge bg-danger-subtle text-danger">ปิดใช้งานชั่วคราว</span>
                                                     )}
@@ -214,10 +258,10 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
                                             </div>
                                         </div>
 
-                                        <div className="mb-3 pt-3 border-top border-dashed">
+                                        <div className="mb-2 pt-3 border-top border-dashed">
                                             <label className="form-label d-block text-primary fw-bold mb-2">
                                                 <IconifyIcon icon="tabler:filter" className="me-1 fs-18" />
-                                                ตั้งค่าตัวกรองข้อมูลสำหรับรายงานนี้ (Parameters)
+                                                ตั้งค่าตัวกรองข้อมูลมาตรฐาน (Standard Parameters)
                                             </label>
 
                                             {/* Date Range Switch */}
@@ -234,17 +278,6 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
                                                     เปิดใช้งานช่วงวันที่ (<code className="text-danger">:start_date</code> และ <code className="text-danger">:end_date</code>)
                                                 </label>
                                             </div>
-                                            {data.has_date_range === 1 && (
-                                                <div className="bg-primary-subtle p-3 rounded mb-3 border border-primary-subtle fs-13">
-                                                    <div className="d-flex align-items-center gap-1 text-primary fw-bold mb-1">
-                                                        <IconifyIcon icon="tabler:info-circle" className="fs-16" />
-                                                        ตัวอย่าง SQL ช่วงวันที่:
-                                                    </div>
-                                                    <pre className="bg-dark text-light p-2 rounded mb-0 font-monospace fs-12">
-{`WHERE vstdate BETWEEN :start_date AND :end_date`}
-                                                    </pre>
-                                                </div>
-                                            )}
 
                                             {/* Department Switch */}
                                             <div className="form-check form-switch fs-14 mb-2">
@@ -260,17 +293,6 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
                                                     เปิดใช้งานเลือกห้องตรวจ (<code className="text-danger">:department</code> จากตาราง kskdepartment)
                                                 </label>
                                             </div>
-                                            {data.has_department === 1 && (
-                                                <div className="bg-info-subtle p-3 rounded mb-3 border border-info-subtle fs-13">
-                                                    <div className="d-flex align-items-center gap-1 text-info-emphasis fw-bold mb-1">
-                                                        <IconifyIcon icon="tabler:building-hospital" className="fs-16" />
-                                                        ตัวอย่าง SQL เลือกห้องตรวจ:
-                                                    </div>
-                                                    <pre className="bg-dark text-light p-2 rounded mb-0 font-monospace fs-12">
-{`WHERE (depcode = :department OR :department = '')`}
-                                                    </pre>
-                                                </div>
-                                            )}
 
                                             {/* Specialty Switch */}
                                             <div className="form-check form-switch fs-14 mb-2">
@@ -286,30 +308,37 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
                                                     เปิดใช้งานเลือกแผนก/สาขาการรักษา (<code className="text-danger">:spclty</code> จากตาราง spclty)
                                                 </label>
                                             </div>
-                                            {data.has_spclty === 1 && (
-                                                <div className="bg-success-subtle p-3 rounded mb-2 border border-success-subtle fs-13">
-                                                    <div className="d-flex align-items-center gap-1 text-success fw-bold mb-1">
-                                                        <IconifyIcon icon="tabler:stethoscope" className="fs-16" />
-                                                        ตัวอย่าง SQL เลือกแผนก/สาขา:
-                                                    </div>
-                                                    <pre className="bg-dark text-light p-2 rounded mb-0 font-monospace fs-12">
-{`WHERE (spclty = :spclty OR :spclty = '')`}
-                                                    </pre>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                                            <Link href="/end-user-reports" className="btn btn-light">
-                                                ยกเลิก
-                                            </Link>
-                                            <Button type="submit" variant="primary" disabled={processing || testing}>
-                                                <IconifyIcon icon="tabler:device-floppy" className="me-1" />
-                                                บันทึกการแก้ไข
-                                            </Button>
                                         </div>
                                     </CardBody>
                                 </Card>
+
+                                {/* การ์ดตัวกรองปรับแต่ง SQL (Craft Query Filters) */}
+                                <Card className="shadow-sm border-0">
+                                    <CardHeader className="bg-light-subtle py-3 border-bottom border-dashed">
+                                        <CardTitle as="h5" className="mb-0 d-flex align-items-center">
+                                            <IconifyIcon icon="tabler:adjustments-horizontal" className="me-2 text-primary fs-18" />
+                                            ตัวกรองปรับแต่ง SQL (Craft Query Filters)
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardBody>
+                                        <CraftFilterBuilder
+                                            filters={data.craft_filters}
+                                            onChange={(updated) => setData('craft_filters', updated)}
+                                            onInsertTag={insertTag}
+                                        />
+                                    </CardBody>
+                                </Card>
+
+                                {/* ปุ่มบันทึกและยกเลิก */}
+                                <div className="d-flex justify-content-end gap-2 pt-2">
+                                    <Link href="/end-user-reports" className="btn btn-light shadow-sm">
+                                        ยกเลิก
+                                    </Link>
+                                    <Button type="submit" variant="primary" disabled={processing || testing} className="shadow-sm">
+                                        <IconifyIcon icon="tabler:device-floppy" className="me-1" />
+                                        บันทึกการแก้ไขรายงาน
+                                    </Button>
+                                </div>
                             </Col>
 
                             <Col lg={7}>
@@ -338,28 +367,153 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
                                         </Button>
                                     </CardHeader>
                                     <CardBody className="d-flex flex-column">
+                                        {/* แถบแท็กตัวแปรสำหรับคลิกแทรกลงในคำสั่ง SQL ได้ทันที */}
+                                        <div className="mb-2 p-2 bg-light-subtle border rounded d-flex flex-wrap align-items-center gap-1">
+                                            <span className="fs-11 text-muted fw-bold me-1">
+                                                <IconifyIcon icon="tabler:cursor-text" className="me-1" /> คลิกเพื่อแทรกแท็ก:
+                                            </span>
+                                            {data.has_date_range === 1 && (
+                                                <>
+                                                    <Button
+                                                        variant="outline-secondary"
+                                                        size="sm"
+                                                        className="btn-xs py-0 px-2 font-monospace fs-11"
+                                                        onClick={() => insertTag(':start_date')}
+                                                    >
+                                                        + :start_date
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline-secondary"
+                                                        size="sm"
+                                                        className="btn-xs py-0 px-2 font-monospace fs-11"
+                                                        onClick={() => insertTag(':end_date')}
+                                                    >
+                                                        + :end_date
+                                                    </Button>
+                                                </>
+                                            )}
+                                            {data.has_department === 1 && (
+                                                <Button
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    className="btn-xs py-0 px-2 font-monospace fs-11"
+                                                    onClick={() => insertTag(':department')}
+                                                >
+                                                    + :department
+                                                </Button>
+                                            )}
+                                            {data.has_spclty === 1 && (
+                                                <Button
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    className="btn-xs py-0 px-2 font-monospace fs-11"
+                                                    onClick={() => insertTag(':spclty')}
+                                                >
+                                                    + :spclty
+                                                </Button>
+                                            )}
+                                            {data.craft_filters.map((filter) => (
+                                                <Button
+                                                    key={filter.id}
+                                                    variant="outline-warning"
+                                                    size="sm"
+                                                    className="btn-xs py-0 px-2 font-monospace fs-11 text-dark bg-warning-subtle border-warning"
+                                                    onClick={() => insertTag(filter.name)}
+                                                    title={`คลิกเพื่อแทรก {{${filter.name}}}`}
+                                                >
+                                                    + {`{{${filter.name}}}`}
+                                                </Button>
+                                            ))}
+                                        </div>
+
                                         <div className="mb-3">
                                             <label className="form-label d-flex justify-content-between">
                                                 <span>
                                                     SQL Query (<code className="text-primary">SELECT ... ONLY</code>) <span className="text-danger">*</span>
                                                 </span>
-                                                <span className="text-muted small">ตัวอย่าง: SELECT hn, vn, vstdate FROM vn_stat LIMIT 20</span>
+                                                <span className="text-muted small">ใช้แท็ก {`{{variable}}`} สำหรับแทนที่ชิ้นส่วนคำสั่ง</span>
                                             </label>
                                             <textarea
+                                                ref={sqlTextareaRef}
                                                 className={`form-control font-monospace fs-13 ${errors.rep_sql_query ? 'is-invalid' : ''}`}
-                                                rows={10}
+                                                rows={12}
                                                 style={{ backgroundColor: '#2b303b', color: '#c0c5ce' }}
                                                 value={data.rep_sql_query}
                                                 onChange={(e) => setData('rep_sql_query', e.target.value)}
-                                                placeholder={`SELECT \n  vstdate,\n  hn,\n  vn\nFROM vn_stat\nWHERE vstdate = CURDATE()\nORDER BY vstdate DESC\nLIMIT 100`}
+                                                placeholder={`SELECT \n  vstdate,\n  hn,\n  vn\nFROM vn_stat\nWHERE vstdate BETWEEN :start_date AND :end_date\n  {{opdipd}}\nORDER BY vstdate DESC\nLIMIT 100`}
                                                 required
                                             />
                                             {errors.rep_sql_query && <div className="invalid-feedback d-block mt-1">{errors.rep_sql_query}</div>}
                                             <div className="form-text mt-1 text-muted">
                                                 <IconifyIcon icon="tabler:shield-check" className="text-success me-1" />
-                                                ระบบป้องกันความปลอดภัยอนุญาตเฉพาะคำสั่ง <strong>SELECT</strong> เท่านั้น ไม่สามารถใช้คำสั่ง INSERT, UPDATE, DELETE ได้
+                                                ระบบป้องกันความปลอดภัยอนุญาตเฉพาะคำสั่ง <strong>SELECT</strong> เท่านั้น ไม่อนุญาตคำสั่ง INSERT, UPDATE, DELETE
                                             </div>
                                         </div>
+
+                                        {/* แผงทดสอบจำลองค่าตัวแปร Craft Filters ก่อนรัน Preview */}
+                                        {data.craft_filters.length > 0 && (
+                                            <div className="p-3 bg-light rounded border mb-3">
+                                                <div className="d-flex align-items-center gap-1 mb-2 text-dark fw-bold fs-13">
+                                                    <IconifyIcon icon="tabler:player-play" className="text-info fs-16" />
+                                                    จำลองตัวเลือกสำหรับทดสอบ Query (Craft Filters Preview):
+                                                </div>
+                                                <Row className="g-2">
+                                                    {data.craft_filters.map((filter) => (
+                                                        <Col key={filter.id} xs={12} md={6}>
+                                                            <div className="border rounded p-2 bg-white">
+                                                                <label className="form-label fs-12 fw-semibold text-secondary mb-1 d-flex justify-content-between">
+                                                                    <span>{filter.label}</span>
+                                                                    <Badge bg="dark" className="font-monospace fs-10">
+                                                                        {`{{${filter.name}}}`}
+                                                                    </Badge>
+                                                                </label>
+                                                                {filter.type === 'radio' ? (
+                                                                    <div className="d-flex flex-wrap gap-2">
+                                                                        {filter.options.map((opt, oIdx) => (
+                                                                            <div key={oIdx} className="form-check form-check-inline fs-12 mb-0">
+                                                                                <input
+                                                                                    className="form-check-input"
+                                                                                    type="radio"
+                                                                                    name={`test_${filter.name}`}
+                                                                                    id={`test_${filter.name}_${oIdx}`}
+                                                                                    checked={(testCraftParams[filter.name] ?? filter.default_value) === opt.value}
+                                                                                    onChange={() =>
+                                                                                        setTestCraftParams((prev) => ({
+                                                                                            ...prev,
+                                                                                            [filter.name]: opt.value,
+                                                                                        }))
+                                                                                    }
+                                                                                />
+                                                                                <label className="form-check-label" htmlFor={`test_${filter.name}_${oIdx}`}>
+                                                                                    {opt.label}
+                                                                                </label>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                ) : (
+                                                                    <select
+                                                                        className="form-select form-select-sm fs-12"
+                                                                        value={testCraftParams[filter.name] ?? filter.default_value}
+                                                                        onChange={(e) =>
+                                                                            setTestCraftParams((prev) => ({
+                                                                                ...prev,
+                                                                                [filter.name]: e.target.value,
+                                                                            }))
+                                                                        }
+                                                                    >
+                                                                        {filter.options.map((opt, oIdx) => (
+                                                                            <option key={oIdx} value={opt.value}>
+                                                                                {opt.label}
+                                                                            </option>
+                                                                        ))}
+                                                                    </select>
+                                                                )}
+                                                            </div>
+                                                        </Col>
+                                                    ))}
+                                                </Row>
+                                            </div>
+                                        )}
 
                                         {testError && (
                                             <Alert variant="danger" className="mb-3">
@@ -374,7 +528,7 @@ const EditReportPage = ({ report, departments = [] }: EditReportProps) => {
                                         )}
 
                                         {previewData && (
-                                            <div className="mt-3 border rounded p-3 bg-light-subtle overflow-hidden">
+                                            <div className="mt-2 border rounded p-3 bg-light-subtle overflow-hidden">
                                                 <div className="d-flex justify-content-between align-items-center mb-2">
                                                     <h6 className="mb-0 text-success d-flex align-items-center">
                                                         <IconifyIcon icon="tabler:circle-check-filled" className="me-1 fs-18" />

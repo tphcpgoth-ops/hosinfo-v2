@@ -77,8 +77,15 @@ class ReportController extends Controller
             'has_spclty' => 'nullable|integer|in:0,1',
         ]);
 
+        $craftFilters = $request->craft_filters;
+        if (is_string($craftFilters)) {
+            $craftFilters = json_decode($craftFilters, true);
+        }
+
         $sql = trim($request->rep_sql_query);
-        if (!$this->isReadOnlyQuery($sql)) {
+        // ตรวจสอบเบื้องต้นสำหรับ SQL ดิบหรือหลัง craft
+        $testCrafted = $this->craftSqlQuery($sql, $craftFilters, []);
+        if (!$this->isReadOnlyQuery($sql) || !$this->isReadOnlyQuery($testCrafted)) {
             return back()->withErrors(['rep_sql_query' => 'อนุญาตให้ใช้เฉพาะคำสั่ง SELECT (Read-only) เท่านั้น เพื่อความปลอดภัยของฐานข้อมูล HOSxP'])->withInput();
         }
 
@@ -93,6 +100,7 @@ class ReportController extends Controller
             'default_date_range' => $request->default_date_range ?: null,
             'has_department' => $request->has('has_department') ? $request->has_department : 0,
             'has_spclty' => $request->has('has_spclty') ? $request->has_spclty : 0,
+            'craft_filters' => $craftFilters ?: null,
         ]);
 
         return redirect()->route('end-user-reports.index')->with('success', 'เพิ่มรายงาน End User ใหม่สำเร็จ');
@@ -139,8 +147,14 @@ class ReportController extends Controller
             'has_spclty' => 'nullable|integer|in:0,1',
         ]);
 
+        $craftFilters = $request->has('craft_filters') ? $request->craft_filters : $report->craft_filters;
+        if (is_string($craftFilters)) {
+            $craftFilters = json_decode($craftFilters, true);
+        }
+
         $sql = trim($request->rep_sql_query);
-        if (!$this->isReadOnlyQuery($sql)) {
+        $testCrafted = $this->craftSqlQuery($sql, $craftFilters, []);
+        if (!$this->isReadOnlyQuery($sql) || !$this->isReadOnlyQuery($testCrafted)) {
             return back()->withErrors(['rep_sql_query' => 'อนุญาตให้ใช้เฉพาะคำสั่ง SELECT (Read-only) เท่านั้น เพื่อความปลอดภัยของฐานข้อมูล HOSxP'])->withInput();
         }
 
@@ -154,6 +168,7 @@ class ReportController extends Controller
             'default_date_range' => $request->default_date_range ?: null,
             'has_department' => $request->has('has_department') ? $request->has_department : $report->has_department,
             'has_spclty' => $request->has('has_spclty') ? $request->has_spclty : $report->has_spclty,
+            'craft_filters' => $craftFilters ?: null,
         ]);
 
         return redirect()->route('end-user-reports.index')->with('success', 'แก้ไขข้อมูลรายงานสำเร็จ');
@@ -207,7 +222,14 @@ class ReportController extends Controller
             ], 403);
         }
 
-        if (!$this->isReadOnlyQuery($report->rep_sql_query)) {
+        $craftParams = $request->input('craft_params', []);
+        if (is_string($craftParams)) {
+            $craftParams = json_decode($craftParams, true) ?? [];
+        }
+
+        $craftedSql = $this->craftSqlQuery($report->rep_sql_query, $report->craft_filters, $craftParams);
+
+        if (!$this->isReadOnlyQuery($craftedSql)) {
             return response()->json([
                 'success' => false,
                 'message' => 'ไม่อนุญาตให้ประมวลผลคำสั่งที่ไม่อยู่ในเงื่อนไข Read-Only'
@@ -237,7 +259,7 @@ class ReportController extends Controller
                 ->connectTimeout(3)
                 ->timeout(120)
                 ->post("{$apiUrl}/api/v1/report/execute", [
-                    'query' => $report->rep_sql_query,
+                    'query' => $craftedSql,
                     'params' => (object)$params
                 ]);
 
@@ -272,7 +294,18 @@ class ReportController extends Controller
             return response()->json(['success' => false, 'message' => 'กรุณาระบุคำสั่ง SQL Query ก่อนทำการทดสอบ'], 400);
         }
 
-        if (!$this->isReadOnlyQuery($sql)) {
+        $craftFilters = $request->input('craft_filters', []);
+        if (is_string($craftFilters)) {
+            $craftFilters = json_decode($craftFilters, true) ?? [];
+        }
+        $craftParams = $request->input('craft_params', []);
+        if (is_string($craftParams)) {
+            $craftParams = json_decode($craftParams, true) ?? [];
+        }
+
+        $craftedSql = $this->craftSqlQuery($sql, $craftFilters, $craftParams);
+
+        if (!$this->isReadOnlyQuery($craftedSql)) {
             return response()->json([
                 'success' => false,
                 'message' => 'อนุญาตให้ใช้เฉพาะคำสั่ง SELECT (Read-only) เท่านั้น ไม่อนุญาตคำสั่ง INSERT, UPDATE, DELETE, DROP หรือคำสั่งแก้ไขโครงสร้าง'
@@ -302,7 +335,7 @@ class ReportController extends Controller
                 ->connectTimeout(3)
                 ->timeout(120)
                 ->post("{$apiUrl}/api/v1/report/execute", [
-                    'query' => $sql,
+                    'query' => $craftedSql,
                     'params' => (object)$params
                 ]);
 
@@ -357,6 +390,66 @@ class ReportController extends Controller
                 'message' => 'ไม่สามารถเชื่อมต่อ HOSxP API ฝั่ง Backend เพื่อดึงข้อมูล Master Filters ได้: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * ประกอบคำสั่ง SQL จากโครงสร้าง Craft Filters และค่าที่ผู้ใช้เลือก
+     */
+    private function craftSqlQuery(string $rawSql, $craftFilters, array $userSelections): string
+    {
+        if (is_string($craftFilters)) {
+            $craftFilters = json_decode($craftFilters, true);
+        }
+
+        if (empty($craftFilters) || !is_array($craftFilters)) {
+            return $rawSql;
+        }
+
+        $craftedSql = $rawSql;
+
+        foreach ($craftFilters as $filter) {
+            $varName = trim($filter['name'] ?? '');
+            if (empty($varName)) {
+                continue;
+            }
+
+            // ดึงค่าที่ผู้ใช้ส่งมา หรือใช้ default_value
+            $selectedValue = $userSelections[$varName] ?? ($filter['default_value'] ?? '');
+
+            // ค้นหา option ที่ตรงกับค่าที่เลือก
+            $matchedOption = null;
+            if (!empty($filter['options']) && is_array($filter['options'])) {
+                foreach ($filter['options'] as $opt) {
+                    if ((string)($opt['value'] ?? '') === (string)$selectedValue) {
+                        $matchedOption = $opt;
+                        break;
+                    }
+                }
+                // หากไม่พบ ให้ fallback ไปที่ option ที่มี is_default หรือ option แรก
+                if (!$matchedOption && count($filter['options']) > 0) {
+                    foreach ($filter['options'] as $opt) {
+                        if (!empty($opt['is_default'])) {
+                            $matchedOption = $opt;
+                            break;
+                        }
+                    }
+                    if (!$matchedOption) {
+                        $matchedOption = $filter['options'][0];
+                    }
+                }
+            }
+
+            $snippet = $matchedOption['sql'] ?? '';
+
+            // แทนที่แท็กรูปแบบ {{varName}} และ {varName} ในคำสั่ง SQL
+            $searchTags = [
+                '{{' . $varName . '}}',
+                '{' . $varName . '}',
+            ];
+            $craftedSql = str_replace($searchTags, $snippet, $craftedSql);
+        }
+
+        return $craftedSql;
     }
 
     /**

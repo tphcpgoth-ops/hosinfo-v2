@@ -3,12 +3,12 @@ import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import MainLayout from '@/layouts/MainLayout';
 import { Link } from '@inertiajs/react';
-import { Button, Card, CardBody, CardHeader, Col, Row, Alert } from 'react-bootstrap';
+import { Button, Card, CardBody, CardHeader, Col, Row, Alert, Badge } from 'react-bootstrap';
 import { Grid } from 'gridjs-react';
 import { html } from 'gridjs';
-import * as XLSX from 'xlsx';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import { CraftFilter } from '../components/CraftFilterTypes';
 
 interface Department {
     id: number;
@@ -27,6 +27,7 @@ interface Report {
     default_date_range?: string | null;
     has_department?: number;
     has_spclty?: number;
+    craft_filters?: CraftFilter[] | null;
     updated_at: string;
     department?: Department;
 }
@@ -42,6 +43,17 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
     const [selectedDepcode, setSelectedDepcode] = useState<string>('');
     const [selectedSpclty, setSelectedSpclty] = useState<string>('');
 
+    const craftFilters: CraftFilter[] =
+        report.craft_filters && Array.isArray(report.craft_filters) ? report.craft_filters : [];
+
+    const [craftParams, setCraftParams] = useState<Record<string, string>>(() => {
+        const initial: Record<string, string> = {};
+        craftFilters.forEach((filter) => {
+            initial[filter.name] = filter.default_value || (filter.options[0]?.value ?? '');
+        });
+        return initial;
+    });
+
     const [kskDepartments, setKskDepartments] = useState<Array<{ depcode: string; department: string }>>([]);
     const [spclties, setSpclties] = useState<Array<{ spclty: string; name: string }>>([]);
     const [loadingFilters, setLoadingFilters] = useState<boolean>(false);
@@ -56,7 +68,8 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
     const hasDateRange = report.has_date_range === 1 || report.rep_sql_query.includes(':start_date') || report.rep_sql_query.includes(':end_date');
     const hasDepartment = report.has_department === 1 || report.rep_sql_query.includes(':department');
     const hasSpclty = report.has_spclty === 1 || report.rep_sql_query.includes(':spclty');
-    const hasAnyFilter = hasDateRange || hasDepartment || hasSpclty;
+    const hasCraftFilters = craftFilters.length > 0;
+    const hasAnyFilter = hasDateRange || hasDepartment || hasSpclty || hasCraftFilters;
 
     useEffect(() => {
         const loadMasterFilters = async () => {
@@ -94,6 +107,9 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
             if (hasSpclty) {
                 payload.spclty = selectedSpclty;
             }
+            if (hasCraftFilters) {
+                payload.craft_params = craftParams;
+            }
             const res = await axios.post(`/end-user-reports/${report.id}/execute`, payload);
             if (res.data.success) {
                 setColumns(res.data.columns || []);
@@ -124,12 +140,59 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
         }
 
         try {
-            const worksheet = XLSX.utils.json_to_sheet(results);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'ReportData');
+            const headerRow = columns
+                .map((c) => `<th style="background-color:#f0f2f5; font-weight:bold; border:1px solid #ddd; padding:8px;">${c}</th>`)
+                .join('');
+            const bodyRows = results
+                .map((row) => {
+                    const cells = columns
+                        .map((col) => {
+                            const val = row[col] !== null && row[col] !== undefined ? String(row[col]) : '';
+                            return `<td style="border:1px solid #ddd; padding:6px;">${val.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>`;
+                        })
+                        .join('');
+                    return `<tr>${cells}</tr>`;
+                })
+                .join('');
 
-            const fileName = `${report.rep_code ? report.rep_code + '_' : ''}${report.rep_name.replace(/[/\\?%*:|"<>]/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-            XLSX.writeFile(workbook, fileName);
+            const excelTemplate = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <!--[if gte mso 9]>
+                    <xml>
+                        <x:ExcelWorkbook>
+                            <x:ExcelWorksheets>
+                                <x:ExcelWorksheet>
+                                    <x:Name>ReportData</x:Name>
+                                    <x:WorksheetOptions>
+                                        <x:DisplayGridlines/>
+                                    </x:WorksheetOptions>
+                                </x:ExcelWorksheet>
+                            </x:ExcelWorksheets>
+                        </x:ExcelWorkbook>
+                    </xml>
+                    <![endif]-->
+                    <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">
+                </head>
+                <body>
+                    <table>
+                        <thead><tr>${headerRow}</tr></thead>
+                        <tbody>${bodyRows}</tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob(['\uFEFF' + excelTemplate], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const fileName = `${report.rep_code ? report.rep_code + '_' : ''}${report.rep_name.replace(/[/\\?%*:|"<>]/g, '_')}_${new Date().toISOString().slice(0, 10)}.xls`;
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
 
             Swal.fire({
                 title: 'ส่งออกสำเร็จ!',
@@ -150,8 +213,16 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
         }
 
         try {
-            const worksheet = XLSX.utils.json_to_sheet(results);
-            const csvData = XLSX.utils.sheet_to_csv(worksheet);
+            const header = columns.map((c) => `"${c.replace(/"/g, '""')}"`).join(',');
+            const rows = results.map((row) =>
+                columns
+                    .map((col) => {
+                        const val = row[col] !== null && row[col] !== undefined ? String(row[col]) : '';
+                        return `"${val.replace(/"/g, '""')}"`;
+                    })
+                    .join(',')
+            );
+            const csvData = [header, ...rows].join('\r\n');
             const blob = new Blob(['\uFEFF' + csvData], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -212,7 +283,7 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
                             className="d-inline-flex align-items-center gap-1 shadow-sm"
                         >
                             <IconifyIcon icon="tabler:file-spreadsheet" className="fs-16" />
-                            ส่งออก Excel (.xlsx)
+                            ส่งออก Excel (.xls)
                         </Button>
                         <Button
                             variant="outline-success"
@@ -237,6 +308,7 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
                                 <span className="fw-bold fs-15 text-dark">เงื่อนไขและตัวกรองรายงาน:</span>
                             </Col>
 
+                            {/* Standard Filters: ช่วงวันที่ */}
                             {hasDateRange && (
                                 <>
                                     <Col xs={12} sm={6} md={3}>
@@ -264,6 +336,7 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
                                 </>
                             )}
 
+                            {/* Standard Filters: ห้องตรวจ */}
                             {hasDepartment && (
                                 <Col xs={12} sm={6} md={3}>
                                     <div className="input-group input-group-sm shadow-sm">
@@ -284,6 +357,7 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
                                 </Col>
                             )}
 
+                            {/* Standard Filters: แผนก/สาขา */}
                             {hasSpclty && (
                                 <Col xs={12} sm={6} md={3}>
                                     <div className="input-group input-group-sm shadow-sm">
@@ -303,6 +377,70 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
                                     </div>
                                 </Col>
                             )}
+
+                            {/* Craft Query Filters: ตัวกรองแบบไดนามิก (Radio / Select) */}
+                            {craftFilters.map((filter) => (
+                                <React.Fragment key={filter.id}>
+                                    {filter.type === 'radio' ? (
+                                        <Col xs={12} sm={6} md="auto">
+                                            <div className="d-flex align-items-center gap-1 border rounded p-1 px-2 bg-light shadow-sm">
+                                                <span className="fs-12 fw-semibold text-secondary me-1 text-nowrap">
+                                                    {filter.label}:
+                                                </span>
+                                                <div className="btn-group btn-group-sm" role="group">
+                                                    {filter.options.map((opt, oIdx) => {
+                                                        const isSelected =
+                                                            (craftParams[filter.name] ?? filter.default_value) === opt.value;
+                                                        return (
+                                                            <button
+                                                                key={oIdx}
+                                                                type="button"
+                                                                className={`btn btn-sm py-1 px-2 fs-12 ${
+                                                                    isSelected
+                                                                        ? 'btn-primary text-white fw-bold shadow-sm'
+                                                                        : 'btn-outline-secondary bg-white'
+                                                                }`}
+                                                                onClick={() =>
+                                                                    setCraftParams((prev) => ({
+                                                                        ...prev,
+                                                                        [filter.name]: opt.value,
+                                                                    }))
+                                                                }
+                                                            >
+                                                                {opt.label}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </Col>
+                                    ) : (
+                                        <Col xs={12} sm={6} md={3}>
+                                            <div className="input-group input-group-sm shadow-sm">
+                                                <span className="input-group-text bg-light fw-medium text-nowrap">
+                                                    {filter.label}
+                                                </span>
+                                                <select
+                                                    className="form-select fs-13"
+                                                    value={craftParams[filter.name] ?? filter.default_value}
+                                                    onChange={(e) =>
+                                                        setCraftParams((prev) => ({
+                                                            ...prev,
+                                                            [filter.name]: e.target.value,
+                                                        }))
+                                                    }
+                                                >
+                                                    {filter.options.map((opt, oIdx) => (
+                                                        <option key={oIdx} value={opt.value}>
+                                                            {opt.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </Col>
+                                    )}
+                                </React.Fragment>
+                            ))}
 
                             <Col xs={12} md="auto" className="ms-auto">
                                 <Button
@@ -336,7 +474,7 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
                         <CardBody className="py-3">
                             <Row className="align-items-center">
                                 <Col lg={8}>
-                                    <div className="d-flex align-items-center gap-2 mb-1">
+                                    <div className="d-flex align-items-center flex-wrap gap-2 mb-1">
                                         {report.rep_code && <span className="badge bg-primary fs-12 px-2 py-1">{report.rep_code}</span>}
                                         <span className="badge bg-info-subtle text-info fs-12 px-2 py-1 border border-info-subtle">
                                             หน่วยงานที่ขอ: {report.department?.dp_name || 'ทั่วไป / ทุกหน่วยงาน'}
@@ -353,6 +491,24 @@ const ViewReportPage = ({ report }: ViewReportProps) => {
                                     ) : (
                                         <p className="mb-0 text-muted fs-13 italic mt-1">-- ไม่ระบุเงื่อนไขเพิ่มเติม --</p>
                                     )}
+                                    {/* ป้ายแสดงเงื่อนไขการประมวลผลปัจจุบัน */}
+                                    <div className="d-flex flex-wrap align-items-center gap-1 mt-2">
+                                        <span className="fs-11 text-muted">เงื่อนไขที่ประมวลผล:</span>
+                                        {hasDateRange && (
+                                            <Badge bg="light" className="text-dark border font-monospace fs-11">
+                                                วันที่: {startDate} ถึง {endDate}
+                                            </Badge>
+                                        )}
+                                        {craftFilters.map((filter) => {
+                                            const currentVal = craftParams[filter.name] ?? filter.default_value;
+                                            const currentOpt = filter.options.find((o) => o.value === currentVal);
+                                            return (
+                                                <Badge key={filter.id} bg="primary-subtle" className="text-primary border border-primary-subtle fs-11">
+                                                    {filter.label}: {currentOpt ? currentOpt.label : currentVal}
+                                                </Badge>
+                                            );
+                                        })}
+                                    </div>
                                 </Col>
                                 <Col lg={4} className="text-lg-end mt-2 mt-lg-0">
                                     <div className="d-flex flex-column align-items-lg-end">

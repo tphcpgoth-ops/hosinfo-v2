@@ -13,6 +13,14 @@ class EndUserReport extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'craft_filters' => 'array',
+        'is_active' => 'integer',
+        'has_date_range' => 'integer',
+        'has_department' => 'integer',
+        'has_spclty' => 'integer',
+    ];
+
     /**
      * Scope: เฉพาะรายงานที่เปิดใช้งาน (is_active = 1)
      */

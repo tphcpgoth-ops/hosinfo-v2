@@ -347,6 +347,72 @@ class KpiController extends Controller
         return redirect($this->kpiRedirectUrl());
     }
 
+    public function kpisCopy(Request $request, $id)
+    {
+        // ตรวจสอบสิทธิ์: เฉพาะ role = head หรือ admin (head ขึ้นไป) เท่านั้น
+        $currentUserRole = auth()->user()->role ?? 'guest';
+        if (!in_array($currentUserRole, ['admin', 'head'])) {
+            return back()->withErrors([
+                'copy' => 'เฉพาะผู้ใช้ระดับหัวหน้างาน (Head) ขึ้นไปเท่านั้นที่มีสิทธิ์คัดลอกตัวชี้วัด'
+            ]);
+        }
+
+        $kpi = Kpi::findOrFail($id);
+
+        $currentYear = $kpi->kpi_year ?: (date('Y') + 543);
+        $targetYear = intval($request->input('target_year', $currentYear + 1));
+
+        // ตรวจสอบความถูกต้องของปีเป้าหมาย
+        if ($targetYear <= 2500 || $targetYear >= 2700) {
+            return back()->withErrors([
+                'copy' => "ปีงบประมาณเป้าหมายไม่ถูกต้อง ({$targetYear})"
+            ]);
+        }
+
+        // ตรวจสอบว่ามีตัวชี้วัดรหัสเดียวกันในปีเป้าหมายแล้วหรือไม่
+        $exists = Kpi::where('kpi_code', $kpi->kpi_code)
+            ->where('kpi_year', $targetYear)
+            ->first();
+
+        if ($exists) {
+            return back()->withErrors([
+                'copy' => "ตัวชี้วัดรหัส '{$kpi->kpi_code}' มีอยู่ในปีงบประมาณ {$targetYear} แล้ว (ID: {$exists->id})"
+            ]);
+        }
+
+        // คัดลอกเฉพาะข้อมูล Master และรีเซ็ตผลงานของปี
+        $newKpi = $kpi->replicate([
+            'm1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm10', 'm11', 'm12',
+            'q1', 'q2', 'q3', 'q4',
+            'm1_status', 'm2_status', 'm3_status', 'm4_status', 'm5_status', 'm6_status',
+            'm7_status', 'm8_status', 'm9_status', 'm10_status', 'm11_status', 'm12_status',
+            'q1_status', 'q2_status', 'q3_status', 'q4_status',
+            'annual_result', 'annual_status',
+            'result', 'kpi_status', 'note', 'status', 'is_published',
+            'created_at', 'updated_at'
+        ]);
+
+        $newKpi->kpi_year = $targetYear;
+        $newKpi->kpi_status = null;
+        $newKpi->status = '1';
+        $newKpi->is_published = 0;
+
+        // คัดลอกไฟล์ Template แยกไฟล์ใหม่ (ถ้ามี)
+        if ($kpi->template_file && \Illuminate\Support\Facades\Storage::disk('public')->exists($kpi->template_file)) {
+            $extension = pathinfo($kpi->template_file, PATHINFO_EXTENSION) ?: 'pdf';
+            $newPath = 'kpi-templates/' . \Illuminate\Support\Str::random(40) . '.' . $extension;
+            if (\Illuminate\Support\Facades\Storage::disk('public')->copy($kpi->template_file, $newPath)) {
+                $newKpi->template_file = $newPath;
+            }
+        }
+
+        $newKpi->save();
+
+        session()->flash('success', "คัดลอกตัวชี้วัด '{$newKpi->kpi_code}' ไปยังปีงบประมาณ {$targetYear} เรียบร้อยแล้ว");
+
+        return redirect("/kpis/{$newKpi->id}/edit");
+    }
+
     private function kpiRedirectUrl(): string
     {
         $year = session('kpi_selected_year', date('Y') + 543);

@@ -72,6 +72,10 @@ class HandleInertiaRequests extends Middleware
                 'name' => config('hospital.name'),
                 'code' => config('hospital.code'),
             ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'wards' => $wards,
         ];

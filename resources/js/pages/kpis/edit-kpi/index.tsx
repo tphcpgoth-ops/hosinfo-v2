@@ -54,11 +54,96 @@ interface EditKpiPageProps {
 }
 
 const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) => {
-    const { auth } = usePage().props as any;
+    const { auth, flash } = usePage().props as any;
     const canEditMaster = auth.user?.role === 'admin' || auth.user?.role === 'head';
+    const isHeadOrAbove = auth.user?.role === 'admin' || auth.user?.role === 'head';
     
     const currentYearBE = new Date().getFullYear() + 543;
+    const currentKpiYear = Number(kpi.kpi_year) || currentYearBE;
+    const targetYear = currentKpiYear + 1;
     const pastYears = [currentYearBE - 3, currentYearBE - 2, currentYearBE - 1];
+
+    useEffect(() => {
+        if (flash?.success) {
+            Swal.fire({
+                title: 'สำเร็จ!',
+                text: flash.success,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+        if (flash?.error) {
+            Swal.fire({
+                title: 'ข้อผิดพลาด!',
+                text: flash.error,
+                icon: 'error',
+                confirmButtonText: 'ตกลง'
+            });
+        }
+    }, [flash]);
+
+    const handleCopyToNextYear = () => {
+        if (!isHeadOrAbove) {
+            Swal.fire({
+                title: 'ไม่มีสิทธิ์เข้าถึง',
+                text: 'เฉพาะผู้ใช้ระดับหัวหน้างาน (Head) ขึ้นไปเท่านั้นที่มีสิทธิ์คัดลอกตัวชี้วัด',
+                icon: 'warning',
+                confirmButtonText: 'ตกลง'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'ยืนยันการคัดลอกตัวชี้วัด?',
+            html: `
+                <div class="text-start p-2">
+                    <div class="alert alert-info py-2 px-3 mb-3 border-0 shadow-sm" style="background-color: #e7f1ff; color: #084298;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <small class="text-muted d-block">ปีงบประมาณเดิม</small>
+                                <span class="badge bg-secondary fs-13 px-2 py-1">ปี ${currentKpiYear}</span>
+                            </div>
+                            <div class="fs-20 fw-bold text-primary px-2">➔</div>
+                            <div class="text-end">
+                                <small class="text-primary fw-medium d-block">ปีที่จะคัดลอกไป</small>
+                                <span class="badge bg-primary fs-14 px-3 py-1 fw-bold">ปี ${targetYear}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-2"><strong>รหัสตัวชี้วัด:</strong> <span class="badge bg-light text-dark border font-monospace fs-12">${kpi.kpi_code || '-'}</span></div>
+                    <div class="mb-2"><strong>ชื่อตัวชี้วัด:</strong> <span>${kpi.kpi_name_th || '-'}</span></div>
+                    <div class="text-muted small border-top pt-2 mt-3 bg-light p-2 rounded">
+                        <i class="text-warning me-1">⚠️</i> <strong>คำชี้แจง:</strong> ข้อมูลแม่แบบและเกณฑ์เป้าหมายจะถูกคัดลอกไปยังปี <strong>${targetYear}</strong> ส่วนข้อมูลผลการดำเนินงานรายเดือน (M1-M12) และสถานะการรับรองจะถูกรีเซ็ตเริ่มต้นใหม่สำหรับปี ${targetYear}
+                    </div>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: `<i class="tabler--copy me-1"></i> ยืนยันคัดลอกไปปี ${targetYear}`,
+            cancelButtonText: 'ยกเลิก',
+            reverseButtons: true,
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                return new Promise((resolve) => {
+                    router.post('/kpis/' + kpi.id + '/copy', {
+                        target_year: targetYear
+                    }, {
+                        onSuccess: () => {
+                            resolve(true);
+                        },
+                        onError: (err: any) => {
+                            const errMsg = err?.copy || 'เกิดข้อผิดพลาดในการคัดลอกตัวชี้วัด';
+                            Swal.showValidationMessage(errMsg);
+                            resolve(false);
+                        }
+                    });
+                });
+            }
+        });
+    };
 
     const departmentOptions = departments.map(dept => ({ value: dept.id.toString(), label: dept.dp_name }));
     const userOptions = [
@@ -138,8 +223,26 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
                     <Row>
                         <Col xs={12}>
                             <Card className="shadow-sm">
-                                <Card.Header className="bg-light">
-                                    <h5 className="card-title mb-0 text-primary">1. ข้อมูลทั่วไป (General Information)</h5>
+                                <Card.Header className="bg-light d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
+                                    <div className="d-flex align-items-center gap-2">
+                                        <h5 className="card-title mb-0 text-primary">1. ข้อมูลทั่วไป (General Information)</h5>
+                                        <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fs-12">
+                                            <IconifyIcon icon="tabler:calendar" className="me-1 align-middle" />
+                                            ปีงบประมาณ {currentKpiYear}
+                                        </span>
+                                    </div>
+                                    {isHeadOrAbove && (
+                                        <Button 
+                                            variant="outline-primary" 
+                                            size="sm" 
+                                            type="button" 
+                                            onClick={handleCopyToNextYear}
+                                            className="d-flex align-items-center gap-1 shadow-xs fw-medium"
+                                        >
+                                            <IconifyIcon icon="tabler:copy" className="fs-16" />
+                                            <span>คัดลอกตัวชี้วัดไปปีถัดไป (ปี <strong className="text-decoration-underline">{targetYear}</strong>)</span>
+                                        </Button>
+                                    )}
                                 </Card.Header>
                                 <CardBody>
                                     <Row className="mb-4">
@@ -508,13 +611,28 @@ const EditKpiPage = ({ kpi, departments = [], users = [] }: EditKpiPageProps) =>
                                 </CardBody>
                             </Card>
 
-                            <div className="mb-5 d-flex justify-content-end gap-2">
-                                <Button variant="secondary" type="button" onClick={() => window.history.back()} className="d-flex align-items-center gap-1 px-4">
-                                    <IconifyIcon icon="tabler:x" className="fs-16" /> ยกเลิก
-                                </Button>
-                                <Button variant="success" type="submit" className="d-flex align-items-center gap-1 px-4">
-                                    <IconifyIcon icon="tabler:device-floppy" className="fs-16" /> บันทึกข้อมูล
-                                </Button>
+                            <div className="mb-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div>
+                                    {isHeadOrAbove && (
+                                        <Button 
+                                            variant="outline-primary" 
+                                            type="button" 
+                                            onClick={handleCopyToNextYear} 
+                                            className="d-flex align-items-center gap-2 px-3 shadow-xs"
+                                        >
+                                            <IconifyIcon icon="tabler:copy" className="fs-18" />
+                                            <span>คัดลอกตัวชี้วัดไปปีถัดไป (ปี <strong className="text-decoration-underline">{targetYear}</strong>)</span>
+                                        </Button>
+                                    )}
+                                </div>
+                                <div className="d-flex gap-2">
+                                    <Button variant="secondary" type="button" onClick={() => window.history.back()} className="d-flex align-items-center gap-1 px-4">
+                                        <IconifyIcon icon="tabler:x" className="fs-16" /> ยกเลิก
+                                    </Button>
+                                    <Button variant="success" type="submit" className="d-flex align-items-center gap-1 px-4">
+                                        <IconifyIcon icon="tabler:device-floppy" className="fs-16" /> บันทึกข้อมูล
+                                    </Button>
+                                </div>
                             </div>
                         </Col>
                     </Row>

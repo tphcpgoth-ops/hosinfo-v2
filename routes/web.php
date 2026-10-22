@@ -66,6 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/kpis/{id}', [KpiController::class, 'kpisUpdate']);
     Route::delete('/kpis/{id}', [KpiController::class, 'kpisDestroy']);
     Route::put('/kpis/{id}/monthly', [KpiController::class, 'updateMonthlyData']);
+    Route::post('/kpis/{id}/copy', [KpiController::class, 'kpisCopy'])->name('kpis.copy');
 
     // กระดานข่าวถามตอบและแจ้งปัญหา (Q&A Webboard)
     Route::post('/webboard/store', [WebboardController::class, 'store'])->name('webboard.store');
@@ -98,6 +99,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/end-user-reports/master-filters', [ReportController::class, 'getMasterFilters'])->name('end-user-reports.master-filters');
     Route::get('/end-user-reports/{id}/view', [ReportController::class, 'viewReport'])->name('end-user-reports.view');
     Route::post('/end-user-reports/{id}/execute', [ReportController::class, 'executeReport'])->name('end-user-reports.execute');
+
+    // HOSxP Data Enrichment via Excel/CSV
+    Route::get('/tools/hosxp-data-enrichment', [\App\Http\Controllers\DataEnrichmentController::class, 'index'])->name('tools.hosxp-data-enrichment');
+    Route::post('/tools/hosxp-data-enrichment/lookup', [\App\Http\Controllers\DataEnrichmentController::class, 'lookup'])->name('tools.hosxp-data-enrichment.lookup');
 
 });
 

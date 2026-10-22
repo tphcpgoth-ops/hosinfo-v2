@@ -29,7 +29,7 @@ const TopNavigationBarPage = () => {
                         MIS 4.0
                     </a>
                     <a 
-                        href="http://prism.tphcp.go.th" 
+                        href="https://prism.tphcp.go.th:8443/" 
                         target="_blank" 
                         rel="noopener noreferrer" 
                         className="btn btn-outline-success btn-sm ms-1"

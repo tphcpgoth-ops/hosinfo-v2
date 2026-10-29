@@ -30,6 +30,7 @@ const FIELD_DEFINITIONS: FieldOption[] = [
 
     // 2. ข้อมูลการรับบริการ (Visit)
     { id: 'vn', label: 'เลขที่รับบริการ (VN)', category: 'visit', defaultSelected: false, getValue: (r) => r.visit?.vn || '' },
+    { id: 'an', label: 'เลขที่ผู้ป่วยใน (AN)', category: 'visit', defaultSelected: false, getValue: (r) => r.visit?.an || '' },
     { id: 'vstdate', label: 'วันที่รับบริการ (HOSxP)', category: 'visit', defaultSelected: true, getValue: (r) => r.visit?.vstdate || '' },
     { id: 'vsttime', label: 'เวลารับบริการ', category: 'visit', defaultSelected: false, getValue: (r) => r.visit?.vsttime || '' },
     { id: 'age_at_visit', label: 'อายุ ณ วันรับบริการ', category: 'visit', defaultSelected: true, getValue: (r) => r.visit?.age_at_visit ?? '' },

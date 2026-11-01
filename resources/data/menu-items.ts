@@ -174,28 +174,28 @@ export const MENU_ITEMS: MenuItemType[] = [
             },
         ],
     },
-    {
-        key: 'hepatitis',
-        label: 'คัดกรองไวรัสตับอักเสบ',
-        icon: 'tabler:virus-search',
-        roles: ['admin', 'head', 'user','guest'],
-        children: [
-            {
-                key: 'hepatitis_summary',
-                label: 'สรุปผลการรักษา',
-                url: '/hepatitis/summary',
-                parentKey: 'hepatitis',
-                roles: ['admin', 'head', 'user','guest'],
-            },
-            {
-                key: 'hepatitis_list',
-                label: 'ข้อมูลการตรวจ',
-                url: '/hepatitis',
-                parentKey: 'hepatitis',
-                roles: ['admin', 'head', 'user'],
-            },
-        ],
-    },
+    // {
+    //     key: 'hepatitis',
+    //     label: 'คัดกรองไวรัสตับอักเสบ',
+    //     icon: 'tabler:virus-search',
+    //     roles: ['admin', 'head', 'user','guest'],
+    //     children: [
+    //         {
+    //             key: 'hepatitis_summary',
+    //             label: 'สรุปผลการรักษา',
+    //             url: '/hepatitis/summary',
+    //             parentKey: 'hepatitis',
+    //             roles: ['admin', 'head', 'user','guest'],
+    //         },
+    //         {
+    //             key: 'hepatitis_list',
+    //             label: 'ข้อมูลการตรวจ',
+    //             url: '/hepatitis',
+    //             parentKey: 'hepatitis',
+    //             roles: ['admin', 'head', 'user'],
+    //         },
+    //     ],
+    // },
     {
         key: 'management',
         label: 'การจัดการ',
@@ -229,6 +229,19 @@ export const HORIZONTAL_MENU_ITEM: MenuItemType[] = [
                 label: 'หน้าหลัก',
                 icon: 'tabler:building-hospital',
                 url: '/',
+            },
+            {
+                key: 'hosinfo',
+                label: 'Dashboard',
+                icon: 'tabler:dashboard',
+                url: '/hosinfo',
+                // roles: ['admin', 'head', 'user'],
+            },
+            {
+                key: 'hosinfo_appointments',
+                label: 'ปฏิทินคนไข้นัด',
+                icon: 'tabler:calendar-stats',
+                url: '/hosinfo/appointments',
             },
             {
                 key: 'stats',
@@ -340,6 +353,13 @@ export const HORIZONTAL_MENU_ITEM: MenuItemType[] = [
                 roles: ['admin', 'head', 'user'],
             },
             {
+                key: 'data-enrichment',
+                label: 'ดึงข้อมูล HOSxP จาก Excel',
+                icon: 'tabler:file-spreadsheet',
+                url: '/tools/hosxp-data-enrichment',
+                roles: ['admin', 'head', 'user'],
+            },
+            {
                 key: 'kpi',
                 label: 'ตัวชี้วัด',
                 icon: 'tabler:file-invoice',
@@ -368,6 +388,26 @@ export const HORIZONTAL_MENU_ITEM: MenuItemType[] = [
                         roles: ['admin', 'head', 'user'],
                     },
                 ],
+            },
+            {
+                key: 'management',
+                label: 'การจัดการ',
+                isTitle: true,
+                roles: ['admin'],
+            },
+            {
+                key: 'users',
+                label: 'จัดการผู้ใช้งาน',
+                icon: 'tabler:users',
+                url: '/users',
+                roles: ['admin'],
+            },
+            {
+                key: 'departments',
+                label: 'จัดการหน่วยงาน/แผนก',
+                icon: 'tabler:building-hospital',
+                url: '/departments',
+                roles: ['admin'],
             },
             // {
             //     key: 'last_update',

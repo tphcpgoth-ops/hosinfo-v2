@@ -2,11 +2,12 @@ import React, { useEffect } from 'react';
 import PageTitle from '@/components/PageTitle';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import MainLayout from '@/layouts/MainLayout';
-import { Card, CardBody, Col, Row, Dropdown, Button } from 'react-bootstrap';
+import { Card, CardBody, Col, Row } from 'react-bootstrap';
 import { router, Link, usePage } from '@inertiajs/react';
 import { Grid } from 'gridjs-react';
 import { html } from 'gridjs';
 import Swal from 'sweetalert2';
+import ReactSelect from 'react-select';
 
 interface Department {
     id: number;
@@ -89,28 +90,44 @@ const ReportsPage = ({ departments = [], reports = [], currentDepartment = '' }:
         };
     }, [reports]);
 
+    const deptOptions = [
+        { value: '', label: 'ทั้งหมด' },
+        ...departments.map((d) => ({ value: String(d.id), label: d.dp_name })),
+    ];
+
+    const selectedDeptOption = deptOptions.find((opt) => opt.value === String(currentDepartment || '')) || deptOptions[0];
+
     return (
         <MainLayout>
             <PageTitle
                 title="รายงาน End Users"
                 subTitle="ระบบประมวลผล HOSxP"
                 rightContent={
-                    <div className="d-flex align-items-center gap-2">
-                        <span className="text-muted small">เลือกหน่วยงาน:</span>
-                        <Dropdown onSelect={(key) => handleDepartmentChange(key || '')}>
-                            <Dropdown.Toggle variant="outline-primary" size="sm" id="dropdown-reports-dept">
-                                {departments.find((d) => String(d.id) === currentDepartment)?.dp_name || 'ทั้งหมด'}
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu>
-                                <Dropdown.Item eventKey="">ทั้งหมด</Dropdown.Item>
-                                <Dropdown.Divider />
-                                {departments.map((dept) => (
-                                    <Dropdown.Item key={dept.id} eventKey={String(dept.id)}>
-                                        {dept.dp_name}
-                                    </Dropdown.Item>
-                                ))}
-                            </Dropdown.Menu>
-                        </Dropdown>
+                    <div className="d-flex align-items-center gap-2 text-start">
+                        <span className="text-muted small text-nowrap fw-semibold">เลือกหน่วยงาน:</span>
+                        <div style={{ minWidth: '280px' }}>
+                            <ReactSelect
+                                isClearable
+                                isSearchable
+                                placeholder="— ค้นหาหรือเลือกหน่วยงาน —"
+                                noOptionsMessage={() => 'ไม่พบหน่วยงาน'}
+                                value={selectedDeptOption}
+                                options={deptOptions}
+                                onChange={(selected) => handleDepartmentChange(selected ? selected.value : '')}
+                                classNamePrefix="react-select"
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        minHeight: '34px',
+                                        fontSize: '0.875rem',
+                                        borderColor: '#dee2e6',
+                                        boxShadow: 'none',
+                                        '&:hover': { borderColor: '#86b7fe' },
+                                    }),
+                                    menu: (base) => ({ ...base, zIndex: 9999, fontSize: '0.875rem' }),
+                                }}
+                            />
+                        </div>
                     </div>
                 }
             />
@@ -118,17 +135,26 @@ const ReportsPage = ({ departments = [], reports = [], currentDepartment = '' }:
             <Row>
                 <Col md={12}>
                     <Card className="shadow-sm border-0">
-                        <Card.Header className="bg-light-subtle py-3 d-flex justify-content-between align-items-center">
+                        <Card.Header className="bg-light-subtle py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                             <h4 className="card-title mb-0 d-flex align-items-center">
                                 <IconifyIcon icon="tabler:report" className="me-2 text-primary fs-20" />
                                 รายชื่อรายงาน End Users ทั้งหมด ({reports.length})
                             </h4>
-                            {isAdmin && (
-                                <Link href="/end-user-reports/create" className="btn btn-success btn-sm d-inline-flex align-items-center gap-1 shadow-sm">
-                                    <IconifyIcon icon="tabler:plus" className="fs-16" />
-                                    เพิ่มรายงานใหม่
+                            <div className="d-flex align-items-center gap-2">
+                                <Link
+                                    href="/tools/hosxp-data-enrichment"
+                                    className="btn btn-primary btn-sm d-inline-flex align-items-center gap-1 shadow-sm"
+                                >
+                                    <IconifyIcon icon="tabler:file-spreadsheet" className="fs-16" />
+                                    ดึงข้อมูล HOSxP จาก Excel
                                 </Link>
-                            )}
+                                {isAdmin && (
+                                    <Link href="/end-user-reports/create" className="btn btn-success btn-sm d-inline-flex align-items-center gap-1 shadow-sm">
+                                        <IconifyIcon icon="tabler:plus" className="fs-16" />
+                                        เพิ่มรายงานใหม่
+                                    </Link>
+                                )}
+                            </div>
                         </Card.Header>
                         <CardBody>
                             <Grid

@@ -137,13 +137,13 @@ export const MENU_ITEMS: MenuItemType[] = [
         url: '/end-user-reports',
         roles: ['admin', 'head', 'user'],
     },
-    {
-        key: 'data-enrichment',
-        label: 'ดึงข้อมูล HOSxP จาก Excel',
-        icon: 'tabler:file-spreadsheet',
-        url: '/tools/hosxp-data-enrichment',
-        roles: ['admin', 'head', 'user'],
-    },
+    // {
+    //     key: 'data-enrichment',
+    //     label: 'ดึงข้อมูล HOSxP จาก Excel',
+    //     icon: 'tabler:file-spreadsheet',
+    //     url: '/tools/hosxp-data-enrichment',
+    //     roles: ['admin', 'head', 'user'],
+    // },
 
         {
         key: 'kpi',
@@ -352,13 +352,13 @@ export const HORIZONTAL_MENU_ITEM: MenuItemType[] = [
                 parentKey: 'dashboards',
                 roles: ['admin', 'head', 'user'],
             },
-            {
-                key: 'data-enrichment',
-                label: 'ดึงข้อมูล HOSxP จาก Excel',
-                icon: 'tabler:file-spreadsheet',
-                url: '/tools/hosxp-data-enrichment',
-                roles: ['admin', 'head', 'user'],
-            },
+            // {
+            //     key: 'data-enrichment',
+            //     label: 'ดึงข้อมูล HOSxP จาก Excel',
+            //     icon: 'tabler:file-spreadsheet',
+            //     url: '/tools/hosxp-data-enrichment',
+            //     roles: ['admin', 'head', 'user'],
+            // },
             {
                 key: 'kpi',
                 label: 'ตัวชี้วัด',

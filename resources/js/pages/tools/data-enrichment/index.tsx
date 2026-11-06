@@ -37,6 +37,30 @@ const FIELD_DEFINITIONS: FieldOption[] = [
     { id: 'department_name', label: 'แผนก/ห้องตรวจ', category: 'visit', defaultSelected: true, getValue: (r) => r.visit?.department_name || '' },
     { id: 'doctor_name', label: 'แพทย์ผู้ตรวจ', category: 'visit', defaultSelected: false, getValue: (r) => r.visit?.doctor_name || '' },
     { id: 'pttype_name', label: 'สิทธิการรักษา', category: 'visit', defaultSelected: true, getValue: (r) => r.visit?.pttype_name || '' },
+    {
+        id: 'hospmain',
+        label: 'สถานพยาบาลหลัก (hospmain)',
+        category: 'visit',
+        defaultSelected: false,
+        getValue: (r) => {
+            const code = r.visit?.hospmain || '';
+            const name = r.visit?.hospmain_name || '';
+            if (code && name) return `${code} - ${name}`;
+            return code || name || '';
+        },
+    },
+    {
+        id: 'hospsub',
+        label: 'สถานพยาบาลรอง (hospsub)',
+        category: 'visit',
+        defaultSelected: false,
+        getValue: (r) => {
+            const code = r.visit?.hospsub || '';
+            const name = r.visit?.hospsub_name || '';
+            if (code && name) return `${code} - ${name}`;
+            return code || name || '';
+        },
+    },
 
     // 3. สัญญาณชีพ & อาการ (Vitals)
     { id: 'cc', label: 'อาการสำคัญ (CC)', category: 'vitals', defaultSelected: true, getValue: (r) => r.visit?.cc || '' },
@@ -379,7 +403,15 @@ const DataEnrichmentPage: React.FC = () => {
 
             // 4. ฟิลด์ที่เลือกจาก HOSxP
             exportFields.forEach(f => {
-                row[f.label] = f.getValue(r) ?? '';
+                if (f.id === 'hospmain') {
+                    row['รหัสสถานพยาบาลหลัก (hospmain)'] = r.visit?.hospmain ?? '';
+                    row['ชื่อสถานพยาบาลหลัก'] = r.visit?.hospmain_name ?? '';
+                } else if (f.id === 'hospsub') {
+                    row['รหัสสถานพยาบาลรอง (hospsub)'] = r.visit?.hospsub ?? '';
+                    row['ชื่อสถานพยาบาลรอง'] = r.visit?.hospsub_name ?? '';
+                } else {
+                    row[f.label] = f.getValue(r) ?? '';
+                }
             });
 
             return row;
